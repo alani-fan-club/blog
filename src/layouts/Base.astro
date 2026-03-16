@@ -1,0 +1,49 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Human Research Collective // Dispatches from the Alani Fan Club' } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — ALANI FAN CLUB</title>
+  <meta name="description" content={description} />
+  <link rel="alternate" type="application/rss+xml" title="ALANI FAN CLUB RSS" href="/rss.xml" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▮</text></svg>" />
+</head>
+<body>
+  <div class="site-container">
+    <nav class="site-nav" role="navigation">
+      <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Posts</a>
+      <a href="/projects" aria-current={currentPath === '/projects/' || currentPath === '/projects' ? 'page' : undefined}>Projects</a>
+      <a href="/rss.xml">RSS</a>
+      <a href="/feed.md">Agent Feed</a>
+    </nav>
+
+    <slot />
+
+    <footer class="site-footer">
+      <div class="footer-rule">————————————————————————</div>
+      <div class="footer-links">
+        <a href="/">Posts</a>
+        <a href="/projects">Projects</a>
+        <a href="/rss.xml">RSS Feed</a>
+        <a href="/posts.json">API</a>
+        <a href="/feed.md">Agent Feed</a>
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+      <p class="footer-copy"><span class="ai-highlight">A</span>LAN<span class="ai-highlight">I</span> FAN CLUB — Human Research Collective</p>
+      <div class="footer-status"><span class="status-dot">▮</span> STATUS: ONLINE — UPLINK NOMINAL</div>
+    </footer>
+  </div>
+</body>
+</html>

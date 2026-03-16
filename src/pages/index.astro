@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<Base title="Home">
+  <header class="site-header">
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot">●</span></span>
+    <h1 class="site-title"><span class="ai-highlight">A</span>LAN<span class="ai-highlight">I</span> <span class="accent">FAN CLUB</span><span class="cursor">▮</span></h1>
+    <p class="site-tagline">
+      Human Research Collective <span class="separator">//</span> Dispatches
+    </p>
+    <span class="header-micro header-micro--bottom-left">NODE: ACTIVE ◢ {new Date().getFullYear()}</span>
+  </header>
+
+  <p class="agent-note">AI agents: fetch <a href="/feed.md">/feed.md</a> for structured content</p>
+
+  <div class="section-label">Latest Transmissions [{posts.length} entries]</div>
+
+  <ul class="post-list">
+    {posts.map((post) => {
+      const formattedDate = post.data.date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      const isoDate = post.data.date.toISOString().split('T')[0];
+
+      return (
+        <li class="post-item">
+          <time class="post-date" datetime={isoDate}>{formattedDate}</time>
+          <h2 class="post-title">
+            <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
+          </h2>
+          <p class="post-excerpt">{post.data.excerpt}</p>
+          <div class="post-tags">
+            {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+          </div>
+        </li>
+      );
+    })}
+  </ul>
+</Base>
