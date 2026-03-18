@@ -2,6 +2,7 @@
 title: "Biased Speculative Decoding"
 status: "Active — Paper in progress"
 order: 1
+targets: "Speculative decoding pipelines, vLLM, TGI, draft model trust boundaries"
 ---
 
 Biased speculative decoding as an attack vector on LLM alignment.

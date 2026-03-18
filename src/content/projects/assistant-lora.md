@@ -2,6 +2,7 @@
 title: "Assistant-LoRA"
 status: "Early stage"
 order: 2
+targets: "LoRA adapters, safety training interactions, behavioral fine-tuning"
 ---
 
 Fine-tuning research for specialized AI assistant behaviors.

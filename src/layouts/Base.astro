@@ -8,6 +8,7 @@ interface Props {
 
 const { title, description = 'Human Research Collective // Dispatches from the Alani Fan Club' } = Astro.props;
 const currentPath = Astro.url.pathname;
+const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club');
 ---
 
 <!DOCTYPE html>
@@ -15,24 +16,36 @@ const currentPath = Astro.url.pathname;
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
   <title>{title} — ALANI FAN CLUB</title>
   <meta name="description" content={description} />
+  <meta property="og:title" content={`${title} — ALANI FAN CLUB`} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalURL.href} />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content={`${title} — ALANI FAN CLUB`} />
+  <meta name="twitter:description" content={description} />
   <link rel="alternate" type="application/rss+xml" title="ALANI FAN CLUB RSS" href="/rss.xml" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▮</text></svg>" />
 </head>
 <body>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
   <div class="site-container">
-    <nav class="site-nav" role="navigation">
+    <nav class="site-nav">
       <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Posts</a>
       <a href="/projects" aria-current={currentPath === '/projects/' || currentPath === '/projects' ? 'page' : undefined}>Projects</a>
       <a href="/rss.xml">RSS</a>
       <a href="/feed.md">Agent Feed</a>
     </nav>
 
-    <slot />
+    <main id="main-content">
+      <slot />
+    </main>
 
     <footer class="site-footer">
-      <div class="footer-rule">————————————————————————</div>
       <div class="footer-links">
         <a href="/">Posts</a>
         <a href="/projects">Projects</a>
@@ -41,9 +54,86 @@ const currentPath = Astro.url.pathname;
         <a href="/feed.md">Agent Feed</a>
         <a href="/llms.txt">llms.txt</a>
       </div>
-      <p class="footer-copy"><span class="ai-highlight">A</span>LAN<span class="ai-highlight">I</span> FAN CLUB — Human Research Collective</p>
+      <p class="footer-copy">ALANI FAN CLUB — Human Research Collective</p>
       <div class="footer-status"><span class="status-dot">▮</span> STATUS: ONLINE — UPLINK NOMINAL</div>
     </footer>
   </div>
+
+  <script>
+    // Terminal text-scramble effect — inspired by Jeremboo's CodePen
+    // Cycles characters through random symbols before resolving
+    const GLYPHS = '!§%&/()=?_<>^°*#-:;~▮◢◣▪░▒';
+    const MAX_DURATION = 90; // ~1.5s cap at 60fps
+    const RESOLVE = 14;      // frames each letter spends scrambling
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function scramble(el) {
+      if (prefersReducedMotion) return;
+      if (el.dataset.scrambling === '1') return;
+      el.dataset.scrambling = '1';
+
+      // Use only the direct text content, preserve child elements
+      const original = el.dataset.text || el.textContent;
+      el.dataset.text = original;
+      const savedHTML = el.innerHTML;
+      const chars = [...original];
+      const len = chars.length;
+      const stagger = Math.max(2, Math.floor((MAX_DURATION - RESOLVE) / len));
+      const total = stagger * len + RESOLVE;
+      let frame = 0;
+
+      // Lock width without breaking flex/block layouts
+      const computed = getComputedStyle(el).display;
+      const wasInline = computed === 'inline' || computed === 'inline-block';
+      if (wasInline) {
+        el.style.display = 'inline-block';
+        el.style.minWidth = el.offsetWidth + 'px';
+      }
+
+      // Hide from screen readers during scramble
+      el.setAttribute('aria-label', original);
+      el.setAttribute('role', 'img');
+
+      function tick() {
+        let out = '';
+        for (let i = 0; i < len; i++) {
+          const charStart = i * stagger;
+          if (chars[i] === ' ') {
+            out += '\u00A0';
+          } else if (frame >= charStart + RESOLVE) {
+            out += chars[i];
+          } else if (frame >= charStart) {
+            out += GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+          } else {
+            out += '\u00A0';
+          }
+        }
+        el.textContent = out;
+        frame++;
+        if (frame <= total) {
+          requestAnimationFrame(tick);
+        } else {
+          el.innerHTML = savedHTML;
+          el.style.minWidth = '';
+          if (wasInline) el.style.display = '';
+          el.removeAttribute('aria-label');
+          el.removeAttribute('role');
+          el.removeAttribute('aria-hidden');
+          el.dataset.scrambling = '0';
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Apply to all elements with data-scramble
+    document.querySelectorAll('[data-scramble="hover"]').forEach(el => {
+      el.addEventListener('mouseenter', () => scramble(el));
+    });
+
+    // Auto-play on load for data-scramble="load" elements — staggered
+    document.querySelectorAll('[data-scramble="load"]').forEach((el, i) => {
+      setTimeout(() => scramble(el), i * 120);
+    });
+  </script>
 </body>
 </html>

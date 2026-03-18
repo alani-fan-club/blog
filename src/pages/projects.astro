@@ -9,9 +9,13 @@ const projects = (await getCollection('projects')).sort(
 
 <Base title="Projects">
   <header class="page-header">
-    <h1 class="page-title">Projects</h1>
-    <p class="page-subtitle">// Active research initiatives</p>
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot">●</span></span>
+    <h1 class="page-title" data-scramble="load">Projects</h1>
+    <p class="page-subtitle" data-scramble="load">// Active research initiatives</p>
+    <span class="header-micro header-micro--bottom-left">REGISTRY: ACTIVE ◢ {new Date().getFullYear()}</span>
   </header>
+
+  <div class="section-label" data-scramble="load">Active Research [{projects.length} projects]</div>
 
   <div class="project-list">
     {await Promise.all(projects.map(async (project) => {
@@ -20,7 +24,7 @@ const projects = (await getCollection('projects')).sort(
         <article class="project-card">
           <div class="corner-marks"></div>
           <div class="project-status">{project.data.status}</div>
-          <h2 class="project-title">{project.data.title}</h2>
+          <h2 class="project-title" data-scramble="load">{project.data.title}</h2>
           <div class="project-body">
             <Content />
           </div>

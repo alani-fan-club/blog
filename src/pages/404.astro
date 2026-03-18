@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Signal Lost" description="Transmission not found.">
+  <header class="page-header">
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" style="color: var(--cherry);">●</span></span>
+    <h1 class="page-title" data-scramble="load">Signal Lost</h1>
+    <p class="page-subtitle" data-scramble="load">// Transmission not found</p>
+    <span class="header-micro header-micro--bottom-left">ERR: 404 ◢ UPLINK SEVERED</span>
+  </header>
+
+  <div class="error-block">
+    <p>The requested path does not resolve to any known transmission.</p>
+    <p><a href="/">Return to Index</a></p>
+  </div>
+</Base>
+
+<style>
+  .error-block {
+    font-family: var(--font-mono);
+    font-size: var(--text-secondary);
+    color: var(--gray);
+    padding: var(--space-xl) 0;
+  }
+
+  .error-block p {
+    margin-bottom: var(--space-md);
+  }
+
+  .error-block a {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: var(--text-ui);
+  }
+
+  .error-block a::before {
+    content: '<< ';
+  }
+</style>

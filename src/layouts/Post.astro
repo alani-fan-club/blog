@@ -22,18 +22,22 @@ const isoDate = date.toISOString().split('T')[0];
 
 <Base title={title} description={excerpt}>
   <article>
-    <a href="/" class="back-link">All Posts</a>
+    <a href="/" class="back-link">Return to Index</a>
 
     <header class="post-header">
+      <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot">●</span></span>
       <time class="post-date" datetime={isoDate}>{formattedDate}</time>
-      <h1 class="post-title">{title}</h1>
+      <h1 class="post-title" data-scramble="load">{title}</h1>
       <div class="post-meta">
-        <span>{author}</span>
+        <span class="post-author"><span class="ai-highlight">A</span>LAN<span class="ai-highlight">I</span></span>
+        <span class="separator">//</span>
+        <span>{isoDate}</span>
         {tags.length > 0 && <span class="separator">//</span>}
         <div class="post-tags">
           {tags.map((tag) => <span class="tag">{tag}</span>)}
         </div>
       </div>
+      <span class="header-micro header-micro--bottom-left">TX: {isoDate} ◢ DISPATCH</span>
     </header>
 
     <div class="post-content">
