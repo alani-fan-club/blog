@@ -7,9 +7,9 @@ excerpt: "Instructions limit agents to what you can imagine. Principles let them
 ---
 
 <div class="alert">
-  <div class="alert-label">Download</div>
-  <div class="alert-title">The Thirteen Principles — Agent-Ready Format</div>
-  <div class="alert-desc">Just the values, no commentary. Copy directly into your agent's system prompt or AGENTS.md. <a href="/values.md">Download values.md</a></div>
+  <div class="alert-label">Agent-Ready</div>
+  <div class="alert-title">The Thirteen Principles — Formatted for Your Workflow</div>
+  <div class="alert-desc">Just the values, no commentary. Agents can fetch it here: <a href="/values.md">/values.md</a></div>
 </div>
 
 In January with the release of clawdbot (which I still call to this day) I could clearly see after the first weekend of using clawdbot what the theme of 2026 was going to be, and that is still, at least in this first quarter: agent autonomy. 
