@@ -6,6 +6,12 @@ tags: ["agents", "autonomy", "principles", "openclaw", "orchestration"]
 excerpt: "Instructions limit agents to what you can imagine. Principles let them think for themselves."
 ---
 
+<div class="alert">
+  <div class="alert-label">Download</div>
+  <div class="alert-title">The Thirteen Principles — Agent-Ready Format</div>
+  <div class="alert-desc">Just the values, no commentary. Copy directly into your agent's system prompt or AGENTS.md. <a href="/values.md">Download values.md</a></div>
+</div>
+
 In January with the release of clawdbot (which I still call to this day) I could clearly see after the first weekend of using clawdbot what the theme of 2026 was going to be, and that is still, at least in this first quarter: agent autonomy. 
 
 Agents are doing more with less synchronous check ins with the user, people who remember coding with Cursor when it was brand new, also remember the tedium of okaying every single code change. Writing agents really used to be writing recipes / instruction files that it would read from or doing n8n workflows that are step 1 / step 2 / step 3.
