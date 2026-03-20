@@ -516,14 +516,12 @@ li::marker {
 .post-list {
   list-style: none;
   padding: 0;
-  counter-reset: post-counter;
 }
 
 .post-item {
   padding: var(--space-xl) 0;
   border-bottom: 1px solid var(--gray-rule);
   position: relative;
-  counter-increment: post-counter;
   transition: background 0.3s ease;
 }
 
@@ -545,8 +543,7 @@ li::marker {
 }
 
 /* Coordinate marker on post items */
-.post-item::before {
-  content: 'TX-' counter(post-counter, decimal-leading-zero);
+.post-index {
   position: absolute;
   top: var(--space-xl);
   right: 0;
@@ -557,7 +554,7 @@ li::marker {
   letter-spacing: 0.15em;
 }
 
-.post-item:first-child::before {
+.post-item:first-child .post-index {
   top: 0;
 }
 
