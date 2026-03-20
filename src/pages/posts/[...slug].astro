@@ -3,14 +3,20 @@ import Post from '../../layouts/Post.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts');
-  return posts.map((post) => ({
+  const posts = (await getCollection('posts')).sort(
+    (a, b) => a.data.date.valueOf() - b.data.date.valueOf()
+  );
+  
+  return posts.map((post, index) => ({
     params: { slug: post.slug },
-    props: { post },
+    props: { 
+      post, 
+      issueNumber: index + 1
+    },
   }));
 }
 
-const { post } = Astro.props;
+const { post, issueNumber } = Astro.props;
 const { Content, headings } = await post.render();
 ---
 
@@ -21,6 +27,7 @@ const { Content, headings } = await post.render();
   tags={post.data.tags}
   excerpt={post.data.excerpt}
   headings={headings}
+  issueNumber={issueNumber}
 >
   <Content />
 </Post>
