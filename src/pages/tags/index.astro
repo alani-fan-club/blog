@@ -1,0 +1,104 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { buildTagCounts } from '../../lib/tags';
+
+const posts = await getCollection('posts');
+const tags = buildTagCounts(posts);
+---
+
+<Base title="Tags" description="Transmission classification index — all tags across dispatches.">
+  <header class="page-header">
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
+    <h1 class="page-title" data-scramble="load">Tags</h1>
+    <p class="page-subtitle" data-scramble="load">// Transmission classification index</p>
+    <span class="header-micro header-micro--bottom-left">REGISTRY: {tags.length} TAGS ◢ {new Date().getFullYear()}</span>
+  </header>
+
+  <div class="section-label" data-scramble="load">Tag Registry [{tags.length} classifications]</div>
+
+  <ul class="tag-index">
+    {tags.map(([tag, count]) => (
+      <li class="tag-index-item">
+        <a href={`/tags/${tag}/`} class="tag-index-link">
+          <span class="tag-index-name">{tag}</span>
+          <span class="tag-index-count">{count}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>
+
+<style>
+  .tag-index {
+    list-style: none;
+    padding: 0;
+    counter-reset: tag-counter;
+  }
+
+  .tag-index-item {
+    counter-increment: tag-counter;
+    border-bottom: 1px solid var(--gray-rule);
+  }
+
+  .tag-index-item:last-child {
+    border-bottom: none;
+  }
+
+  .tag-index-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-sm);
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: var(--text-body);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .tag-index-link::before {
+    content: counter(tag-counter, decimal-leading-zero) ' —';
+    color: var(--gray-dim);
+    font-size: var(--text-meta);
+    margin-right: var(--space-md);
+    min-width: 3.5em;
+  }
+
+  .tag-index-link:hover {
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    color: var(--accent);
+  }
+
+  .tag-index-link:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
+  }
+
+  .tag-index-name {
+    flex: 1;
+  }
+
+  .tag-index-name::before {
+    content: '#';
+    color: var(--accent);
+  }
+
+  .tag-index-count {
+    font-size: var(--text-chrome);
+    color: var(--gray);
+    letter-spacing: 0.15em;
+    min-width: 3em;
+    text-align: right;
+  }
+
+  .tag-index-count::before {
+    content: '[';
+  }
+
+  .tag-index-count::after {
+    content: ']';
+  }
+</style>

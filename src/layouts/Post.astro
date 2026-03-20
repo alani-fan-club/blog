@@ -25,7 +25,7 @@ const isoDate = date.toISOString().split('T')[0];
     <a href="/" class="back-link">Return to Index</a>
 
     <header class="post-header">
-      <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot">●</span></span>
+      <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
       <time class="post-date" datetime={isoDate}>{formattedDate}</time>
       <h1 class="post-title" data-scramble="load">{title}</h1>
       <div class="post-meta">
@@ -34,7 +34,7 @@ const isoDate = date.toISOString().split('T')[0];
         <span>{isoDate}</span>
         {tags.length > 0 && <span class="separator">//</span>}
         <div class="post-tags">
-          {tags.map((tag) => <span class="tag">{tag}</span>)}
+          {tags.map((tag) => <a href={`/tags/${tag}/`} class="tag">{tag}</a>)}
         </div>
       </div>
       <span class="header-micro header-micro--bottom-left">TX: {isoDate} ◢ DISPATCH</span>

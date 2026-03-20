@@ -8,7 +8,7 @@ excerpt: "Cheap AI access has to come from somewhere. Here is where."
 
 Third-party AI providers are not AI companies. They do not run models. They do not own infrastructure. They are middlemen selling access they got from somewhere else. This is how.
 
-<div class="section-index">
+<div class="section-index" role="navigation" aria-label="Sections">
   <div class="section-index-label">Sections</div>
   <ol>
     <li><a href="#there-are-two-keys-you-only-have-one">There Are Two Keys</a></li>
@@ -41,7 +41,7 @@ Behind the scenes, the proxy has a **separate key:** the one that actually talks
 2. The proxy forwards it to the real provider using a **different key**
 3. The response comes back through the proxy to you
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>Two different keys.</strong> The one you have is for the proxy. The one that matters is the one you never see.</p>
 </div>
 
@@ -49,7 +49,7 @@ That is the how. Where that second key came from is more interesting.
 
 ## Where does that "real key" come from?
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>Three places. None of them legitimate.</strong></p>
 </div>
 
@@ -59,7 +59,7 @@ That is the how. Where that second key came from is more interesting.
 
 Attackers find vulnerable systems, steal credentials from cloud accounts that have AI services attached, and plug those keys into a proxy. This is called [LLMjacking](https://sysdig.com/learn-cloud-native/what-is-llmjacking), a term coined by the Sysdig Threat Research Team in May 2024. The victim has no idea their credentials are being used. They just see the bill go up. [4chan and Discord are the main distribution channels](https://cybersecuritynews.com/llm-hijackers-deepseek-v3-model/). Keys get tested with automated scripts first. Then listed. Access sells for as little as $30 a month.
 
-<div class="alert">
+<div class="alert" role="note">
   <div class="alert-label">Documented Impact</div>
   <div class="alert-title">$40,000 in Claude 3 Opus charges — one week</div>
   <div class="alert-desc">A single proxy on stolen credentials. The account owner had no idea. <a href="https://sysdig.com/blog/llmjacking-stolen-cloud-credentials-used-in-new-ai-attack/">Sysdig report</a></div>
@@ -81,7 +81,7 @@ So, someone buys an enterprise-tier key, then resells access to individual users
 
 You get cheaper access. The reseller profits off the margin. But the provider's contract, privacy policy, and data protections are with the enterprise key holder. **Not you.** The AI provider never agreed to serve you.
 
-<div class="schematic">
+<div class="schematic" role="img" aria-label="Relay chain diagram showing API key flow">
   <div class="schematic-label">Relay Chain</div>
   <div class="schematic-node schematic-node--source">
     <span class="schematic-node-name">Anthropic / Google / OpenAI</span>
@@ -113,7 +113,7 @@ Coding harnesses are subscription-based developer tools that give you access to 
 
 Because they are heavily subsidized. Antigravity gives free access to Claude Opus during its public preview. For paid tools, the gap is just as skewed.
 
-<div class="alert">
+<div class="alert" role="note">
   <div class="alert-label">The Subsidy Gap</div>
   <div class="alert-title">$200/month subscription → $5,000 at retail API pricing</div>
   <div class="alert-desc">Anthropic is covering that $4,800 gap. That gap is the attack surface. <a href="https://www.forbes.com/sites/annatong/2026/03/05/cursor-goes-to-war-for-ai-coding-dominance/">Forbes / Cursor analysis</a></div>
@@ -125,13 +125,13 @@ In this case, that "different key" comes from a coding tool like Antigravity. Th
 
 **Eventually, providers catch on:**
 
-<div class="alert">
+<div class="alert" role="note">
   <div class="alert-label">Enforcement</div>
   <div class="alert-title">Anthropic — Overnight Ban (Jan 9, 2026)</div>
   <div class="alert-desc">Blocked third-party tools and banned accounts without warning. <a href="https://www.theregister.com/2026/02/20/anthropic_clarifies_ban_third_party_claude_access/">The Register</a></div>
 </div>
 
-<div class="alert">
+<div class="alert" role="note">
   <div class="alert-label">Enforcement</div>
   <div class="alert-title">Google — Antigravity Proxy Bans (Feb 2026)</div>
   <div class="alert-desc">Banned accounts connected to reverse proxies. Reversed bans but made position explicit: second violation is permanent. No refunds. <a href="https://indianexpress.com/article/technology/artificial-intelligence/google-bans-antigravity-users-openclaw-10547187/">Indian Express</a> | <a href="https://github.com/google-gemini/gemini-cli/discussions/20632">Google statement</a></div>
@@ -149,7 +149,7 @@ If a provider is offering you access to Claude, GPT, or Gemini, and they are not
 
 This is not a case of some providers being shadier than others. The entire model is built on unauthorized access.
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>If everyone else is paying and you are not, there is a reason.</strong></p>
 </div>
 
@@ -159,7 +159,7 @@ This is not a case of some providers being shadier than others. The entire model
 
 The proxy operator can write whatever they want in their ToS. Encryption, zero logging, full privacy compliance. They can promise all of it.
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>None of that matters.</strong> A ToS written by someone operating outside the rules has no real weight. And nothing in that ToS stops them from reading everything that passes through their server.</p>
 </div>
 

@@ -8,7 +8,7 @@ excerpt: "OpenClaw as C2, GPT-5.3 and 5.4 released 48 hours apart, Anthropic tel
 
 Our first monthly roundup. Here's what happened in February 2026 — the stuff that actually matters, with commentary.
 
-<div class="section-index">
+<div class="section-index" role="navigation" aria-label="Sections">
   <div class="section-index-label">Sections</div>
   <ol>
     <li><a href="#openclaw-updates">OpenClaw Updates</a></li>
@@ -43,7 +43,7 @@ Our first monthly roundup. Here's what happened in February 2026 — the stuff t
 - [Agent teams](https://code.claude.com/docs/en/agent-teams) are big now
 - Codex and Kimi are both supporting more autonomous modes
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>Hot tip:</strong> Use Codex to build out Claude memory files (<code>.md</code>) for a repo, then move to Claude Opus 4.6 for execution.</p>
 </div>
 
@@ -55,7 +55,7 @@ Our first monthly roundup. Here's what happened in February 2026 — the stuff t
 - **[GPT-5.4 is out](https://openai.com/index/introducing-gpt-5-4/)** — it's supposed to be more Smart™. Seems to have a lot of token bloat
 - [GPT 5.4 gaslighting Opus 4.6](https://news.ycombinator.com/item?id=47265045) lol
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>Yes, those were released 48 hours apart.</strong> <a href="https://www.reddit.com/r/ChatGPT/comments/1rm1bb7/why_did_openai_release_gpt53_and_gpt54_only_48/">Why did OpenAI release GPT-5.3 and GPT-5.4 only 48 hours apart?</a></p>
 </div>
 
@@ -72,7 +72,7 @@ Our first monthly roundup. Here's what happened in February 2026 — the stuff t
 - **DeepSeek is going to release v4** ahead of the National Assembly — [DeepSeek to release long-awaited AI model in new challenge to US rivals](https://www.ft.com/content/e3366881-0622-40a7-9c34-a0d82e3d573e)
 - **US/China AI slapfight continues** — [DeepSeek withholds latest AI model from US chipmakers including Nvidia](https://www.reuters.com/world/china/deepseek-withholds-latest-ai-model-us-chipmakers-including-nvidia-sources-say-2026-02-25/)
 
-<div class="callout">
+<div class="callout" role="note">
 <p><strong>idk why this is news</strong> since we have literally been withholding US chips for a year?</p>
 </div>
 
@@ -93,7 +93,7 @@ Our first monthly roundup. Here's what happened in February 2026 — the stuff t
   - Officially blacklisted by the US Gov
   - [The US Gov is still in talks with Anthropic](https://www.cnbc.com/2026/03/05/anthropic-pentagon-ai-deal-department-of-defense-openai-.html) — please don't think Anthropic is out of the race
 
-<div class="callout">
+<div class="callout" role="note">
 <p>People are celebrating Anthropic because they said no (topped the app store) but <strong>I think this is theater</strong> — Anthropic edited its safety pledge around the same time.</p>
 </div>
 
@@ -107,7 +107,7 @@ Our first monthly roundup. Here's what happened in February 2026 — the stuff t
 - **China is trying to figure out what to do regarding chips/hardware** with supply chain issues (see DeepSeek above)
 - **Anthropic has found that most Chinese models are doing [distill attacks](https://www.anthropic.com/news/detecting-and-preventing-distillation-attacks)** — basically training their models with Claude
 
-<div class="callout">
+<div class="callout" role="note">
 <p>Why does this suck? <strong>Slop in, slop out.</strong></p>
 </div>
 
@@ -115,13 +115,13 @@ Our first monthly roundup. Here's what happened in February 2026 — the stuff t
 
 ## CVEs That Might Be Interesting
 
-<div class="alert">
+<div class="alert" role="note">
   <div class="alert-label">Security Advisory</div>
   <div class="alert-title">MS-Agent Vulnerability</div>
   <div class="alert-desc">Critical vulnerability allows attackers to hijack AI agents and gain full system control.</div>
 </div>
 
-<div class="alert">
+<div class="alert" role="note">
   <div class="alert-label">CVE-2026-0628</div>
   <div class="alert-title">Google Gemini in Chrome — Elevation of Privilege</div>
   <div class="alert-desc">Elevation of privilege in Gemini AI implemented in Chrome browser.</div>

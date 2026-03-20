@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { getUniqueTags, filterPostsByTag } from '../../lib/tags';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+
+  return getUniqueTags(posts).map((tag) => ({
+    params: { tag },
+    props: { posts: filterPostsByTag(posts, tag) },
+  }));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+
+<Base title={`#${tag}`} description={`Posts tagged "${tag}" on the Alani Fan Club.`}>
+  <a href="/tags/" class="back-link">Return to Tags</a>
+
+  <header class="page-header">
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
+    <h1 class="page-title" data-scramble="load">#{tag}</h1>
+    <p class="page-subtitle" data-scramble="load">// Filtered transmissions</p>
+    <span class="header-micro header-micro--bottom-left">FILTER: ACTIVE ◢ {posts.length} MATCH{posts.length !== 1 ? 'ES' : ''}</span>
+  </header>
+
+  <div class="section-label" data-scramble="load">Tagged Transmissions [{posts.length} entries]</div>
+
+  <ul class="post-list">
+    {posts.map((post) => {
+      const formattedDate = post.data.date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      const isoDate = post.data.date.toISOString().split('T')[0];
+
+      return (
+        <li class="post-item">
+          <time class="post-date" datetime={isoDate}>{formattedDate}</time>
+          <h2 class="post-title">
+            <a href={`/posts/${post.slug}/`} data-scramble="hover">{post.data.title}</a>
+          </h2>
+          <p class="post-excerpt">{post.data.excerpt}</p>
+          <div class="post-tags">
+            {post.data.tags.map((t) => (
+              <a href={`/tags/${t}/`} class="tag">{t}</a>
+            ))}
+          </div>
+        </li>
+      );
+    })}
+  </ul>
+</Base>

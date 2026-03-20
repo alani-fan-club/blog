@@ -4,11 +4,18 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  ogImage?: string;
 }
 
-const { title, description = 'Human Research Collective // Dispatches from the Alani Fan Club' } = Astro.props;
+const {
+  title,
+  description = 'Human Research Collective // Dispatches from the Alani Fan Club',
+  ogImage = '/og/default.png',
+} = Astro.props;
 const currentPath = Astro.url.pathname;
-const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club');
+const siteBase = Astro.site ?? 'https://alanifan.club';
+const canonicalURL = new URL(currentPath, siteBase);
+const ogImageURL = new URL(ogImage, siteBase).href;
 ---
 
 <!DOCTYPE html>
@@ -25,9 +32,14 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
   <meta property="og:description" content={description} />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={canonicalURL.href} />
-  <meta name="twitter:card" content="summary" />
+  <meta property="og:site_name" content="ALANI FAN CLUB" />
+  <meta property="og:image" content={ogImageURL} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={`${title} — ALANI FAN CLUB`} />
   <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImageURL} />
   <link rel="alternate" type="application/rss+xml" title="ALANI FAN CLUB RSS" href="/rss.xml" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▮</text></svg>" />
 </head>
@@ -37,8 +49,10 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
     <nav class="site-nav">
       <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Posts</a>
       <a href="/projects" aria-current={currentPath === '/projects/' || currentPath === '/projects' ? 'page' : undefined}>Projects</a>
+      <a href="/tags" aria-current={currentPath.startsWith('/tags') ? 'page' : undefined}>Tags</a>
       <a href="/rss.xml">RSS</a>
       <a href="/feed.md">Agent Feed</a>
+      <button type="button" class="nav-search" aria-label="Search (Ctrl+K or /)" id="search-trigger">Search <kbd aria-hidden="true">/</kbd></button>
     </nav>
 
     <main id="main-content">
@@ -49,22 +63,48 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
       <div class="footer-links">
         <a href="/">Posts</a>
         <a href="/projects">Projects</a>
+        <a href="/tags">Tags</a>
         <a href="/rss.xml">RSS Feed</a>
         <a href="/posts.json">API</a>
         <a href="/feed.md">Agent Feed</a>
         <a href="/llms.txt">llms.txt</a>
       </div>
       <p class="footer-copy">ALANI FAN CLUB — Human Research Collective</p>
-      <div class="footer-status"><span class="status-dot">▮</span> STATUS: ONLINE — UPLINK NOMINAL</div>
+      <div class="footer-status"><span class="status-dot" aria-hidden="true">▮</span> STATUS: ONLINE — UPLINK NOMINAL</div>
     </footer>
   </div>
 
+  <!-- Command Palette -->
+  <div id="command-palette" class="command-palette" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Search transmissions">
+    <div class="command-palette-backdrop"></div>
+    <div class="command-palette-modal">
+      <div class="command-palette-header">
+        <span class="command-palette-label">SYS://SEARCH</span>
+        <span class="accent-dot" aria-hidden="true">●</span>
+      </div>
+      <div class="command-palette-input-wrap">
+        <span class="command-palette-prompt" aria-hidden="true">▮</span>
+        <input type="text" id="command-input"
+          placeholder="search transmissions..."
+          autocomplete="off" spellcheck="false" />
+        <kbd class="command-palette-kbd">esc</kbd>
+      </div>
+      <div id="command-results" class="command-palette-results" role="listbox" aria-live="polite"></div>
+      <div class="command-palette-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↲</kbd> open</span>
+        <span><kbd>esc</kbd> close</span>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Terminal text-scramble effect — inspired by Jeremboo's CodePen
-    // Cycles characters through random symbols before resolving
+    // Text-scramble: cycles through random glyphs before resolving to final text.
+    // Marathon terminal aesthetic — text appears to "decode" on screen.
+    // Adapted from Jeremboo's CodePen.
     const GLYPHS = '!§%&/()=?_<>^°*#-:;~▮◢◣▪░▒';
-    const MAX_DURATION = 90; // ~1.5s cap at 60fps
-    const RESOLVE = 14;      // frames each letter spends scrambling
+    const MAX_FRAMES = 90;  // Cap total animation length (~1.5s at 60fps)
+    const RESOLVE_FRAMES = 14; // Per-character scramble duration (~230ms at 60fps)
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function scramble(el) {
@@ -72,17 +112,16 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
       if (el.dataset.scrambling === '1') return;
       el.dataset.scrambling = '1';
 
-      // Use only the direct text content, preserve child elements
       const original = el.dataset.text || el.textContent;
       el.dataset.text = original;
       const savedHTML = el.innerHTML;
       const chars = [...original];
       const len = chars.length;
-      const stagger = Math.max(2, Math.floor((MAX_DURATION - RESOLVE) / len));
-      const total = stagger * len + RESOLVE;
+      const stagger = Math.max(2, Math.floor((MAX_FRAMES - RESOLVE_FRAMES) / len));
+      const total = stagger * len + RESOLVE_FRAMES;
       let frame = 0;
 
-      // Lock width without breaking flex/block layouts
+      // Inline elements need fixed width to prevent layout jitter during animation
       const computed = getComputedStyle(el).display;
       const wasInline = computed === 'inline' || computed === 'inline-block';
       if (wasInline) {
@@ -90,7 +129,7 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
         el.style.minWidth = el.offsetWidth + 'px';
       }
 
-      // Hide from screen readers during scramble
+      // Screen readers get the real text while visual output is scrambled
       el.setAttribute('aria-label', original);
       el.setAttribute('role', 'img');
 
@@ -100,7 +139,7 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
           const charStart = i * stagger;
           if (chars[i] === ' ') {
             out += '\u00A0';
-          } else if (frame >= charStart + RESOLVE) {
+          } else if (frame >= charStart + RESOLVE_FRAMES) {
             out += chars[i];
           } else if (frame >= charStart) {
             out += GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -118,22 +157,222 @@ const canonicalURL = new URL(currentPath, Astro.site ?? 'https://alanifan.club')
           if (wasInline) el.style.display = '';
           el.removeAttribute('aria-label');
           el.removeAttribute('role');
-          el.removeAttribute('aria-hidden');
           el.dataset.scrambling = '0';
         }
       }
       requestAnimationFrame(tick);
     }
 
-    // Apply to all elements with data-scramble
     document.querySelectorAll('[data-scramble="hover"]').forEach(el => {
       el.addEventListener('mouseenter', () => scramble(el));
     });
 
-    // Auto-play on load for data-scramble="load" elements — staggered
+    // Stagger load animations so elements decode sequentially, not simultaneously
     document.querySelectorAll('[data-scramble="load"]').forEach((el, i) => {
       setTimeout(() => scramble(el), i * 120);
     });
+  </script>
+
+  <script>
+    // Command palette: Ctrl+K / "/" search overlay.
+    // Fetches /posts.json lazily on first open, keyword-matches against title+excerpt+tags.
+    (function () {
+      const palette = document.getElementById('command-palette');
+      const backdrop = palette.querySelector('.command-palette-backdrop');
+      const input = document.getElementById('command-input');
+      const resultsEl = document.getElementById('command-results');
+      const trigger = document.getElementById('search-trigger');
+
+      let posts = null;
+      let activeIndex = -1;
+      let previousFocus = null;
+
+      const pages = [
+        { title: 'Posts', url: '/' },
+        { title: 'Projects', url: '/projects' },
+        { title: 'Tags', url: '/tags' },
+      ];
+
+      async function loadIndex() {
+        if (posts) return;
+        try {
+          const res = await fetch('/posts.json');
+          posts = await res.json();
+        } catch {
+          posts = [];
+        }
+      }
+
+      function open() {
+        previousFocus = document.activeElement;
+        palette.setAttribute('aria-hidden', 'false');
+        palette.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        input.value = '';
+        activeIndex = -1;
+        loadIndex().then(() => render(''));
+        requestAnimationFrame(() => input.focus());
+      }
+
+      function close() {
+        palette.setAttribute('aria-hidden', 'true');
+        palette.classList.remove('open');
+        document.body.style.overflow = '';
+        if (previousFocus) previousFocus.focus();
+      }
+
+      function isOpen() {
+        return palette.classList.contains('open');
+      }
+
+      // Every query word must appear somewhere in the post's searchable text
+      function search(query) {
+        if (!posts || !query.trim()) return [];
+        const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+        return posts.filter(post => {
+          const hay = (post.title + ' ' + post.excerpt + ' ' + post.tags.join(' ')).toLowerCase();
+          return words.every(w => hay.includes(w));
+        });
+      }
+
+      function render(query) {
+        const items = [];
+
+        if (!query.trim()) {
+          items.push({ type: 'label', text: 'PAGES' });
+          pages.forEach(p => items.push({ type: 'result', title: p.title, url: p.url }));
+          if (posts && posts.length) {
+            items.push({ type: 'label', text: 'RECENT' });
+            posts.slice(0, 3).forEach(p => items.push({
+              type: 'result', title: p.title, excerpt: p.excerpt, url: p.url, tags: p.tags
+            }));
+          }
+        } else {
+          const matchedPages = pages.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
+          if (matchedPages.length) {
+            items.push({ type: 'label', text: 'PAGES' });
+            matchedPages.forEach(p => items.push({ type: 'result', title: p.title, url: p.url }));
+          }
+          const results = search(query);
+          if (results.length) {
+            items.push({ type: 'label', text: 'POSTS' });
+            results.forEach(p => items.push({
+              type: 'result', title: p.title, excerpt: p.excerpt, url: p.url, tags: p.tags
+            }));
+          }
+          if (!matchedPages.length && !results.length) {
+            items.push({ type: 'empty' });
+          }
+        }
+
+        resultsEl.innerHTML = '';
+        let resultIndex = 0;
+
+        items.forEach(item => {
+          if (item.type === 'label') {
+            const el = document.createElement('div');
+            el.className = 'command-palette-group';
+            el.textContent = item.text;
+            resultsEl.appendChild(el);
+          } else if (item.type === 'empty') {
+            const el = document.createElement('div');
+            el.className = 'command-palette-empty';
+            el.textContent = '// no transmissions found';
+            resultsEl.appendChild(el);
+          } else {
+            const el = document.createElement('div');
+            el.className = 'command-palette-result';
+            el.setAttribute('role', 'option');
+            el.dataset.url = item.url;
+            el.dataset.index = resultIndex;
+
+            let html = '<span class="cpr-title">' + escapeHtml(item.title) + '</span>';
+            if (item.excerpt) {
+              const short = item.excerpt.length > 80 ? item.excerpt.slice(0, 80) + '...' : item.excerpt;
+              html += '<span class="cpr-excerpt">' + escapeHtml(short) + '</span>';
+            }
+            if (item.tags && item.tags.length) {
+              html += '<span class="cpr-tags">' + item.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</span>';
+            }
+            el.innerHTML = html;
+
+            el.addEventListener('click', () => navigate(item.url));
+            el.addEventListener('mouseenter', () => setActive(parseInt(el.dataset.index)));
+            resultsEl.appendChild(el);
+            resultIndex++;
+          }
+        });
+
+        activeIndex = -1;
+        if (resultsEl.querySelector('.command-palette-result')) setActive(0);
+      }
+
+      function getResults() {
+        return resultsEl.querySelectorAll('.command-palette-result');
+      }
+
+      function setActive(index) {
+        const all = getResults();
+        if (!all.length) return;
+        all.forEach(el => {
+          el.classList.remove('active');
+          el.removeAttribute('aria-selected');
+        });
+        activeIndex = ((index % all.length) + all.length) % all.length;
+        const active = all[activeIndex];
+        active.classList.add('active');
+        active.setAttribute('aria-selected', 'true');
+        active.scrollIntoView({ block: 'nearest' });
+      }
+
+      function navigate(url) {
+        close();
+        window.location.href = url;
+      }
+
+      function escapeHtml(str) {
+        const el = document.createElement('span');
+        el.textContent = str;
+        return el.innerHTML;
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (!isOpen()) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            open();
+          }
+          // "/" opens search unless user is already typing in a form field
+          if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && !document.activeElement.isContentEditable) {
+            e.preventDefault();
+            open();
+          }
+          return;
+        }
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          close();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setActive(activeIndex + 1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setActive(activeIndex - 1);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const all = getResults();
+          if (all.length && activeIndex >= 0) navigate(all[activeIndex].dataset.url);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          input.focus();
+        }
+      });
+
+      input.addEventListener('input', () => render(input.value));
+      backdrop.addEventListener('click', close);
+      trigger.addEventListener('click', open);
+    })();
   </script>
 </body>
 </html>

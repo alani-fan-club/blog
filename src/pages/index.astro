@@ -9,8 +9,8 @@ const posts = (await getCollection('posts')).sort(
 
 <Base title="Home">
   <header class="site-header">
-    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot">●</span></span>
-    <h1 class="site-title" data-scramble="load"><span class="ai-highlight">A</span>LAN<span class="ai-highlight">I</span> <span class="accent">FAN CLUB</span><span class="cursor">▮</span></h1>
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
+    <h1 class="site-title" data-scramble="load"><span class="ai-highlight">A</span>LAN<span class="ai-highlight">I</span> <span class="accent">FAN CLUB</span><span class="cursor" aria-hidden="true">▮</span></h1>
     <p class="site-tagline">
       Human Research Collective <span class="separator">//</span> Dispatches
     </p>
@@ -38,7 +38,7 @@ const posts = (await getCollection('posts')).sort(
           </h2>
           <p class="post-excerpt">{post.data.excerpt}</p>
           <div class="post-tags">
-            {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+            {post.data.tags.map((tag) => <a href={`/tags/${tag}/`} class="tag">{tag}</a>)}
           </div>
         </li>
       );
