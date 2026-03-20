@@ -1,0 +1,14 @@
+---
+// Alert — security / CVE notice with accent header bar
+interface Props {
+  label: string;
+  title: string;
+}
+
+const { label, title } = Astro.props;
+---
+<div class="alert" role="note">
+  <div class="alert-label">{label}</div>
+  <div class="alert-title">{title}</div>
+  <div class="alert-desc"><slot /></div>
+</div>

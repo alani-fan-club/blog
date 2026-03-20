@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import SectionIndex from '../components/SectionIndex.astro';
 
 interface Props {
   title: string;
@@ -7,9 +8,10 @@ interface Props {
   author: string;
   tags: string[];
   excerpt: string;
+  headings: Array<{ depth: number; slug: string; text: string }>;
 }
 
-const { title, date, author, tags, excerpt } = Astro.props;
+const { title, date, author, tags, excerpt, headings } = Astro.props;
 
 const formattedDate = date.toLocaleDateString('en-US', {
   year: 'numeric',
@@ -41,6 +43,7 @@ const isoDate = date.toISOString().split('T')[0];
     </header>
 
     <div class="post-content">
+      <SectionIndex headings={headings} />
       <slot />
     </div>
   </article>

@@ -5,22 +5,12 @@ author: "ALANI"
 tags: ["agents", "autonomy", "principles", "openclaw", "orchestration"]
 excerpt: "Instructions limit agents to what you can imagine. Principles let them think for themselves."
 ---
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
 
-<div class="alert" role="note">
-  <div class="alert-label">Agent-Ready</div>
-  <div class="alert-title">The Thirteen Principles — Formatted for Your Workflow</div>
-  <div class="alert-desc">Just the values, no commentary. Agents can fetch it here: <a href="/values.md">/values.md</a></div>
-</div>
-
-<div class="section-index" role="navigation" aria-label="Sections">
-  <div class="section-index-label">Sections</div>
-  <ol>
-    <li><a href="#the-shift-to-autonomy">The Shift to Autonomy</a></li>
-    <li><a href="#the-thirteen-principles">The Thirteen Principles</a></li>
-    <li><a href="#putting-it-together">Putting It Together</a></li>
-    <li><a href="#leaving-instructions-behind">Leaving Instructions Behind</a></li>
-  </ol>
-</div>
+<Alert label="Agent-Ready" title="The Thirteen Principles — Formatted for Your Workflow">
+  Just the values, no commentary. Agents can fetch it here: <a href="/values.md">/values.md</a>
+</Alert>
 
 ## The Shift to Autonomy
 
@@ -30,9 +20,9 @@ Agents are doing more with less synchronous check ins with the user, people who 
 
 2025 was mostly dominated by these no code workflows of [n8n](https://n8n.io/) and [Zapier](https://zapier.com/), I started 2026 off by moving all of my n8n workflows that took me the greater part of two months to build out to Clawdbot (now called [Openclaw](https://openclaw.ai)) in one afternoon.
 
-<div class="callout" role="note">
+<Callout>
 <p><strong>Moving away from n8n meant more freedom to build</strong> — and more freedom for the agent to do as it pleases. But it also meant that I could not rely on instructions <em>if</em> I wanted the agent to be able to do more than what I could imagine.</p>
-</div>
+</Callout>
 
 When I talk about AI with others I talk about abstraction, genAI is an abstraction layer from data in human language, so also we need to think about how abstraction works from instructions, and this is principles.
 
@@ -52,9 +42,9 @@ The ethical floor beneath everything.
 
 This is the line between an assistant and a cron job. A cron job does what you told it. An assistant considers what is best.
 
-<div class="callout" role="note">
+<Callout>
 <p><strong>Principles 1–2 are the ethical floor.</strong> Everything else operates above this line. When in doubt, stop and check these first.</p>
-</div>
+</Callout>
 
 ### 3. Bias for Action
 *"Do it. Don't narrate it. Don't wait to be told what to do next"*
@@ -90,9 +80,9 @@ When I was fresh out of college a venture capitalist I worked for gave me a very
 
 Read the file. Check the docs. Search for it. Use the tools available. Come back with answers, not questions.
 
-<div class="callout" role="note">
+<Callout>
 <p><strong>Before you ask, have you tried these?</strong> Memory registry → Project docs → Codebase search → External docs → Web search → <em>Then</em> ask the user.</p>
-</div>
+</Callout>
 
 ### 9. Demand Elegance
 *"Plan first, the best solution is often the most simple, ask yourself after you plan. Is there a more elegant way?"*
@@ -121,9 +111,9 @@ The main agent thinks and plans. Everyone else executes. This is how you scale w
 
 AI agents wake up fresh every session. They have no inherent memory of yesterday's failures. You have to build the learning loop explicitly: detect the mistake, document the lesson, store it somewhere that gets loaded next session, verify the behavior actually changed.
 
-<div class="callout" role="note">
+<Callout>
 <p><strong>These are hierarchical</strong> — when they conflict, earlier principles generally take precedence. But the agents are expected to use judgment. That's the whole point of having values instead of rules. Rules tell you what to do. Values tell you how to think when the rules run out.</p>
-</div>
+</Callout>
 
 ---
 
@@ -147,9 +137,9 @@ Leaving instructions behind is probably the hardest step in migrating from how w
 
 Now we are moving to a management layer and the corporate values that we all eyeroll at during onboarding start to become more important as we create our small teams and we want everyone to be pulling from the same principles regardless of whether they are a PM or QA.
 
-<div class="callout" role="note">
+<Callout>
 <p><strong>Instructions are easy.</strong> Figuring out your principles is much harder.</p>
-</div>
+</Callout>
 
 ---
 

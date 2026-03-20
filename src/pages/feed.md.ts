@@ -1,5 +1,14 @@
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
+import { mdxToMarkdown } from '../lib/mdx-to-markdown';
+
+function safeStripMdx(body: string): string {
+  try {
+    return mdxToMarkdown(body);
+  } catch {
+    return body;
+  }
+}
 
 export async function GET(context: APIContext) {
   const posts = (await getCollection('posts')).sort(
@@ -58,7 +67,7 @@ ${posts.length} posts, newest first. Full content below.
 - Author: ${post.data.author}
 - Tags: ${tags}
 
-${post.body}`;
+${safeStripMdx(post.body)}`;
   }
 
   return new Response(md.trimEnd() + '\n', {

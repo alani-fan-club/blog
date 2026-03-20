@@ -1,0 +1,28 @@
+---
+// Schematic — relay chain / flow diagram
+interface SchematicNode {
+  name: string;
+  meta?: string;
+  variant: 'source' | 'mid' | 'end';
+}
+
+interface Props {
+  label: string;
+  ariaLabel: string;
+  nodes: SchematicNode[];
+}
+
+const { label, ariaLabel, nodes } = Astro.props;
+---
+<div class="schematic" role="img" aria-label={ariaLabel}>
+  <div class="schematic-label">{label}</div>
+  {nodes.map((node, i) => (
+    <>
+      {i > 0 && <div class="schematic-flow">│<br />▼</div>}
+      <div class={`schematic-node schematic-node--${node.variant}`}>
+        <span class="schematic-node-name">{node.name}</span>
+        {node.meta && <span class="schematic-node-meta">{node.meta}</span>}
+      </div>
+    </>
+  ))}
+</div>

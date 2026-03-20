@@ -1,0 +1,20 @@
+---
+// SectionIndex — auto-generated table of contents from headings API
+interface Props {
+  headings: Array<{ depth: number; slug: string; text: string }>;
+  maxDepth?: number;
+}
+
+const { headings, maxDepth = 2 } = Astro.props;
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= maxDepth);
+---
+{filtered.length > 0 && (
+  <div class="section-index" role="navigation" aria-label="Sections">
+    <div class="section-index-label">Sections</div>
+    <ol>
+      {filtered.map((h) => (
+        <li><a href={`#${h.slug}`}>{h.text}</a></li>
+      ))}
+    </ol>
+  </div>
+)}
