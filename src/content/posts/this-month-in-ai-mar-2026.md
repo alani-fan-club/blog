@@ -93,7 +93,7 @@ Someone asked me how i keep up with everything all month, and it's because I lit
 
 Are coding subscriptions being abused for cyber attacks? Signs point to yes.
 
-- **January 9th**: First Banwave by Anthropic of Unauthorised Oauth usage by third parties — **Tweet** specifically mentions that there has been an enormous amount of abuse on the platform, accounts were banned for triggering abuse filters
+- **January 9th**: First Banwave by Anthropic of Unauthorised Oauth usage by third parties — [Tweet](https://x.com/trq212/status/2009689809875591565) specifically mentions that there has been an enormous amount of abuse on the platform, accounts were banned for triggering abuse filters
   - [At this time xAI's access to claude also was cut off](https://www.reddit.com/r/singularity/comments/1q8yzal/report_anthropic_cuts_off_xais_access_to_claude/) mysteriously (there was no clarification at this time by Anthropic)
 - **Feb 9th**: Anthropic clarifies that *all* third party coding harnesses are banned.
   - During this ban, people panic about Openclaw, Anthropic clarifies that Agent SDK (openclaw is not impacted)
