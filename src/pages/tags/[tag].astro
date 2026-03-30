@@ -34,6 +34,7 @@ const { posts } = Astro.props;
         year: 'numeric',
         month: 'short',
         day: 'numeric',
+        timeZone: 'UTC',
       });
       const isoDate = post.data.date.toISOString().split('T')[0];
       const issueNumber = String(posts.length - index).padStart(2, '0');

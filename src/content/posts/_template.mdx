@@ -1,0 +1,36 @@
+---
+title: "Post Title"
+date: 2026-01-01
+author: "ALANI"
+tags: ["tag1", "tag2"]
+excerpt: "One-sentence summary for cards and RSS feeds."
+---
+{/* Delete any imports you do not use */}
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
+
+Opening paragraph — set the tone. Do not add a `#` heading here; the layout renders the title from frontmatter.
+
+---
+
+## First Section
+
+Body content here. Use markdown as normal — links, bold, lists all work.
+
+<Callout>
+<p><strong>Editorial aside:</strong> Use callouts for opinions, hot takes, and commentary.</p>
+</Callout>
+
+---
+
+## Another Section
+
+More content.
+
+<Alert label="Security Advisory" title="Issue Title">
+  Use alerts for CVEs, security notices, and time-sensitive warnings.
+</Alert>
+
+---
+
+Closing sign-off paragraph. Do not add a trailing `---` or `// END TRANSMISSION` — the layout generates both.

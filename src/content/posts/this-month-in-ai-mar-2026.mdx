@@ -5,6 +5,8 @@ author: "ALANI"
 tags: ["roundup", "monthly", "news", "security", "agents", "neuroanatomy"]
 excerpt: "MCP is dead, agent management goes corporate, LLMJacking gets worse, LLM neuroanatomy emerges, Anthropic leaks Mythos, and the tinfoil hat corner connects distillation attacks to coding harness crackdowns."
 ---
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
 
 Someone asked me how i keep up with everything all month, and it's because I literally have no life. Thank you to AFC for helping collect things for this roundup each month.
 
@@ -41,6 +43,10 @@ Someone asked me how i keep up with everything all month, and it's because I lit
 - The [litellm hack with team pcp](https://snyk.io/articles/poisoned-security-scanner-backdooring-litellm/) is literally all anyone is talking about, and definitely is going to feed into more LLMJacking.
   - [You were definitely impacted by this](https://cybersecuritynews.com/aquasecurity-trivy-scanner-vulnerability/) — Major companies such as Gravatar and Databricks have been taken out by it.
 
+<Alert label="Security Advisory" title="LiteLLM Supply Chain Attack">
+  Poisoned security scanner backdooring LiteLLM — if you use Trivy or LiteLLM, audit your dependencies.
+</Alert>
+
 ---
 
 ## New Releases
@@ -50,7 +56,10 @@ Someone asked me how i keep up with everything all month, and it's because I lit
 - [Nemotron 3](https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/) from Nvidia is out, the trend is to say your model is good for Agents.
 - New [Qwen](https://openrouter.ai/qwen/qwen3.6-plus-preview) (again) — "good for agents"
 - Anthropic has been messing around a lot with context ([upped to 1m](https://platform.claude.com/docs/en/build-with-claude/context-windows)) and [rate limits](https://x.com/trq212/status/2037254607001559305) (we've seen a lot of downtime this month)
-  - idk about the 1m context, [we haven't seen anything to suggest claude's attention mechanism is actually getting better](https://www.anthropic.com/news/claude-opus-4-6). Seems like marketing fluff.
+
+<Callout>
+<p>idk about the 1m context, <a href="https://www.anthropic.com/news/claude-opus-4-6">we haven't seen anything to suggest claude's attention mechanism is actually getting better</a>. Seems like marketing fluff.</p>
+</Callout>
 
 ---
 
@@ -79,6 +88,10 @@ Someone asked me how i keep up with everything all month, and it's because I lit
 - Manus founder is trapped in [China](https://www.reuters.com/world/asia-pacific/china-bars-manus-co-founders-leaving-country-it-reviews-sale-meta-ft-reports-2026-03-25/) after selling to Meta, showing that the AI tug of war between US and China is ongoing.
 - In the same vein, China is getting everyone on [openclaw](https://www.nbcnews.com/world/asia/china-openclaw-ai-agent-frenzy-rcna263636)! They call it raising lobsters, due to this a lot of Welfare Stations exist.
 
+<Callout>
+<p><strong>$2.5 billion in smuggled GPUs</strong> and still no new DeepSeek. The chip war is real.</p>
+</Callout>
+
 ---
 
 ## Moral Panic Roundup
@@ -86,6 +99,10 @@ Someone asked me how i keep up with everything all month, and it's because I lit
 - [AI Startups Founders and Why They are Different(TM)](https://harpers.org/archive/2026/03/childs-play-sam-kriss-ai-startup-roy-lee/) — Cluely Founder Expose welcome back [Adam Neumann](https://nypost.com/2018/10/11/wework-sued-over-sexual-assaults-frat-boy-culture/?st_source=ai_mode#:~:text=The%20%E2%80%9Cfrat%2Dboy%20culture%E2%80%9D,was%20done%2C%20the%20suit%20says.) ig (this is a good read, I promise)
 - [AI Psychosis](https://www.theguardian.com/technology/2026/mar/14/ai-chatbots-psychosis) continues to be a talking point. [People actively prefer it](https://news.stanford.edu/stories/2026/03/ai-advice-sycophantic-models-research) at this point.
 - There is continued moral panic around AI creating [cognitive decline.](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6097646) Recency bias made us forget that people said the same thing about [google](https://en.wikipedia.org/wiki/Is_Google_Making_Us_Stupid%3F).
+
+<Callout>
+<p>People said Google made us stupid. People said TV made us stupid. People said <em>books</em> made us stupid. We're still here.</p>
+</Callout>
 
 ---
 
@@ -107,5 +124,3 @@ In one of our other posts we talked about shady providers using LLMJacking as a 
 ---
 
 Thank you so much for reading, as always, the news roundup is HAND CURATED by AFC!
-
-*// END TRANSMISSION — ALANI-003 //*
