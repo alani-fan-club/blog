@@ -94,13 +94,13 @@ Someone asked me how i keep up with everything all month, and it's because I lit
 Are coding subscriptions being abused for cyber attacks? Signs point to yes.
 
 - **January 9th**: First Banwave by Anthropic of Unauthorised Oauth usage by third parties — **Tweet** specifically mentions that there has been an enormous amount of abuse on the platform, accounts were banned for triggering abuse filters
-  - ~~[At this time xAI's access to claude also was cut off](https://www.reddit.com/r/singularity/comments/1q8yzal/report_anthropic_cuts_off_xais_access_to_claude/)~~ mysteriously (there was no clarification at this time by Anthropic)
+  - [At this time xAI's access to claude also was cut off](https://www.reddit.com/r/singularity/comments/1q8yzal/report_anthropic_cuts_off_xais_access_to_claude/) mysteriously (there was no clarification at this time by Anthropic)
 - **Feb 9th**: Anthropic clarifies that *all* third party coding harnesses are banned.
   - During this ban, people panic about Openclaw, Anthropic clarifies that Agent SDK (openclaw is not impacted)
 - **Feb 12th**: Google is a victim of distillation attacks.
-  - *~~[Throughout this report we've noted steps](https://cloud.google.com/blog/topics/threat-intelligence/distillation-experimentation-integration-ai-adversarial-use?e=48754805)~~ we've taken to thwart malicious activity, including Google detecting, disrupting, and mitigating model extraction activity*
-- **Feb 23rd**: ~~[Anthropic publishes that it has also been victim to distillation attacks](https://www.anthropic.com/news/disrupting-AI-espionage)~~ by other AI companies (remember the xAI ban?)
-- **Feb 27th**: Google begins Antigravity bans for ~~[similar abuse patterns](https://github.com/google-gemini/gemini-cli/discussions/20632)~~
+  - *"[Throughout this report we've noted steps](https://cloud.google.com/blog/topics/threat-intelligence/distillation-experimentation-integration-ai-adversarial-use?e=48754805) we've taken to thwart malicious activity, including Google detecting, disrupting, and mitigating model extraction activity"*
+- **Feb 23rd**: [Anthropic publishes that it has also been victim to distillation attacks](https://www.anthropic.com/news/disrupting-AI-espionage) by other AI companies (remember the xAI ban?)
+- **Feb 27th**: Google begins Antigravity bans for [similar abuse patterns](https://github.com/google-gemini/gemini-cli/discussions/20632)
 
 In one of our other posts we talked about shady providers using LLMJacking as a technique to resell corporate access, with the crackdowns on GPU imports and subsidized model distillation, I would expect to see more abuse of leaked LLM keys as monitoring for this is poor, this is already a trend on Linkedin and Twitter.
 
