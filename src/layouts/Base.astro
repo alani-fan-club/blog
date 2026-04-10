@@ -49,6 +49,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
     <nav class="site-nav">
       <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Posts</a>
       <a href="/projects" aria-current={currentPath === '/projects/' || currentPath === '/projects' ? 'page' : undefined}>Projects</a>
+      <a href="/team" aria-current={currentPath === '/team' || currentPath === '/team/' ? 'page' : undefined}>Team</a>
       <a href="/tags" aria-current={currentPath.startsWith('/tags') ? 'page' : undefined}>Tags</a>
       <a href="/rss.xml">RSS</a>
       <a href="/feed.md">Agent Feed</a>
@@ -63,6 +64,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
       <div class="footer-links">
         <a href="/">Posts</a>
         <a href="/projects">Projects</a>
+        <a href="/team">Team</a>
         <a href="/tags">Tags</a>
         <a href="/rss.xml">RSS Feed</a>
         <a href="/posts.json">API</a>
@@ -167,10 +169,17 @@ const ogImageURL = new URL(ogImage, siteBase).href;
       el.addEventListener('mouseenter', () => scramble(el));
     });
 
-    // Stagger load animations so elements decode sequentially, not simultaneously
-    document.querySelectorAll('[data-scramble="load"]').forEach((el, i) => {
-      setTimeout(() => scramble(el), i * 120);
+    // Header elements keep the staggered cascade (boot-log decode); body
+    // elements scramble in parallel so they don't render visible-then-blink
+    // while waiting their turn in a long cascade.
+    const headerTargets = [];
+    const bodyTargets = [];
+    document.querySelectorAll('[data-scramble="load"]').forEach(el => {
+      if (el.closest('.page-header')) headerTargets.push(el);
+      else bodyTargets.push(el);
     });
+    headerTargets.forEach((el, i) => setTimeout(() => scramble(el), i * 120));
+    bodyTargets.forEach(el => scramble(el));
   </script>
 
   <script>
@@ -190,6 +199,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
       const pages = [
         { title: 'Posts', url: '/' },
         { title: 'Projects', url: '/projects' },
+        { title: 'Team', url: '/team' },
         { title: 'Tags', url: '/tags' },
       ];
 

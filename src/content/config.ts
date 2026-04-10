@@ -21,4 +21,14 @@ const projects = defineCollection({
   }),
 });
 
-export const collections = { posts, projects };
+const team = defineCollection({
+  type: 'content',
+  schema: z.object({
+    name: z.string(),
+    avatar: z.string(),
+    agents: z.array(z.string()).default([]),
+    order: z.number().default(0),
+  }),
+});
+
+export const collections = { posts, projects, team };

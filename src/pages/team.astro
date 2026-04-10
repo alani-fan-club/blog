@@ -1,0 +1,699 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const team = (await getCollection('team')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const total = team.length;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// Deterministic 6-hex serial from name + index — stable across rebuilds
+const serialHash = (str: string) => {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(16).toUpperCase().padStart(6, '0').slice(0, 6);
+};
+
+// MRZ helpers — passport-style machine-readable zone
+const mrzSanitize = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+const mrzPad = (s: string, n: number) =>
+  s.length >= n ? s.slice(0, n) : s + '<'.repeat(n - s.length);
+---
+
+<Base title="Team" description="Human research collective — access card roster.">
+  <header class="page-header">
+    <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
+    <h1 class="page-title" data-scramble="load">Team</h1>
+    <p class="page-subtitle" data-scramble="load">// Human research collective</p>
+    <span class="header-micro header-micro--bottom-left">ROSTER: {total} FILES ◢ {new Date().getFullYear()}</span>
+  </header>
+
+  <div class="section-label" data-scramble="load">Personnel Files [{total} operators]</div>
+
+  <div class="team-list">
+    {team.map((member, index) => {
+      const idCounter = pad(index + 1);
+      const agentCount = member.data.agents.length;
+      const agentCountLabel = `${pad(agentCount)} AGENT${agentCount === 1 ? '' : 'S'}`;
+      const hex = serialHash(member.data.name + index);
+      const serial = `${hex.slice(0, 2)}-${hex.slice(2, 4)}-${hex.slice(4, 6)}`;
+      // MRZ rows — passport TD3 style, fixed 44-char width, deterministic
+      const mrzName = mrzSanitize(member.data.name);
+      const mrzAgents = member.data.agents.map(mrzSanitize).join('<');
+      const mrzLine1 = mrzPad(`ID<ALANI<${mrzName}<<${mrzAgents}`, 44);
+      const mrzLine2 = mrzPad(`${hex}<<<240301<<<370301<<<L7<<<RESEARCH`, 44);
+      return (
+        <article class="team-card" tabindex="0">
+          <div class="team-card__chrome">
+            <span class="team-card__mark">
+              <svg
+                class="team-card__mark-logo"
+                viewBox="0 0 22 22"
+                width="20"
+                height="20"
+                aria-hidden="true"
+              >
+                {/* Seal outline square */}
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                />
+
+                {/* Four corner registration brackets (inset) */}
+                <path d="M3 6 L3 3 L6 3" stroke="currentColor" stroke-width="0.9" fill="none" stroke-linecap="square" />
+                <path d="M16 3 L19 3 L19 6" stroke="currentColor" stroke-width="0.9" fill="none" stroke-linecap="square" />
+                <path d="M3 16 L3 19 L6 19" stroke="currentColor" stroke-width="0.9" fill="none" stroke-linecap="square" />
+                <path d="M16 19 L19 19 L19 16" stroke="currentColor" stroke-width="0.9" fill="none" stroke-linecap="square" />
+
+                {/* Cardinal tick marks (N / S) */}
+                <line x1="11" y1="1" x2="11" y2="3" stroke="currentColor" stroke-width="0.9" />
+                <line x1="11" y1="19" x2="11" y2="21" stroke="currentColor" stroke-width="0.9" />
+
+                {/* Crown dot above A */}
+                <circle cx="11" cy="5.5" r="0.7" fill="currentColor" />
+
+                {/* Main "A" glyph — triangle legs + crossbar */}
+                <path
+                  d="M6.5 16 L11 7 L15.5 16 M8 13 L14 13"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  fill="none"
+                  stroke-linecap="square"
+                  stroke-linejoin="miter"
+                />
+
+                {/* ID underline bar below A */}
+                <rect x="8" y="17.2" width="6" height="0.9" fill="currentColor" />
+              </svg>
+              <span class="team-card__mark-label">ALANI</span>
+              <span class="team-card__led" aria-hidden="true">●</span>
+            </span>
+            <span class="team-card__id-wrap">
+              <span class="team-card__id-glyph" aria-hidden="true">✳</span>
+              <span class="team-card__id" data-scramble="load">ID-{idCounter}</span>
+            </span>
+          </div>
+
+          <div class="team-card__clearance" aria-hidden="true">
+            <span>▮</span> CLEARANCE: L7 — RESEARCH <span>▮</span>
+          </div>
+
+          <div class="team-card__body">
+            <div class="team-card__avatar-frame">
+              <img
+                src={member.data.avatar}
+                alt={`${member.data.name} access card photo`}
+                class="team-card__avatar"
+                width="120"
+                height="120"
+                decoding="async"
+              />
+            </div>
+            <div class="team-card__info">
+              <h2 class="team-card__name" data-scramble="load">{member.data.name}</h2>
+              <div class="team-card__pill">
+                <div class="team-card__pill-field">
+                  <span class="team-card__pill-label">SUB-ROSTER</span>
+                  <span class="team-card__pill-value">{agentCountLabel}</span>
+                </div>
+                <div class="team-card__pill-field">
+                  <span class="team-card__pill-label">STATUS</span>
+                  <span class="team-card__pill-value team-card__pill-value--active">● ACTIVE</span>
+                </div>
+              </div>
+              <div class="team-card__roster" aria-label={`${member.data.name} sub-roster`}>
+                <span class="team-card__roster-caption">▸ ASSIGNED:</span>
+                <span class="team-card__roster-names">
+                  {member.data.agents.join('  ·  ')}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="team-card__validity" aria-hidden="true">
+            <span class="team-card__validity-row"><span class="team-card__validity-label">ISS</span> 2024.03</span>
+            <span class="team-card__validity-row"><span class="team-card__validity-label">EXP</span> 2037.03</span>
+          </div>
+          <div class="team-card__serial" aria-hidden="true">SERIAL // 0x{serial}</div>
+          <div class="team-card__chip" aria-hidden="true"></div>
+
+          <div class="team-card__microprint" aria-hidden="true">
+            ▮ ALANI FAN CLUB · PERSONNEL DIVISION · ALANI FAN CLUB · PERSONNEL DIVISION · ALANI FAN CLUB · PERSONNEL DIVISION ▮
+          </div>
+          <div class="team-card__mrz team-card__mrz--row1" aria-hidden="true">{mrzLine1}</div>
+          <div class="team-card__mrz team-card__mrz--row2" aria-hidden="true">{mrzLine2}</div>
+        </article>
+      );
+    })}
+  </div>
+</Base>
+
+<style>
+  .team-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+    margin-top: var(--space-lg);
+  }
+
+  .team-card {
+    position: relative;
+    /* Layered background (top → bottom in CSS stack):
+       1. TR chamfer chrome stroke — paints the diagonal at top-right
+       2. BL chamfer chrome stroke — paints the diagonal at bottom-left
+       3. Radial cyan glow         — soft warmth from upper-left = depth
+       4. CRT scanlines            — dark bands every 3px (subtractive),
+                                     reads as phosphor mask
+       5. Card fill                — lifted near-black with cyan tint
+       Reads as "ID badge on a CRT terminal." Scanlines are darker than
+       the base so they don't add cyan saturation to the surface. */
+    background:
+      linear-gradient(
+        225deg,
+        transparent 7.1px,
+        color-mix(in oklch, var(--white) 35%, transparent) 7.1px 8.6px,
+        transparent 8.6px
+      ) top right / 14px 14px no-repeat,
+      linear-gradient(
+        45deg,
+        transparent 7.1px,
+        color-mix(in oklch, var(--white) 35%, transparent) 7.1px 8.6px,
+        transparent 8.6px
+      ) bottom left / 14px 14px no-repeat,
+      radial-gradient(
+        ellipse 75% 70% at 22% 38%,
+        color-mix(in oklch, var(--accent) 16%, transparent) 0%,
+        transparent 70%
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0 2px,
+        color-mix(in oklch, var(--black) 45%, transparent) 2px 3px
+      ),
+      color-mix(in oklch, var(--black) 81%, var(--accent));
+    color: var(--accent);
+    /* Chamfered access-card silhouette: cuts at TR + BL corners */
+    clip-path: polygon(
+      0 0,
+      calc(100% - 10px) 0,
+      100% 10px,
+      100% 100%,
+      10px 100%,
+      0 calc(100% - 10px)
+    );
+    padding: var(--space-md) var(--space-xl) calc(var(--space-md) + 92px);
+    transition: filter 0.3s var(--ease-out-expo), box-shadow 0.3s var(--ease-out-expo);
+    overflow: hidden;
+    outline: none;
+    /* Neutral chrome double-ring matching the avatar frame:
+       outer 1px muted-white line + inner 1px black recess line.
+       Reads as a recessed ID-card slot rather than a cyan callout.
+       Cyan returns on hover as the "energized" state. */
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--white) 35%, transparent),
+      inset 0 0 0 2px color-mix(in oklch, var(--black) 60%, transparent);
+  }
+
+  /* Hover state: chamfer strokes + double-ring chrome all flip to cyan,
+     card energizes. The background stack has to be re-declared in full —
+     `background-image` alone won't override a layered shorthand cleanly
+     (would drop the radial glow + scanlines + base fill). Only the two
+     chamfer linear-gradients get recolored; everything else is identical
+     to the base state. */
+  .team-card:hover,
+  .team-card:focus-visible {
+    background:
+      linear-gradient(
+        225deg,
+        transparent 7.1px,
+        color-mix(in oklch, var(--accent) 75%, transparent) 7.1px 8.6px,
+        transparent 8.6px
+      ) top right / 14px 14px no-repeat,
+      linear-gradient(
+        45deg,
+        transparent 7.1px,
+        color-mix(in oklch, var(--accent) 75%, transparent) 7.1px 8.6px,
+        transparent 8.6px
+      ) bottom left / 14px 14px no-repeat,
+      radial-gradient(
+        ellipse 75% 70% at 22% 38%,
+        color-mix(in oklch, var(--accent) 16%, transparent) 0%,
+        transparent 70%
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0 2px,
+        color-mix(in oklch, var(--black) 45%, transparent) 2px 3px
+      ),
+      color-mix(in oklch, var(--black) 81%, var(--accent));
+    filter: brightness(1.15) drop-shadow(0 0 6px color-mix(in oklch, var(--accent) 40%, transparent));
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--accent) 70%, transparent),
+      inset 0 0 0 2px color-mix(in oklch, var(--black) 60%, transparent);
+  }
+
+  /* Single right-edge thumb notch — pure-black circle that "cuts through"
+     the slightly-lifted card back to the page background, overlapping the
+     chrome inset border to create a visible bite in the frame. Kept to the
+     right only so the card reads as an access card, not a ticket stub. */
+  .team-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--black);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--white) 35%, transparent);
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 2;
+    transition: box-shadow 0.3s var(--ease-out-expo);
+  }
+  .team-card:hover::after,
+  .team-card:focus-visible::after {
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent) 70%, transparent);
+  }
+
+  /* Top chrome row: mark + ID counter */
+  .team-card__chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+    padding: 0 var(--space-md);
+    position: relative;
+    z-index: 1;
+  }
+  .team-card__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    color: var(--accent);
+  }
+  .team-card__mark-logo {
+    display: block;
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+  .team-card__mark-label {
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  /* Status LED — reuses the global accent-pulse keyframe, matching the
+     SYS://ALANI ● indicator in the page header. The local
+     prefers-reduced-motion override below documents intent at the source
+     (the global override on `*` already kills it, but explicit is better). */
+  .team-card__led {
+    display: inline-block;
+    font-size: 0.6rem;
+    line-height: 1;
+    color: var(--accent);
+    margin-left: 0.15rem;
+    animation: accent-pulse 3s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .team-card__led {
+      animation: none;
+      text-shadow: 0 0 4px color-mix(in oklch, var(--accent) 30%, transparent);
+    }
+  }
+  .team-card__id-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    color: color-mix(in oklch, var(--white) 70%, var(--accent));
+    opacity: 0.85;
+  }
+  .team-card__id-glyph {
+    font-size: inherit;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.85;
+  }
+  .team-card__id {
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: inherit;
+  }
+
+  /* Classification band — thin strip between chrome and body. Cyan rules
+     above and below provide the structural accent; the text itself is
+     muted cool-white so the band reads as chrome chassis, not glow. */
+  .team-card__clearance {
+    margin: 0 var(--space-md) var(--space-md);
+    padding: var(--space-xs) var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-chrome);
+    color: color-mix(in oklch, var(--white) 70%, var(--accent));
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.4;
+    border-top: 1px solid color-mix(in oklch, var(--accent) 40%, transparent);
+    border-bottom: 1px solid color-mix(in oklch, var(--accent) 40%, transparent);
+    background: color-mix(in oklch, var(--accent) 5%, transparent);
+    position: relative;
+    z-index: 1;
+  }
+  /* Cherry tick marks flanking the clearance text — high-clearance warning
+     accent. The ONLY cherry chrome detail; restraint matters. */
+  .team-card__clearance span {
+    display: inline-block;
+    color: var(--cherry);
+    opacity: 0.75;
+    margin: 0 0.2em;
+  }
+
+  /* Validity dates — anchored bottom-left, mirroring the chip bottom-right.
+     Two-row labelled block (ISS / EXP). Both labels and values use muted
+     cool-white so the block reads as decorative chrome, not active data. */
+  .team-card__validity {
+    position: absolute;
+    left: var(--space-xl);
+    bottom: calc(var(--space-md) + 36px);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--text-chrome);
+    color: color-mix(in oklch, var(--white) 65%, var(--accent));
+    opacity: 0.75;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .team-card__validity-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5em;
+    white-space: nowrap;
+  }
+  .team-card__validity-label {
+    color: color-mix(in oklch, var(--white) 55%, var(--accent));
+    opacity: 0.95;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+  }
+
+  /* Body row: avatar + info. Center-aligned so the name sits at the
+     avatar's vertical mid-line (vs top-aligned, which left the right
+     half of the row visually empty above the pill). */
+  .team-card__body {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    padding: 0 var(--space-md);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Avatar frame — sharp corners echo the chamfered card silhouette.
+     Neutral chrome border (no cyan, no cherry) so the photo reads as
+     a recessed ID slot rather than a coloured callout. Dark padding
+     around the photo + inner+outer shadows give it physical depth. */
+  .team-card__avatar-frame {
+    flex-shrink: 0;
+    padding: 4px;
+    background: color-mix(in oklch, var(--black) 88%, var(--white));
+    border: 1px solid color-mix(in oklch, var(--white) 35%, transparent);
+    border-radius: 0;
+    line-height: 0;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--black) 60%, transparent),
+      0 1px 6px color-mix(in oklch, var(--black) 70%, transparent);
+  }
+
+  .team-card__avatar {
+    display: block;
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .team-card__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Name — cyan body with a tight white inner highlight and cherry/cyan
+     chromatic ghosts. The white core layer reads as a luminous phosphor
+     burn-in; the offset cherry+cyan ghosts give the holographic split. */
+  .team-card__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.2vw, 2.75rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+    text-shadow:
+      0 0 1px color-mix(in oklch, var(--white) 80%, transparent),
+      2px 0 0 color-mix(in oklch, var(--cherry) 75%, transparent),
+      -2px 0 0 color-mix(in oklch, var(--accent) 75%, transparent),
+      0 0 12px color-mix(in oklch, var(--accent) 28%, transparent);
+  }
+
+  /* Data readout — paired label/value fields stretched across the full
+     width of the info column with flex `space-between`. Pushes STATUS to
+     the right edge of the info area so the body row stops feeling
+     left-compressed. Thin top rule echoes the clearance band borders so
+     the data feels chrome-integrated, not packaged. */
+  .team-card__pill {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-sm) var(--space-lg);
+    width: 100%;
+    margin-top: var(--space-md);
+    padding: var(--space-sm) 0 0;
+    border-top: 1px solid color-mix(in oklch, var(--accent) 30%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+  }
+  .team-card__pill-field {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    white-space: nowrap;
+  }
+  .team-card__pill-label {
+    color: color-mix(in oklch, var(--white) 55%, var(--accent));
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: var(--text-chrome);
+    opacity: 0.95;
+  }
+  .team-card__pill-value {
+    color: color-mix(in oklch, var(--white) 80%, var(--accent));
+    letter-spacing: 0.08em;
+  }
+  /* --active is reserved for the single live status indicator (ACTIVE).
+     Other values stay neutral so cyan highlights what is actually live. */
+  .team-card__pill-value--active {
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  /* Sub-roster: hover/focus-revealed drawer. Collapsed by default so the
+     card stays tidy; expands on interaction with a max-height + opacity
+     transition. The pill above already shows the agent COUNT, so collapsed
+     state still communicates "this operator has N agents." */
+  .team-card__roster {
+    display: block;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+      max-height 0.35s var(--ease-out-expo),
+      opacity 0.25s var(--ease-out-expo),
+      margin-top 0.35s var(--ease-out-expo);
+  }
+  .team-card:hover .team-card__roster,
+  .team-card:focus-visible .team-card__roster,
+  .team-card:focus-within .team-card__roster {
+    max-height: 80px;
+    opacity: 1;
+    margin-top: var(--space-sm);
+  }
+  .team-card__roster-caption {
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    margin-right: var(--space-xs);
+    opacity: 0.7;
+  }
+  .team-card__roster-names {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  /* Mono serial line above the chip — replaces the horizontal dashes.
+     Muted cool-white so it reads as decorative chrome, not active data. */
+  .team-card__serial {
+    position: absolute;
+    bottom: calc(var(--space-md) + 78px);
+    right: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: var(--text-chrome);
+    letter-spacing: 0.12em;
+    color: color-mix(in oklch, var(--white) 65%, var(--accent));
+    opacity: 0.65;
+    line-height: 1;
+    pointer-events: none;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  /* RFID/chip pixel grid — square contact-pad pattern bottom-right,
+     mirroring the validity stack on the left. Opacity dialed back so
+     the chip reads as decorative chrome, not a live indicator. */
+  .team-card__chip {
+    position: absolute;
+    bottom: calc(var(--space-md) + 36px);
+    right: var(--space-lg);
+    width: 32px;
+    height: 32px;
+    background:
+      repeating-conic-gradient(
+        var(--accent) 0% 25%,
+        transparent 0% 50%
+      ) 0 0 / 8px 8px;
+    border: 1px solid color-mix(in oklch, var(--accent) 40%, transparent);
+    border-radius: 2px;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* Issuer microprint — repeating institution name above MRZ rows.
+     Real cards use this for anti-counterfeit; here it's pure chrome.
+     Muted cool-white keeps it texturally present without adding cyan. */
+  .team-card__microprint {
+    position: absolute;
+    bottom: 36px;
+    left: var(--space-xl);
+    right: var(--space-xl);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: color-mix(in oklch, var(--white) 60%, var(--accent));
+    opacity: 0.32;
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1;
+    pointer-events: none;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  /* Machine-readable zone — passport-style two-row mono strip at the very
+     bottom edge. Deterministic from name + agents, padded to 44 chars
+     with `<` so each card has its own unique-but-stable cipher block.
+     Muted cool-white = chrome layer, not active data. */
+  .team-card__mrz {
+    position: absolute;
+    left: var(--space-xl);
+    right: var(--space-xl);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+    color: color-mix(in oklch, var(--white) 65%, var(--accent));
+    opacity: 0.45;
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .team-card__mrz--row1 { bottom: 22px; }
+  .team-card__mrz--row2 { bottom: 10px; }
+
+  /* Responsive: flip to column at 640px, hide right notch */
+  @media (max-width: 640px) {
+    .team-card {
+      padding: var(--space-md) var(--space-lg) calc(var(--space-md) + 76px);
+    }
+    /* Right edge notch is too tight against the viewport on narrow screens
+       and risks horizontal scroll on the smallest phones (320px). Drop it. */
+    .team-card::after {
+      display: none;
+    }
+    .team-card__body {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-md);
+      padding: 0 var(--space-sm);
+    }
+    .team-card__avatar {
+      width: 104px;
+      height: 104px;
+    }
+    .team-card__name {
+      font-size: clamp(1.5rem, 6vw, 2rem);
+    }
+    /* Stack pill fields vertically on narrow screens so each field
+       has room — space-between flex would compress them otherwise. */
+    .team-card__pill {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .team-card__clearance {
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      margin: 0 var(--space-sm) var(--space-md);
+    }
+    .team-card__validity {
+      left: var(--space-md);
+      bottom: calc(var(--space-md) + 30px);
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+    }
+    .team-card__chip {
+      width: 26px;
+      height: 26px;
+      right: var(--space-md);
+      bottom: calc(var(--space-md) + 30px);
+    }
+    .team-card__serial {
+      right: var(--space-md);
+      bottom: calc(var(--space-md) + 64px);
+    }
+    /* Microprint gets cramped on mobile — drop it; MRZ shrinks and moves in */
+    .team-card__microprint { display: none; }
+    .team-card__mrz {
+      left: var(--space-md);
+      right: var(--space-md);
+      font-size: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+    .team-card__mrz--row1 { bottom: 18px; }
+    .team-card__mrz--row2 { bottom: 8px; }
+  }
+</style>
