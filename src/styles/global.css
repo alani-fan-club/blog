@@ -445,7 +445,8 @@ li::marker {
 }
 
 .site-nav a::before {
-  content: '> ';
+  content: '>';
+  display: block;
   color: var(--gray-dim);
 }
 
@@ -464,7 +465,8 @@ li::marker {
 }
 
 .nav-search::before {
-  content: '> ';
+  content: '>';
+  display: block;
   color: var(--gray-dim);
 }
 
