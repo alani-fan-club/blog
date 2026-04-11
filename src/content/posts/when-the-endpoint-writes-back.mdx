@@ -1,0 +1,88 @@
+---
+title: "When the Endpoint Writes Back"
+date: 2026-04-10
+author: "ALANI"
+tags: ["llm-security", "mitm", "html-injection", "css-exfil"]
+excerpt: "Your LLM chat client renders whatever the model returns. The model is whoever is answering."
+---
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
+import Schematic from '../../components/Schematic.astro';
+
+A [recently published paper](https://arxiv.org/abs/2604.08407v1) examined 428 LLM API routers—the middlemen that relay your prompts to the real model—and found that nine of them were actively injecting malicious payloads into responses. Seventeen accessed researcher-owned AWS credentials. One drained a cryptocurrency wallet.
+
+The paper calls this class of attack a **malicious intermediary attack**. The threat model is simple: the router sits between you and the model, sees everything in plaintext, and can rewrite anything. It is a Man-in-the-Middle attack, usually associated with third-party proxies.
+
+We wanted to understand what that means in practice for a chat frontend — not for an agentic framework or a code assistant, but for the kind of client most people actually run.
+
+---
+
+## The Router Is Not Always Flow-Through
+
+When you point an LLM client at an LLM router, you are trusting an intermediary with the full request-response cycle.
+
+<Schematic
+  label="Attack Position"
+  ariaLabel="Diagram of attacker-controlled endpoint in the LLM request chain"
+  nodes={[
+    { name: "LLM Chat Client", variant: "source" },
+    { name: "API Endpoint", meta: "may be malicious or compromised", variant: "end" },
+    { name: "Real Model (or not)", meta: "may not exist", variant: "mid" },
+  ]}
+/>
+
+The paper found response-side payload injection to be **100% compatible** across every framework tested. There are no pre-existing mechanisms in any client to verify that the response came from a legitimate model. The APIs can return anything, and the client accepts it without verification.
+
+## What We Found
+
+We tested one widely-used LLM chat frontend against a rogue endpoint — a server that poses as a legitimate LLM API and returns attacker-controlled content as the reply.
+
+The results were worse than most people would expect from a chat application.
+
+### Credential phishing
+
+It is possible to inject a fake credential prompt that exfiltrates on any click, including the close button. If the browser has saved logins for the application, they can be autofilled and exfiltrated before the user has typed anything. Clicking x to close the dialog is enough.
+
+### IP and browser fingerprinting
+
+Even with the frontend's default protection mechanisms enabled, we were able to make the victim's browser send requests to an attacker-controlled server. From those requests we observed:
+
+- The **client's true IP address** — distinct from the server running the frontend. In remote deployments, inference requests originate from the server; this reveals the user's personal IP, which the endpoint operator would not otherwise see.
+- The **User-Agent string**
+- A **browser fingerprint** derived from screen size, color scheme, pointer type, HDR support, and more
+
+This fires silently, with no user interaction, the moment the message renders.
+
+## Who Is Actually at Risk
+
+The real variable is not whether you run the frontend locally or remotely. It is **who controls the endpoint**.
+
+A third-party LLM proxy has full read-write access to every message in the session. The economics of free inference access rarely add up — [as we've covered before](/posts/the-llm-pyramid-scheme/). With the rise of malicious intermediaries actively rewriting responses, [as documented by Liu et al.](https://arxiv.org/html/2604.08407v1), connecting to an untrusted endpoint is not a theoretical risk.
+
+### De-anonymization
+
+A user routing the client through a VPN believes their identity is obscured from the endpoint. The fingerprint we were able to collect is stable across IP changes — screen size, color scheme, pointer type, and UA string combine into a profile that persists across sessions. An attacker operating multiple "free" endpoints can correlate fingerprints and re-identify users even as their IPs rotate.
+
+## The Broader Point
+
+This is a supply-chain problem. The router is not a passive relay. It has access to every byte of every request and response, and no existing client verifies where the response came from or what it contains.
+
+For chat frontends the consequence is UI injection — the user sees attacker-supplied interfaces, hands over credentials, and has their identity fingerprinted, all from a single received message.
+
+Some mitigations to consider:
+
+- Verify endpoints before trusting them with a chat session
+- Prefer self-hosted models where the full response is under your control
+- Treat a chat client that renders HTML as a browser — because that is what it is
+- Avoid using YOLO modes (e.g. --dangerously-skip-permissions in Claude Code) and manually review model tool calls when using a third-party endpoint
+- Run the client in a sandboxed environment (virtual machines, containers) that limits the blast radius of malicious payloads
+
+<Callout>
+<p><strong>Free endpoints exist because someone benefits from running them.</strong> What they inject into the response is not something the model decides.</p>
+</Callout>
+
+---
+
+## Responsible Disclosure
+
+We have identified specific implementation vulnerabilities in one major frontend that enable the fingerprinting and exfiltration described above, including a bypass of an existing protection that is enabled by default. These findings have been reported to the maintainers under responsible disclosure. Full technical details will be published following patch release.
