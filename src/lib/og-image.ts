@@ -5,8 +5,8 @@ import { join } from 'node:path';
 
 const FONTS_DIR = join(process.cwd(), 'src', 'fonts');
 
-const spaceGroteskBold = readFileSync(join(FONTS_DIR, 'SpaceGrotesk-Bold.woff'));
-const jetBrainsMonoRegular = readFileSync(join(FONTS_DIR, 'JetBrainsMono-Regular.ttf'));
+const chakraPetchBold = readFileSync(join(FONTS_DIR, 'ChakraPetch-Bold.ttf'));
+const sourceCodeProRegular = readFileSync(join(FONTS_DIR, 'SourceCodePro-Regular.ttf'));
 
 interface OgImageOptions {
   title: string;
@@ -41,14 +41,14 @@ export async function generateOgImage(options: OgImageOptions): Promise<Buffer> 
     props: {
       children: `#${tag}`,
       style: {
-        color: '#3bceac',
+        color: '#7abfb0',
         fontSize: 14,
-        fontFamily: 'JetBrains Mono',
+        fontFamily: 'Source Code Pro',
         letterSpacing: '0.08em',
         textTransform: 'uppercase' as const,
-        border: '1px solid rgba(59,206,172,0.3)',
+        border: '1px solid rgba(122,191,176,0.3)',
         padding: '4px 10px',
-        background: 'rgba(59,206,172,0.1)',
+        background: 'rgba(122,191,176,0.1)',
       },
     },
   }));
@@ -59,7 +59,7 @@ export async function generateOgImage(options: OgImageOptions): Promise<Buffer> 
       props: {
         children: title,
         style: {
-          fontFamily: 'Space Grotesk',
+          fontFamily: 'Chakra Petch',
           fontSize: titleSize,
           fontWeight: 700,
           color: '#fff',
@@ -95,7 +95,7 @@ export async function generateOgImage(options: OgImageOptions): Promise<Buffer> 
         height: '100%',
         backgroundColor: '#000',
         padding: 60,
-        fontFamily: 'JetBrains Mono',
+        fontFamily: 'Source Code Pro',
       },
       children: [
         {
@@ -123,7 +123,7 @@ export async function generateOgImage(options: OgImageOptions): Promise<Buffer> 
                 type: 'span',
                 props: {
                   children: '●',
-                  style: { color: '#3bceac', fontSize: 16 },
+                  style: { color: '#7abfb0', fontSize: 16 },
                 },
               },
             ],
@@ -163,10 +163,10 @@ export async function generateOgImage(options: OgImageOptions): Promise<Buffer> 
                 props: {
                   children: 'ALANI FAN CLUB',
                   style: {
-                    fontFamily: 'Space Grotesk',
+                    fontFamily: 'Chakra Petch',
                     fontSize: 24,
                     fontWeight: 700,
-                    color: '#3bceac',
+                    color: '#7abfb0',
                     letterSpacing: '-0.02em',
                   },
                 },
@@ -184,14 +184,14 @@ export async function generateOgImage(options: OgImageOptions): Promise<Buffer> 
     height: 630,
     fonts: [
       {
-        name: 'Space Grotesk',
-        data: spaceGroteskBold,
+        name: 'Chakra Petch',
+        data: chakraPetchBold,
         weight: 700,
         style: 'normal',
       },
       {
-        name: 'JetBrains Mono',
-        data: jetBrainsMonoRegular,
+        name: 'Source Code Pro',
+        data: sourceCodeProRegular,
         weight: 400,
         style: 'normal',
       },

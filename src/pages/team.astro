@@ -22,7 +22,7 @@ const mrzPad = (s: string, n: number) =>
 ---
 
 <Base title="Team" description="Human research collective — access card roster.">
-  <header class="page-header">
+  <header class="page-header" data-sector="03">
     <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
     <h1 class="page-title" data-scramble="load">Team</h1>
     <p class="page-subtitle" data-scramble="load">// Human research collective</p>
@@ -112,6 +112,7 @@ const mrzPad = (s: string, n: number) =>
                 class="team-card__avatar"
                 width="120"
                 height="120"
+                loading="lazy"
                 decoding="async"
               />
             </div>
@@ -128,10 +129,12 @@ const mrzPad = (s: string, n: number) =>
                 </div>
               </div>
               <div class="team-card__roster" aria-label={`${member.data.name} sub-roster`}>
-                <span class="team-card__roster-caption">▸ ASSIGNED:</span>
-                <span class="team-card__roster-names">
-                  {member.data.agents.join('  ·  ')}
-                </span>
+                <div class="team-card__roster-inner">
+                  <span class="team-card__roster-caption">▸ ASSIGNED:</span>
+                  <span class="team-card__roster-names">
+                    {member.data.agents.join('  ·  ')}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -297,7 +300,7 @@ const mrzPad = (s: string, n: number) =>
     align-items: center;
     gap: var(--space-sm);
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: var(--text-ui);
     color: var(--accent);
   }
   .team-card__mark-logo {
@@ -334,7 +337,7 @@ const mrzPad = (s: string, n: number) =>
     align-items: center;
     gap: 0.4em;
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: var(--text-ui);
     color: color-mix(in oklch, var(--white) 70%, var(--accent));
     opacity: 0.85;
   }
@@ -465,10 +468,8 @@ const mrzPad = (s: string, n: number) =>
     color: var(--accent);
     margin: 0;
     text-shadow:
-      0 0 1px color-mix(in oklch, var(--white) 80%, transparent),
       2px 0 0 color-mix(in oklch, var(--cherry) 75%, transparent),
-      -2px 0 0 color-mix(in oklch, var(--accent) 75%, transparent),
-      0 0 12px color-mix(in oklch, var(--accent) 28%, transparent);
+      -2px 0 0 color-mix(in oklch, var(--accent) 75%, transparent);
   }
 
   /* Data readout — paired label/value fields stretched across the full
@@ -487,7 +488,7 @@ const mrzPad = (s: string, n: number) =>
     padding: var(--space-sm) 0 0;
     border-top: 1px solid color-mix(in oklch, var(--accent) 30%, transparent);
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: var(--text-ui);
   }
   .team-card__pill-field {
     display: inline-flex;
@@ -516,13 +517,12 @@ const mrzPad = (s: string, n: number) =>
   }
 
   /* Sub-roster: hover/focus-revealed drawer. Collapsed by default so the
-     card stays tidy; expands on interaction with a max-height + opacity
+     card stays tidy; expands on interaction with a grid-template-rows + opacity
      transition. The pill above already shows the agent COUNT, so collapsed
      state still communicates "this operator has N agents." */
   .team-card__roster {
-    display: block;
-    overflow: hidden;
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
     opacity: 0;
     margin-top: 0;
     font-family: var(--font-mono);
@@ -531,14 +531,17 @@ const mrzPad = (s: string, n: number) =>
     letter-spacing: 0.08em;
     text-transform: uppercase;
     transition:
-      max-height 0.35s var(--ease-out-expo),
+      grid-template-rows 0.35s var(--ease-out-expo),
       opacity 0.25s var(--ease-out-expo),
       margin-top 0.35s var(--ease-out-expo);
+  }
+  .team-card__roster-inner {
+    overflow: hidden;
   }
   .team-card:hover .team-card__roster,
   .team-card:focus-visible .team-card__roster,
   .team-card:focus-within .team-card__roster {
-    max-height: 80px;
+    grid-template-rows: 1fr;
     opacity: 1;
     margin-top: var(--space-sm);
   }

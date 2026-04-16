@@ -5,28 +5,26 @@
    ======================================== */
 
 :root {
-  --black: #000;
+  --black: oklch(5% 0.005 175);
   --white: #e8e8e8;
   --white-bright: #fff;
   --gray: #888;
   --gray-dim: #666;
   --gray-rule: #1a1a1a;
-  --accent: #3bceac;
-  --accent-dim: #2a9a7e;
+  --accent: oklch(72% 0.1 175);
+  --accent-dim: oklch(55% 0.08 175);
   --cherry: #e0303e;
-  --cherry-glow: color-mix(in srgb, var(--cherry) 25%, transparent);
+  --cherry-glow: color-mix(in srgb, var(--cherry) 12%, transparent);
 
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-  --font-display: 'Space Grotesk', 'SF Pro Display', system-ui, sans-serif;
+  --font-mono: 'Source Code Pro', 'SF Mono', monospace;
+  --font-display: 'Chakra Petch', system-ui, sans-serif;
 
-  /* Type scale — terminal density */
-  --text-body: 0.875rem;     /* 14px — primary content */
-  --text-secondary: 0.8rem;  /* 12.8px — excerpts, project descriptions */
-  --text-meta: 0.7rem;       /* 11.2px — dates, post-meta, footer links */
-  --text-ui: 0.75rem;        /* 12px — nav, tagline, back-link */
-  --text-code: 0.8rem;       /* 12.8px — code blocks */
-  --text-chrome: 0.65rem;    /* 10.4px — section labels, decorative UI */
-  --text-micro: 0.5rem;      /* 8px — counters, status lines */
+  /* Type scale — 4-step small scale, ~1.2 ratio between steps */
+  --text-body: 0.875rem;        /* 14px — primary content */
+  --text-secondary: 0.8125rem;  /* 13px — excerpts, project descriptions */
+  --text-ui: 0.75rem;           /* 12px — nav, meta, dates, code */
+  --text-chrome: 0.625rem;      /* 10px — section labels, decorative UI */
+  --text-micro: 0.5rem;         /* 8px — counters, status lines */
 
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
@@ -69,9 +67,9 @@ html {
 body {
   background: var(--black);
   color: var(--white);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--text-body);
-  line-height: 1.7;
+  line-height: 1.65;
   min-height: 100vh;
   font-kerning: normal;
 }
@@ -127,8 +125,8 @@ body::after {
 }
 
 @keyframes accent-pulse {
-  0%, 100% { text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); }
-  50% { text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 16px color-mix(in srgb, var(--accent) 20%, transparent); }
+  0%, 100% { text-shadow: 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); }
+  50% { text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
 }
 
 @keyframes transmit {
@@ -201,7 +199,6 @@ strong {
 em {
   color: var(--accent);
   font-style: normal;
-  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 a {
@@ -231,11 +228,10 @@ code {
 
 pre {
   background: var(--gray-rule);
-  border-left: 3px solid var(--accent);
   padding: var(--space-md);
   overflow-x: auto;
   margin: var(--space-lg) 0;
-  font-size: var(--text-code);
+  font-size: var(--text-ui);
   line-height: 1.6;
   font-variant-ligatures: none;
   position: relative;
@@ -265,7 +261,7 @@ pre code {
 }
 
 blockquote {
-  border-left: 3px solid var(--gray-dim);
+  border-top: 1px solid var(--gray-dim);
   padding: var(--space-md);
   color: var(--gray);
   margin: var(--space-lg) 0;
@@ -366,12 +362,10 @@ li::marker {
 
 .site-title .accent {
   color: var(--accent);
-  text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent), 0 0 40px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .site-title .ai-highlight {
   color: var(--cherry);
-  text-shadow: 0 0 15px var(--cherry-glow), 0 0 30px color-mix(in srgb, var(--cherry) 10%, transparent);
 }
 
 /* Blinking cursor after title */
@@ -500,7 +494,6 @@ li::marker {
   text-transform: uppercase;
   margin-bottom: var(--space-lg);
   padding: var(--space-xs) var(--space-sm);
-  border-left: 3px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 6%, transparent);
   display: flex;
   align-items: center;
@@ -582,7 +575,7 @@ li::marker {
 
 .post-date {
   font-family: var(--font-mono);
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   color: var(--gray);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -719,22 +712,6 @@ a.tag:focus-visible {
   transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
-/* Accent bar on left — cyan base, widens on hover */
-.project-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.3s var(--ease-out-expo);
-}
-
-.project-card:hover::before {
-  width: 5px;
-}
-
 .project-card:hover {
   border-color: var(--gray-dim);
   background-color: color-mix(in srgb, var(--accent) 2%, var(--black));
@@ -786,7 +763,6 @@ a.tag:focus-visible {
   text-transform: uppercase;
   margin-bottom: var(--space-md);
   padding: var(--space-xs) var(--space-sm);
-  border-left: 2px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
@@ -808,7 +784,7 @@ a.tag:focus-visible {
 }
 
 .project-targets {
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   color: var(--gray);
   letter-spacing: 0.1em;
   margin-top: var(--space-lg);
@@ -857,7 +833,7 @@ a.tag:focus-visible {
 }
 
 .post-meta {
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   color: var(--gray);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -890,8 +866,8 @@ a.tag:focus-visible {
 
 /* Section headings — Marathon data readout style */
 .post-content h2 {
-  border-left: 3px solid var(--accent);
-  padding: var(--space-xs) var(--space-sm);
+  border-top: 1px solid var(--accent);
+  padding: var(--space-sm) 0;
   background: color-mix(in srgb, var(--accent) 4%, transparent);
   margin-top: var(--space-xl);
   margin-bottom: var(--space-md);
@@ -901,8 +877,6 @@ a.tag:focus-visible {
 .post-content h3 {
   color: var(--white-bright);
   letter-spacing: 0.02em;
-  border-left: 2px solid var(--accent);
-  padding-left: var(--space-sm);
 }
 
 /* ---- PRINCIPLE QUOTE — h3 followed by a paragraph containing only em ---- */
@@ -921,7 +895,6 @@ a.tag:focus-visible {
 }
 
 .post-content h3 + p:has(> em:only-child) {
-  border-left: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
   padding: var(--space-sm) var(--space-md);
   margin-bottom: var(--space-md);
   background: color-mix(in srgb, var(--accent) 3%, transparent);
@@ -932,7 +905,8 @@ a.tag:focus-visible {
 /* ---- CALLOUT — editorial aside ---- */
 
 .callout {
-  border-left: 3px solid var(--cherry);
+  border: 1px solid color-mix(in srgb, var(--cherry) 30%, transparent);
+  border-top: 2px solid var(--cherry);
   padding: var(--space-sm) var(--space-md);
   margin: var(--space-lg) 0;
   font-family: var(--font-mono);
@@ -954,7 +928,6 @@ a.tag:focus-visible {
 
 .alert {
   border: 1px solid var(--gray-rule);
-  border-left: 3px solid var(--accent);
   padding: var(--space-md);
   margin: var(--space-lg) 0;
   font-family: var(--font-mono);
@@ -975,7 +948,6 @@ a.tag:focus-visible {
   padding: var(--space-xs) var(--space-md);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .alert-label::before {
@@ -1026,7 +998,7 @@ a.tag:focus-visible {
 .section-index li {
   counter-increment: idx;
   margin-bottom: var(--space-xs);
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   letter-spacing: 0.05em;
 }
 
@@ -1071,7 +1043,6 @@ a.tag:focus-visible {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: var(--space-lg);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent);
   align-self: center;
 }
 
@@ -1104,7 +1075,7 @@ a.tag:focus-visible {
 
 .schematic-node-meta {
   display: block;
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   color: var(--gray);
   margin-top: 2px;
 }
@@ -1187,7 +1158,7 @@ a.tag:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm) var(--space-lg);
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1351,7 +1322,7 @@ a.tag:focus-visible {
   }
 
   .post-content h2 {
-    padding: var(--space-xs) var(--space-sm);
+    padding: var(--space-sm) 0;
   }
 
   /* Page header tightening */
@@ -1466,7 +1437,6 @@ html {
   max-width: 560px;
   background: var(--black);
   border: 1px solid var(--gray-rule);
-  border-left: 3px solid var(--accent);
   font-family: var(--font-mono);
 }
 
@@ -1582,7 +1552,7 @@ html {
 }
 
 .cpr-excerpt {
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   color: var(--gray);
   line-height: 1.4;
 }
@@ -1635,6 +1605,318 @@ html {
   }
 
   .nav-search kbd {
+    display: none;
+  }
+}
+
+/* ========================================
+   MICROGRAPHICS — Marathon tactical overlay
+   Registration marks, coordinates, HUD chrome
+   ======================================== */
+
+/* ---- CONTAINER REGISTRATION MARKS ---- */
+
+/* Corner brackets on the main content area — establishes the
+   "viewport frame" feel of a targeting system. Top-left and
+   bottom-right only; all four feels heavy. */
+.site-container::before {
+  content: '┌';
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--gray-dim);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 9997;
+  line-height: 1;
+}
+
+.site-container::after {
+  content: '┘';
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--gray-dim);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 9997;
+  line-height: 1;
+}
+
+/* ---- COORDINATE STAMPS ---- */
+
+/* Post headers get coordinate data in the top-right margin —
+   deterministic from the date, reads as a sector/grid reference */
+.post-header::after {
+  content: 'REF ◢ ' attr(data-coord);
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--gray-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Page headers get sector classification */
+.page-header::after {
+  content: 'SECTOR ' attr(data-sector) ' ◢ CLASSIFIED';
+  position: absolute;
+  bottom: var(--space-md);
+  right: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--gray-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ---- MEASUREMENT TICKS ON HRs ---- */
+
+/* Thin tick marks along horizontal rules — like a ruler edge
+   on a technical drawing. Uses gradient to paint discrete marks. */
+hr::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 15%, transparent) 0px,
+    color-mix(in srgb, var(--accent) 15%, transparent) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+  pointer-events: none;
+}
+
+/* ---- SECTION SCAN-IN ANIMATION ---- */
+
+/* Scroll-driven "scan line" that sweeps across h2 headings
+   as they enter the viewport. The line is a pseudo-element
+   that translates from left to right, driven by scroll position.
+   Falls back to static display on unsupported browsers. */
+
+@supports (animation-timeline: view()) {
+  @keyframes scan-sweep {
+    0% {
+      transform: translateX(-100%);
+      opacity: 1;
+    }
+    30% {
+      opacity: 1;
+    }
+    50% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes micro-reveal {
+    0% { opacity: 0; }
+    40% { opacity: 0; }
+    60% { opacity: 1; }
+    100% { opacity: 1; }
+  }
+
+  .post-content h2 {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .post-content h2::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--accent) 15%, transparent) 45%,
+      color-mix(in srgb, var(--accent) 40%, transparent) 50%,
+      color-mix(in srgb, var(--accent) 15%, transparent) 55%,
+      transparent 100%
+    );
+    pointer-events: none;
+    animation: scan-sweep linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+
+  /* Staggered micro-reveal on section labels and post items */
+  .section-label::after {
+    content: '◢';
+    margin-left: auto;
+    opacity: 0;
+    animation: micro-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+
+  .post-item {
+    view-timeline-name: --post-item;
+  }
+
+  .post-index {
+    animation: micro-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 50%;
+  }
+}
+
+/* ---- SCROLL DEPTH HUD ---- */
+
+/* Persistent edge-of-viewport strip on the left. Shows
+   scroll depth as a vertical progress bar + sector readout.
+   Sits just inside the viewport frame brackets. */
+
+.scroll-hud {
+  position: fixed;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9997;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+}
+
+.scroll-hud__track {
+  width: 1px;
+  height: 120px;
+  background: var(--gray-rule);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-hud__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: var(--accent);
+  transition: height 0.15s ease-out;
+}
+
+/* Tick marks along the HUD track — 5 evenly spaced */
+.scroll-hud__track::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -2px;
+  width: 5px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--gray-dim) 40%, transparent) 0px,
+    color-mix(in srgb, var(--gray-dim) 40%, transparent) 1px,
+    transparent 1px,
+    transparent 24px
+  );
+  pointer-events: none;
+}
+
+.scroll-hud__depth {
+  font-size: 0.45rem;
+  color: var(--gray-dim);
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.scroll-hud__sector {
+  font-size: 0.4rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* Right-edge crosshair — fixed targeting reticle */
+.scroll-hud-cross {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9997;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  color: var(--gray-dim);
+  opacity: 0.25;
+  line-height: 1;
+  text-align: center;
+}
+
+/* ---- MICROGRAPHIC ON PROJECT CARDS ---- */
+
+/* Grid reference in top-right of each project card */
+.project-card {
+  counter-increment: project-counter;
+}
+
+.project-card::after {
+  content: 'PRJ-' counter(project-counter, decimal-leading-zero);
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--gray-dim);
+  letter-spacing: 0.15em;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.project-list {
+  counter-reset: project-counter;
+}
+
+/* ---- RESPONSIVE: HIDE MICROGRAPHICS ON MOBILE ---- */
+
+@media (max-width: 640px) {
+  .site-container::before,
+  .site-container::after {
+    display: none;
+  }
+
+  .scroll-hud,
+  .scroll-hud-cross {
+    display: none;
+  }
+
+  .post-header::after,
+  .page-header::after {
+    display: none;
+  }
+
+  .project-card::after {
     display: none;
   }
 }

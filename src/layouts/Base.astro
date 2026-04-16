@@ -25,7 +25,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <title>{title} — ALANI FAN CLUB</title>
   <meta name="description" content={description} />
   <meta property="og:title" content={`${title} — ALANI FAN CLUB`} />
@@ -45,8 +45,21 @@ const ogImageURL = new URL(ogImage, siteBase).href;
 </head>
 <body>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <!-- Scroll depth HUD — left edge -->
+  <div class="scroll-hud" aria-hidden="true">
+    <span class="scroll-hud__sector" id="hud-sector">SEC-00</span>
+    <div class="scroll-hud__track">
+      <div class="scroll-hud__fill" id="hud-fill"></div>
+    </div>
+    <span class="scroll-hud__depth" id="hud-depth">0%</span>
+  </div>
+
+  <!-- Right-edge crosshair -->
+  <div class="scroll-hud-cross" aria-hidden="true">+</div>
+
   <div class="site-container">
-    <nav class="site-nav">
+    <nav class="site-nav" aria-label="Main navigation">
       <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Posts</a>
       <a href="/projects" aria-current={currentPath === '/projects/' || currentPath === '/projects' ? 'page' : undefined}>Projects</a>
       <a href="/team" aria-current={currentPath === '/team' || currentPath === '/team/' ? 'page' : undefined}>Team</a>
@@ -295,6 +308,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
             el.setAttribute('role', 'option');
             el.dataset.url = item.url;
             el.dataset.index = resultIndex;
+            el.tabIndex = 0;
 
             let html = '<span class="cpr-title">' + escapeHtml(item.title) + '</span>';
             if (item.excerpt) {
@@ -374,14 +388,60 @@ const ogImageURL = new URL(ogImage, siteBase).href;
           const all = getResults();
           if (all.length && activeIndex >= 0) navigate(all[activeIndex].dataset.url);
         } else if (e.key === 'Tab') {
-          e.preventDefault();
-          input.focus();
+          const active = getResults()[activeIndex];
+          if (e.shiftKey) {
+            if (document.activeElement === input) {
+              e.preventDefault();
+              if (active) active.focus();
+            }
+          } else {
+            if (document.activeElement !== input) {
+              e.preventDefault();
+              input.focus();
+            }
+          }
         }
       });
 
       input.addEventListener('input', () => render(input.value));
       backdrop.addEventListener('click', close);
       trigger.addEventListener('click', open);
+    })();
+  </script>
+
+  <script>
+    // Scroll-depth HUD — updates the left-edge progress bar and sector readout.
+    // Sector number increments per ~25% of page depth (4 sectors per page).
+    // Respects reduced motion by skipping the transition.
+    (function () {
+      const fill = document.getElementById('hud-fill');
+      const depth = document.getElementById('hud-depth');
+      const sector = document.getElementById('hud-sector');
+      if (!fill || !depth || !sector) return;
+
+      let ticking = false;
+
+      function update() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+        const pctInt = Math.round(pct * 100);
+        const sectorNum = String(Math.min(Math.floor(pct * 4), 3) + 1).padStart(2, '0');
+
+        fill.style.height = pctInt + '%';
+        depth.textContent = pctInt + '%';
+        sector.textContent = 'SEC-' + sectorNum;
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      update();
     })();
   </script>
 </body>

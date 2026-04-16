@@ -8,7 +8,7 @@ const tags = buildTagCounts(posts);
 ---
 
 <Base title="Tags" description="Transmission classification index — all tags across dispatches.">
-  <header class="page-header">
+  <header class="page-header" data-sector="04">
     <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
     <h1 class="page-title" data-scramble="load">Tags</h1>
     <p class="page-subtitle" data-scramble="load">// Transmission classification index</p>
@@ -62,7 +62,7 @@ const tags = buildTagCounts(posts);
   .tag-index-link::before {
     content: counter(tag-counter, decimal-leading-zero) ' —';
     color: var(--gray-dim);
-    font-size: var(--text-meta);
+    font-size: var(--text-ui);
     margin-right: var(--space-md);
     min-width: 3.5em;
   }

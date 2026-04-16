@@ -28,7 +28,7 @@ const isoDate = date.toISOString().split('T')[0];
   <article>
     <a href="/" class="back-link">Return to Index</a>
 
-    <header class="post-header">
+    <header class="post-header" data-coord={`${isoDate.replace(/-/g, '.')}.TX`}>
       <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
       <time class="post-date" datetime={isoDate}>{formattedDate}</time>
       <h1 class="post-title" data-scramble="load">{title}</h1>

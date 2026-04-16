@@ -19,14 +19,14 @@ const { posts } = Astro.props;
 <Base title={`#${tag}`} description={`Posts tagged "${tag}" on the Alani Fan Club.`}>
   <a href="/tags/" class="back-link">Return to Tags</a>
 
-  <header class="page-header">
+  <header class="page-header" data-sector="04">
     <span class="header-micro header-micro--top-right">SYS://ALANI <span class="accent-dot" aria-hidden="true">●</span></span>
     <h1 class="page-title" data-scramble="load">#{tag}</h1>
     <p class="page-subtitle" data-scramble="load">// Filtered transmissions</p>
     <span class="header-micro header-micro--bottom-left">FILTER: ACTIVE ◢ {posts.length} MATCH{posts.length !== 1 ? 'ES' : ''}</span>
   </header>
 
-  <div class="section-label" data-scramble="load">Tagged Transmissions [{posts.length} entries]</div>
+  <h2 class="section-label" data-scramble="load">Tagged Transmissions [{posts.length} entries]</h2>
 
   <ul class="post-list">
     {posts.map((post, index) => {
@@ -43,9 +43,9 @@ const { posts } = Astro.props;
         <li class="post-item">
           <span class="post-index" aria-hidden="true">TX-{issueNumber}</span>
           <time class="post-date" datetime={isoDate}>{formattedDate}</time>
-          <h2 class="post-title">
+          <h3 class="post-title">
             <a href={`/posts/${post.slug}/`} data-scramble="hover">{post.data.title}</a>
-          </h2>
+          </h3>
           <p class="post-excerpt">{post.data.excerpt}</p>
           <div class="post-tags">
             {post.data.tags.map((t) => (
