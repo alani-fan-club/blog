@@ -31,6 +31,9 @@ const projects = (await getCollection('projects')).sort(
           {project.data.targets && (
             <div class="project-targets">{project.data.targets}</div>
           )}
+          {project.data.url && (
+            <a href={project.data.url} class="project-link">View docs <span aria-hidden="true">→</span></a>
+          )}
         </article>
       );
     }))}

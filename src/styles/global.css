@@ -799,6 +799,32 @@ a.tag:focus-visible {
   letter-spacing: 0.15em;
 }
 
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: var(--space-lg);
+  padding: 0.6em 1.1em;
+  font-size: var(--text-meta);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  color: var(--cherry);
+  border: 1px solid color-mix(in srgb, var(--cherry) 35%, transparent);
+  background: color-mix(in srgb, var(--cherry) 4%, transparent);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.project-link:hover {
+  color: var(--white);
+  border-color: var(--cherry);
+  background: color-mix(in srgb, var(--cherry) 14%, transparent);
+}
+
+.project-link span { transition: transform 0.2s ease; }
+.project-link:hover span { transform: translateX(2px); }
+
 .project-body p {
   color: var(--gray);
   font-size: var(--text-secondary);

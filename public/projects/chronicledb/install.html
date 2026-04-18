@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronicleDB — Setup Walkthrough</title>
+  <meta name="description" content="Step-by-step install guide for ChronicleDB. Pick local Postgres or a free cloud DB, and walk through every setting with mock UI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9646;</text></svg>">
+  <style>
+    :root {
+      --black: #000;
+      --white: #e8e8e8;
+      --white-bright: #fff;
+      --gray: #888;
+      --gray-dim: #666;
+      --gray-rule: #1a1a1a;
+      --accent: #3bceac;
+      --accent-dim: #2a9a7e;
+      --cherry: #e0303e;
+      --cherry-glow: color-mix(in srgb, #e0303e 25%, transparent);
+      --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+      --font-display: "Space Grotesk", "SF Pro Display", system-ui, sans-serif;
+      --ease-out-expo: cubic-bezier(.16, 1, .3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    ::selection { background: var(--accent); color: var(--black); }
+
+    body {
+      font-family: var(--font-mono);
+      font-size: .875rem;
+      line-height: 1.7;
+      color: var(--white);
+      background: var(--black);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(color-mix(in srgb, var(--accent) 6%, transparent) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.03) 2px,
+        rgba(0,0,0,.03) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Top nav ─────────────────────────────────── */
+
+    .site-nav {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 2rem 2rem;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      border-bottom: 1px solid var(--gray-rule);
+      position: relative;
+      z-index: 2;
+    }
+
+    .site-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+
+    .site-nav a::before { content: "> "; color: var(--gray-dim); }
+
+    .site-nav a:hover { color: var(--accent); }
+
+    /* ── Hero ────────────────────────────────────── */
+
+    .setup-hero {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 4rem 2rem 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .setup-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: var(--white-bright);
+      line-height: 1.1;
+      margin-bottom: .75rem;
+    }
+
+    .setup-hero h1 .accent { color: var(--accent); }
+
+    .setup-hero .lede {
+      font-size: .85rem;
+      color: var(--gray);
+      max-width: 640px;
+      line-height: 1.8;
+    }
+
+    .setup-hero .eta {
+      font-size: .6rem;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      color: var(--gray-dim);
+      margin-top: 1rem;
+    }
+
+    .setup-hero .eta .val { color: var(--accent); }
+
+    /* ── Wizard layout ───────────────────────────── */
+
+    .wizard {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 900px) {
+      .wizard { grid-template-columns: 1fr; gap: 0; }
+    }
+
+    /* Rail */
+
+    .wizard-rail {
+      position: sticky;
+      top: 2rem;
+      align-self: start;
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+    }
+
+    @media (max-width: 900px) {
+      .wizard-rail {
+        position: static;
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--gray-rule);
+      }
+    }
+
+    .wizard-rail a {
+      display: block;
+      padding: .5rem 0 .5rem 1rem;
+      color: var(--gray-dim);
+      text-decoration: none;
+      border-left: 1px solid var(--gray-rule);
+      transition: color .2s ease, border-color .2s ease;
+      white-space: nowrap;
+    }
+
+    .wizard-rail a .num { color: var(--gray-dim); margin-right: .5em; }
+    .wizard-rail a:hover { color: var(--gray); }
+
+    .wizard-rail a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+
+    .wizard-rail a.active .num { color: var(--accent); }
+
+    @media (max-width: 900px) {
+      .wizard-rail a { border-left: none; padding: .5rem .75rem; border-bottom: 2px solid var(--gray-rule); }
+      .wizard-rail a.active { border-bottom-color: var(--accent); border-left: none; }
+    }
+
+    /* Step cards */
+
+    .wizard-step {
+      min-height: 70vh;
+      padding: 3rem 0 5rem;
+      border-bottom: 1px solid var(--gray-rule);
+      opacity: .35;
+      transition: opacity .6s var(--ease-out-expo);
+    }
+
+    .wizard-step.active { opacity: 1; }
+
+    .wizard-step:last-of-type { border-bottom: none; }
+
+    .step-head {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-head .step-num {
+      font-size: .7rem;
+      color: var(--accent);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .step-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: var(--white-bright);
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    .wizard-step p {
+      color: var(--white);
+      margin-bottom: 1rem;
+      max-width: 680px;
+    }
+
+    .wizard-step p.muted {
+      color: var(--gray);
+      font-size: .8rem;
+    }
+
+    /* Mock shell */
+
+    .mock {
+      background: #0a0a0a;
+      border: 1px solid var(--gray-rule);
+      padding: 1.2rem;
+      margin: 1.5rem 0;
+      font-size: .75rem;
+      position: relative;
+    }
+
+    .mock::before {
+      content: attr(data-title);
+      position: absolute;
+      top: -0.5rem;
+      left: 1rem;
+      background: var(--black);
+      padding: 0 .6rem;
+      font-size: .55rem;
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      color: var(--gray-dim);
+    }
+
+    .mock-field {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      align-items: center;
+      padding: .4rem 0;
+      font-size: .72rem;
+    }
+
+    .mock-field label {
+      color: var(--gray);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .mock-field .input {
+      background: #050505;
+      border: 1px solid var(--gray-rule);
+      padding: .35rem .6rem;
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: .72rem;
+    }
+
+    .mock-field .input.filled { border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+    .mock-toggle {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .35rem 0;
+      color: var(--white);
+      font-size: .72rem;
+    }
+
+    .mock-toggle .sw {
+      width: 28px;
+      height: 14px;
+      background: var(--gray-rule);
+      border-radius: 7px;
+      position: relative;
+    }
+
+    .mock-toggle .sw::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gray);
+      top: 2px;
+      left: 2px;
+      transition: all .2s ease;
+    }
+
+    .mock-toggle.on .sw { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+    .mock-toggle.on .sw::after { background: var(--accent); left: 16px; }
+
+    .mock-btn {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: .35rem .9rem;
+      color: var(--black);
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      margin-top: .5rem;
+    }
+
+    .mock-btn-ghost {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: .3rem .75rem;
+      color: var(--gray);
+      background: transparent;
+      border: 1px solid var(--gray-rule);
+      margin-right: .4rem;
+    }
+
+    .mock-section {
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--gray-rule);
+    }
+
+    .mock-section:last-child { border-bottom: none; }
+
+    .mock-section h4 {
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--accent);
+      margin: .4rem 0 .6rem;
+      font-weight: 500;
+    }
+
+    .mock-hint {
+      font-size: .6rem;
+      color: var(--gray-dim);
+      line-height: 1.6;
+      margin-top: .2rem;
+    }
+
+    .mock-drawer {
+      background: #0a0a0a;
+      border: 1px solid var(--gray-rule);
+      padding: .8rem 1rem;
+      margin: 1rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .8rem;
+      color: var(--white-bright);
+      font-weight: 500;
+    }
+
+    .mock-drawer::after {
+      content: "▼";
+      color: var(--gray-dim);
+      font-size: .6rem;
+    }
+
+    .mock-drawer.highlight {
+      border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+      background: color-mix(in srgb, var(--accent) 6%, #0a0a0a);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .mock-status {
+      display: inline-block;
+      padding: .1em .5em;
+      font-size: .6rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      border: 1px solid;
+      margin-left: .5rem;
+    }
+
+    .mock-status.ok { color: var(--accent); border-color: var(--accent); }
+    .mock-status.err { color: var(--cherry); border-color: var(--cherry); }
+    .mock-status.pending { color: var(--gray); border-color: var(--gray-rule); }
+
+    .mock hr {
+      border: none;
+      border-top: 1px solid var(--gray-rule);
+      margin: .6rem 0;
+    }
+
+    /* Callouts on fields */
+
+    .callout {
+      margin-top: .5rem;
+      padding: .5rem .75rem;
+      border-left: 2px solid var(--accent);
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
+      font-size: .7rem;
+      color: var(--gray);
+    }
+
+    .callout.warn {
+      border-left-color: var(--cherry);
+      background: color-mix(in srgb, var(--cherry) 5%, transparent);
+      color: color-mix(in srgb, var(--cherry) 70%, var(--white));
+    }
+
+    .callout strong { color: var(--white); }
+
+    /* Code blocks */
+
+    pre {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      line-height: 1.6;
+      background: #0a0a0a;
+      border: 1px solid var(--gray-rule);
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      margin: .75rem 0;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: .78rem;
+      background: #111;
+      padding: .1em .35em;
+      border-radius: 2px;
+    }
+
+    pre code { background: none; padding: 0; font-size: inherit; }
+
+    .cmd { color: var(--accent); }
+    .cmt { color: var(--gray-dim); }
+    .str { color: #e8c547; }
+
+    /* ── OS picker ─────────────────────────────────── */
+
+    .os-picker {
+      display: flex;
+      gap: 0;
+      margin-top: 2rem;
+      border: 1px solid var(--gray-rule);
+      background: #050505;
+      max-width: 560px;
+    }
+
+    .os-btn {
+      flex: 1;
+      padding: .7rem 1rem;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--gray);
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--gray-rule);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .os-btn:last-child { border-right: none; }
+    .os-btn:hover { color: var(--white); }
+
+    .os-btn.active {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    .os-picker-hint {
+      font-size: .6rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--gray-dim);
+      margin-top: .6rem;
+    }
+
+    /* OS-scoped blocks. Elements carry data-os="mac", "linux", "windows",
+       or a space-separated subset. Hidden when the active OS isn't in
+       the list. */
+    [data-os-only] { display: none !important; }
+    body[data-os="mac"] [data-os-only~="mac"],
+    body[data-os="linux"] [data-os-only~="linux"],
+    body[data-os="windows"] [data-os-only~="windows"] { display: block !important; }
+
+    /* ── Branching tabs (local vs cloud) */
+
+    .branch {
+      margin: 1.5rem 0;
+      border: 1px solid var(--gray-rule);
+      background: #050505;
+    }
+
+    .branch-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-rule);
+    }
+
+    .branch-tab {
+      flex: 1;
+      padding: .8rem 1rem;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--gray);
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--gray-rule);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all .2s ease;
+    }
+
+    .branch-tab:last-child { border-right: none; }
+    .branch-tab:hover { color: var(--white); }
+
+    .branch-tab.active {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 6%, transparent);
+      border-bottom: 2px solid var(--accent);
+      margin-bottom: -1px;
+    }
+
+    .branch-panel {
+      padding: 1.5rem;
+      display: none;
+    }
+
+    .branch-panel.active { display: block; }
+
+    /* Footer */
+
+    .site-footer {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2rem;
+      border-top: 1px solid var(--gray-rule);
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .site-footer a {
+      color: var(--gray-dim);
+      text-decoration: none;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin: 0 1rem;
+      transition: color .2s ease;
+    }
+
+    .site-footer a:hover { color: var(--accent); }
+
+    /* ── Overdrive: CRT manual ─────────────────────── */
+
+    /* Animated custom prop for the brand bloom on the accent word. */
+    @property --brand-glow {
+      syntax: "<length>";
+      initial-value: 6px;
+      inherits: false;
+    }
+
+    .setup-hero h1 .accent {
+      text-shadow:
+        0 0 var(--brand-glow) color-mix(in srgb, var(--accent) 55%, transparent),
+        0 0 calc(var(--brand-glow) * 2.8) color-mix(in srgb, var(--accent) 18%, transparent);
+      animation: brand-bloom 5.5s ease-in-out infinite;
+    }
+
+    @keyframes brand-bloom {
+      0%, 100% { --brand-glow: 4px; }
+      50%      { --brand-glow: 18px; }
+    }
+
+    /* Scanlines drift slowly — one row per 10 seconds — so the screen
+       feels like it's refreshing. Existing body::after rule picks up
+       the animation; the drift is purely on background-position. */
+    body::after {
+      animation: scan-drift 10s linear infinite;
+    }
+
+    @keyframes scan-drift {
+      from { background-position: 0 0; }
+      to   { background-position: 0 4px; }
+    }
+
+    /* Dot grid gets a subtle slow vertical breathing on the alpha so the
+       background feels alive but doesn't compete for attention. */
+    body::before {
+      animation: grid-breathe 14s ease-in-out infinite;
+    }
+
+    @keyframes grid-breathe {
+      0%, 100% { opacity: 0.85; }
+      50%      { opacity: 1; }
+    }
+
+    /* ── Terminal typewriter ────────────────────────── */
+    /* JS swaps the element's innerHTML token-by-token. The cursor is a
+       pseudo-element on the <code> while .typing is set. */
+
+    .mock pre code.typing::after {
+      content: "▋";
+      display: inline-block;
+      color: var(--accent);
+      animation: crt-cursor 0.7s steps(2) infinite;
+      margin-left: .05em;
+      text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 60%, transparent);
+    }
+
+    @keyframes crt-cursor {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0; }
+    }
+
+    /* ── Settings-mock scroll-assembly ──────────────── */
+    /* Every .mock-field / .mock-toggle starts offscreen-like (opacity 0,
+       6px down). When its parent .mock intersects the viewport, JS flips
+       data-assembling to "ready" and the per-child --stagger index
+       drives a wave of fade-ups, top to bottom. */
+
+    .mock[data-assembling="pending"] .mock-field,
+    .mock[data-assembling="pending"] .mock-toggle {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .mock .mock-field,
+    .mock .mock-toggle {
+      transition:
+        opacity .5s cubic-bezier(.16, 1, .3, 1),
+        transform .5s cubic-bezier(.16, 1, .3, 1);
+      transition-delay: calc(var(--stagger, 0) * 65ms);
+    }
+
+    /* ── Status-pill transition ─────────────────────── */
+    .mock-status {
+      transition: color .4s ease, border-color .4s ease, background-color .4s ease;
+    }
+
+    .mock-status[data-cycling] {
+      background: color-mix(in srgb, currentColor 8%, transparent);
+    }
+
+    /* ── Typewriter <pre> base state ────────────────── */
+    /* Before the IntersectionObserver fires, keep the pre visually at
+       its final size but with no content flicker. The JS pre-measures
+       by leaving the pre at height: auto; we just need .typing styling. */
+
+    .mock pre code { min-height: 1em; display: block; }
+
+    /* ── Step activation accent ─────────────────────── */
+    /* When a step becomes the most-visible one, the step-num briefly
+       brightens — subtle feedback that you've "entered" the step. */
+    .wizard-step.active .step-num {
+      color: var(--accent);
+      text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    .wizard-step .step-num {
+      transition: color .4s ease, text-shadow .4s ease;
+    }
+
+    /* ── Reduced motion: strip all animated CRT effects ─ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      .setup-hero h1 .accent {
+        text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
+      }
+      .mock[data-assembling="pending"] .mock-field,
+      .mock[data-assembling="pending"] .mock-toggle {
+        opacity: 1;
+        transform: none;
+      }
+      .mock pre code.typing::after {
+        content: "";
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="index.html">&larr; Back</a>
+    <a href="https://alanifan.club/">Home</a>
+    <a href="https://github.com/alani-fan-club/chronicledb">GitHub</a>
+    <a href="https://discord.gg/alanifanclub">Discord</a>
+  </nav>
+
+  <header class="setup-hero">
+    <h1>Setup <span class="accent">Walkthrough</span></h1>
+    <p class="lede">
+      Step-by-step install. Scroll through and the next screen lights up. Stop whenever you want &mdash; each step is self-contained.
+    </p>
+    <p class="eta">Est. time <span class="val">&lt; 5 min</span> // Skill floor <span class="val">Copy-paste + click</span></p>
+
+    <div class="os-picker" role="tablist" aria-label="Operating system">
+      <button class="os-btn" data-os="mac" role="tab">macOS</button>
+      <button class="os-btn" data-os="linux" role="tab">Linux</button>
+      <button class="os-btn" data-os="windows" role="tab">Windows</button>
+    </div>
+    <p class="os-picker-hint">Pick your OS &mdash; the steps below adjust automatically.</p>
+  </header>
+
+  <div class="wizard">
+
+    <nav class="wizard-rail" aria-label="Install steps">
+      <a href="#step-01"><span class="num">01</span>Download</a>
+      <a href="#step-02"><span class="num">02</span>Database</a>
+      <a href="#step-03"><span class="num">03</span>Restart ST</a>
+      <a href="#step-04"><span class="num">04</span>Open Panel</a>
+      <a href="#step-05"><span class="num">05</span>DB Fields</a>
+      <a href="#step-06"><span class="num">06</span>LLM Config</a>
+      <a href="#step-07"><span class="num">07</span>Memory Types</a>
+      <a href="#step-08"><span class="num">08</span>Behavior</a>
+      <a href="#step-09"><span class="num">09</span>Per-Character</a>
+      <a href="#step-10"><span class="num">10</span>Done</a>
+    </nav>
+
+    <main>
+
+      <!-- Step 01 -->
+      <section class="wizard-step" id="step-01">
+        <div class="step-head">
+          <span class="step-num">Step 01</span>
+          <h2>Get the code</h2>
+        </div>
+
+        <div data-os-only="windows" class="callout" style="margin-bottom:1.5rem;">
+          <strong>Windows note:</strong> you can do Step 01 in either PowerShell or Git Bash &mdash; both have <code>git</code> once you install <a href="https://git-scm.com/download/win" style="color:var(--accent)">Git for Windows</a>. Whether you need WSL at all depends on your database choice in Step 02 &mdash; a cloud DB skips WSL entirely.
+        </div>
+
+        <p>
+          Two ways to grab ChronicleDB: <strong>git clone</strong> (recommended &mdash; easy to pull updates later) or <strong>download the ZIP</strong> (no git required). Either way you'll end up with the repo on disk, and Step 02 will run the installer from there.
+        </p>
+
+        <div class="branch" role="tablist">
+          <div class="branch-tabs">
+            <button class="branch-tab active" data-branch="git" role="tab">git clone (recommended)</button>
+            <button class="branch-tab" data-branch="zip" role="tab">Download ZIP</button>
+          </div>
+
+          <div class="branch-panel active" data-branch="git">
+            <p>Open a terminal and run:</p>
+            <pre data-lang="bash"><code><span class="cmd">git</span> clone https://github.com/alani-fan-club/chronicledb ~/.chronicledb
+<span class="cmd">cd</span> ~/.chronicledb</code></pre>
+            <div class="callout">
+              <strong>Why this location?</strong> <code>~/.chronicledb</code> is the default the installer expects. Put it anywhere you like &mdash; just remember the path for Step 02.
+            </div>
+            <p class="muted">Updating later: <code>cd ~/.chronicledb &amp;&amp; git pull</code>, then restart SillyTavern.</p>
+          </div>
+
+          <div class="branch-panel" data-branch="zip">
+            <p>If you don't have git installed, grab a ZIP from GitHub:</p>
+            <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
+              <li>Go to <a href="https://github.com/alani-fan-club/chronicledb" style="color:var(--accent)">github.com/alani-fan-club/chronicledb</a></li>
+              <li>Click the green <strong>Code</strong> button &rarr; <strong>Download ZIP</strong></li>
+              <li>Unzip it somewhere you'll remember &mdash; e.g. <code>~/.chronicledb</code>:</li>
+            </ol>
+            <pre data-lang="bash"><code><span class="cmd">unzip</span> ~/Downloads/chronicledb-master.zip -d ~/
+<span class="cmd">mv</span> ~/chronicledb-master ~/.chronicledb
+<span class="cmd">cd</span> ~/.chronicledb</code></pre>
+            <p class="muted">Updating later without git means repeating this download + unzip dance. Consider installing git first if you plan to stay on the project.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Step 02 -->
+      <section class="wizard-step" id="step-02">
+        <div class="step-head">
+          <span class="step-num">Step 02</span>
+          <h2>Set up the database</h2>
+        </div>
+        <p>
+          Two routes. If you want a local Postgres, run the included <code>install.sh</code> &mdash; it sets up everything in one shot (Postgres, symlinks into ST, config.yaml patch). If you'd rather use a free cloud DB, skip the script and do the wiring manually.
+        </p>
+
+        <div class="branch" role="tablist">
+          <div class="branch-tabs">
+            <button class="branch-tab active" data-branch="local" role="tab">Run install.sh (local)</button>
+            <button class="branch-tab" data-branch="cloud" role="tab">Use a cloud DB (skip install.sh)</button>
+          </div>
+
+          <div class="branch-panel active" data-branch="local">
+            <!-- Local Postgres on Windows requires WSL — the script is bash,
+                 and pgvector for native Windows is a build-your-own affair. -->
+            <div data-os-only="windows" style="margin-bottom:1.5rem;">
+              <div class="callout" style="border-left-color:var(--cherry);background:color-mix(in srgb, var(--cherry) 5%, transparent);">
+                <strong>Local Postgres on Windows requires WSL2.</strong> The installer is a bash script, and pgvector for native Windows is a build-from-source headache. If you'd rather skip WSL, switch to the <strong>Cloud DB</strong> tab &mdash; that path is PowerShell-native.
+              </div>
+              <p style="font-size:.75rem;color:var(--gray);margin-top:1rem;">Open <strong>PowerShell as Administrator</strong> and run:</p>
+              <pre data-lang="powershell"><code><span class="cmd">wsl</span> --install -d Ubuntu</code></pre>
+              <p style="font-size:.75rem;color:var(--gray);">Reboot when Windows asks; Ubuntu launches on next login &mdash; set a username + password. <strong>Move your SillyTavern install into the Ubuntu filesystem</strong> (the WSL home dir, <code>~/</code>), then re-do Step 01's git clone from inside that Ubuntu shell. Everything below runs in Ubuntu, not PowerShell.</p>
+              <div class="callout">
+                <strong>Using ST in your Windows browser:</strong> once ST starts inside WSL, <code>http://localhost:8000</code> in your regular Windows browser just works &mdash; WSL2 forwards ports automatically.
+              </div>
+            </div>
+
+            <p>From inside the ChronicleDB directory you cloned in Step 01:</p>
+            <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh</code></pre>
+            <p>The script will prompt a few times. Answer <strong>yes</strong> to each to keep going. Here's what it does and what you'll see:</p>
+
+            <!-- macOS: Homebrew -->
+            <div data-os-only="mac">
+              <div class="mock" data-title="install.sh — terminal (macOS)">
+                <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: macos
+<span class="cmt">[chronicledb]</span> Found SillyTavern at /Users/you/SillyTavern
+<span class="cmt">[chronicledb]</span> PostgreSQL is not installed.
+<span class="cmt">[?]</span> Install PostgreSQL 17 + pgvector via Homebrew now? <span class="cmd">[Y/n]</span> <span class="str">y</span>
+<span class="cmt">[+]</span> Running: brew install postgresql@17 pgvector
+<span class="cmt">[+]</span> Running: brew services start postgresql@17
+<span class="cmt">[+]</span> npm install in server-plugin ...
+<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
+<span class="cmt">[+]</span> Symlinking UI extension ...
+<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
+<span class="cmt">[+]</span> Creating database 'chronicledb' ...
+<span class="cmt">[+]</span> Enabling extensions (vector, pg_trgm) ...
+<span class="cmd">[ok]</span> Install complete.
+         Database: chronicledb @ localhost:5432 as <span class="str">$USER</span>
+         Plugin:   ~/SillyTavern/.../third-party/chronicle-db</code></pre>
+              </div>
+              <div class="callout">
+                <strong>Prereq:</strong> Homebrew (<a href="https://brew.sh" style="color:var(--accent)">brew.sh</a>). If you don't have it, the script will tell you to install it first.
+              </div>
+            </div>
+
+            <!-- Linux and Windows (WSL) both use apt -->
+            <div data-os-only="linux windows">
+              <div class="mock" data-title="install.sh — terminal (Ubuntu / Debian / WSL)">
+                <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: linux
+<span class="cmt">[chronicledb]</span> Found SillyTavern at /home/you/SillyTavern
+<span class="cmt">[chronicledb]</span> PostgreSQL is not installed.
+<span class="cmt">[?]</span> Install PostgreSQL 17 + pgvector via apt now? (will sudo) <span class="cmd">[Y/n]</span> <span class="str">y</span>
+<span class="cmt">[+]</span> Running: sudo apt-get install postgresql-17 postgresql-17-pgvector
+<span class="cmt">[+]</span> Running: sudo systemctl start postgresql
+<span class="cmt">[+]</span> Creating Postgres role for current user 'you' ...
+<span class="cmt">[+]</span> npm install in server-plugin ...
+<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
+<span class="cmt">[+]</span> Symlinking UI extension ...
+<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
+<span class="cmt">[+]</span> Creating database 'chronicledb' ...
+<span class="cmt">[+]</span> Enabling extensions (vector, pg_trgm) ...
+<span class="cmd">[ok]</span> Install complete.
+         Database: chronicledb @ localhost:5432 as <span class="str">you</span>
+         Plugin:   ~/SillyTavern/.../third-party/chronicle-db</code></pre>
+              </div>
+              <div class="callout warn">
+                <strong>Expect a sudo password prompt.</strong> The script <code>sudo</code>s to install Postgres via apt and create your OS user's Postgres role.
+              </div>
+            </div>
+
+            <div class="callout">
+              <strong>Idempotent.</strong> If the script fails partway (network hiccup, permission prompt you missed), just re-run it. It detects what's already done and skips those steps.
+            </div>
+
+            <p class="muted">
+              Settings for Step 05: host <code>localhost</code>, port <code>5432</code>, database <code>chronicledb</code>, user = your system username, no password.
+            </p>
+          </div>
+
+          <div class="branch-panel" data-branch="cloud">
+            <p>
+              Set up a free cloud Postgres first, then run <code>install.sh</code> with the <code>--skip-postgres</code> flag &mdash; it'll do the npm install, ST symlinks, and <code>config.yaml</code> patch without touching a local database.
+            </p>
+
+            <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.25rem 0 .4rem;">A. Create a cloud Postgres</h3>
+            <p style="font-size:.75rem;color:var(--gray);">Pick one. Both have free tiers and pgvector built in.</p>
+            <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
+              <li><strong>Neon</strong> (<a href="https://neon.tech" style="color:var(--accent)">neon.tech</a>) &mdash; sign up, create a project named <code>chronicledb</code>, run <code>CREATE EXTENSION vector; CREATE EXTENSION pg_trgm;</code> in the SQL Editor, then copy the connection string from the Dashboard.</li>
+              <li><strong>Supabase</strong> (<a href="https://supabase.com" style="color:var(--accent)">supabase.com</a>) &mdash; sign up, create a project, toggle <code>pg_trgm</code> on under <em>Database &rarr; Extensions</em>, then grab host/port/database/user/password from <em>Settings &rarr; Database</em>.</li>
+            </ol>
+
+            <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.5rem 0 .4rem;">B. Wire the plugin into SillyTavern</h3>
+
+            <!-- macOS / Linux / WSL: the bash one-liner -->
+            <div data-os-only="mac linux">
+              <p style="font-size:.75rem;color:var(--gray);">From the directory you cloned in Step 01:</p>
+              <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh --skip-postgres</code></pre>
+            </div>
+
+            <!-- Windows native: no WSL, so install.sh won't run. Do the
+                 four things it would have done, in PowerShell. -->
+            <div data-os-only="windows">
+              <div class="callout" style="margin-bottom:1rem;">
+                <strong>Good news:</strong> with a cloud DB, you don't need WSL. <code>install.sh</code> is bash-only, so you'll run the four steps it would've done manually. Open <strong>PowerShell as Administrator</strong> (admin needed for the symlinks).
+              </div>
+              <pre data-lang="powershell"><code><span class="cmt"># 1. Install server-plugin dependencies</span>
+<span class="cmd">cd</span> $HOME\.chronicledb\server-plugin
+<span class="cmd">npm</span> install
+
+<span class="cmt"># 2. Symlink the server plugin into SillyTavern</span>
+<span class="cmd">New-Item</span> -ItemType SymbolicLink `
+  -Path $HOME\SillyTavern\plugins\chronicle-db `
+  -Target $HOME\.chronicledb\server-plugin
+
+<span class="cmt"># 3. Symlink the UI extension</span>
+<span class="cmd">New-Item</span> -ItemType SymbolicLink `
+  -Path $HOME\SillyTavern\public\scripts\extensions\third-party\chronicle-db `
+  -Target $HOME\.chronicledb\ui-extension
+
+<span class="cmt"># 4. Enable server plugins in config.yaml</span>
+<span class="cmd">(Get-Content</span> $HOME\SillyTavern\config.yaml<span class="cmd">)</span> `
+  -replace <span class="str">'^enableServerPlugins:.*'</span>, <span class="str">'enableServerPlugins: true'</span> `
+  | <span class="cmd">Set-Content</span> $HOME\SillyTavern\config.yaml</code></pre>
+              <p class="muted">Replace <code>$HOME\SillyTavern</code> with your actual ST path if it's elsewhere. If PowerShell won't let you create symlinks, either re-launch it as Administrator or enable Developer Mode in Windows Settings (<em>Settings &rarr; Privacy &amp; Security &rarr; For developers</em>).</p>
+            </div>
+
+            <div data-os-only="mac linux">
+              <div class="mock" data-title="install.sh --skip-postgres — terminal">
+                <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: macos
+<span class="cmt">[chronicledb]</span> Found SillyTavern at /Users/you/SillyTavern
+<span class="cmt">[chronicledb]</span> Node v20.11.0
+<span class="cmt">[chronicledb]</span> Skipping local PostgreSQL setup (--skip-postgres)
+<span class="cmt">[chronicledb]</span> Skipping pgvector check (--skip-postgres)
+<span class="cmt">[+]</span> npm install in server-plugin ...
+<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
+<span class="cmt">[+]</span> Symlinking UI extension ...
+<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
+<span class="cmt">[chronicledb]</span> Skipping database creation (--skip-postgres).
+<span class="cmt">[chronicledb]</span>   Paste your cloud DB connection info into the ST
+<span class="cmt">[chronicledb]</span>   settings panel after restart.
+<span class="cmd">[ok]</span> Install complete.</code></pre>
+              </div>
+
+              <div class="callout">
+                <strong>Why a flag instead of detection?</strong> The script can't tell whether you want a local or cloud DB from the outside, so it asks explicitly. <code>SKIP_POSTGRES=1</code> as an env var works too if you prefer.
+              </div>
+            </div>
+
+            <div class="callout warn">
+              <strong>Keep your connection string private.</strong> It includes credentials. If you share your settings export, strip the password first.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 03 -->
+      <section class="wizard-step" id="step-03">
+        <div class="step-head">
+          <span class="step-num">Step 03</span>
+          <h2>Restart SillyTavern</h2>
+        </div>
+        <p>
+          Stop ST, start it again. The server plugin initializes on boot, so without a restart the new code doesn't get loaded. You should see these lines in your terminal:
+        </p>
+
+        <div class="mock" data-title="SillyTavern Console">
+          <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">Users will be able to log in.</span>
+<span class="cmt">Extensions loaded.</span>
+<span class="cmd">[ChronicleDB]</span> Initializing server plugin...
+<span class="cmd">[ChronicleDB]</span> Mind map path: /path/to/chronicledb/src/ui
+<span class="cmd">[ChronicleDB]</span> Server plugin ready.
+<span class="cmt">SillyTavern is listening on IPv4: 0.0.0.0:8000</span></code></pre>
+        </div>
+
+        <p>If you don't see the three <code>[ChronicleDB]</code> lines, something stopped the plugin from loading. Check <code>config.yaml</code> in your SillyTavern root:</p>
+
+        <div class="mock" data-title="config.yaml">
+          <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmd">enableServerPlugins:</span> <span class="str">true</span>
+<span class="cmd">basicAuthMode:</span> <span class="str">true</span></code></pre>
+        </div>
+
+        <div class="callout warn">
+          <strong>If <code>enableServerPlugins</code> is missing or <code>false</code></strong>, the plugin is being silently ignored. Set it to <code>true</code> and restart again. The installer does this for you, but a SillyTavern update can occasionally revert it during a config merge.
+        </div>
+      </section>
+
+      <!-- Step 04 -->
+      <section class="wizard-step" id="step-04">
+        <div class="step-head">
+          <span class="step-num">Step 04</span>
+          <h2>Open the settings panel</h2>
+        </div>
+        <p>
+          Inside SillyTavern, click the <strong>Extensions</strong> icon in the top bar (the one that looks like a stack of blocks), then scroll through the extensions list until you find the <strong>ChronicleDB</strong> drawer. Click its header to expand.
+        </p>
+
+        <div class="mock" data-title="SillyTavern → Extensions panel">
+          <div class="mock-drawer">Lorebook Importer</div>
+          <div class="mock-drawer">Stable Diffusion</div>
+          <div class="mock-drawer highlight">ChronicleDB</div>
+          <div class="mock-drawer">Translation</div>
+          <div class="mock-drawer">Vector Storage</div>
+        </div>
+
+        <p>Once expanded, the top of the drawer shows your connection status:</p>
+
+        <div class="mock" data-title="ChronicleDB drawer — top">
+          <div class="mock-toggle on">
+            <div class="sw"></div>
+            <span>Enable ChronicleDB</span>
+          </div>
+          <div style="margin-top:.8rem;font-size:.72rem;color:var(--gray);">
+            Status:
+            <span class="mock-status pending"
+                  data-status-cycle
+                  data-status-final-class="ok"
+                  data-status-final-text="Connected">Checking…</span>
+            <span class="mock-hint" style="margin-left:.4rem;">chronicledb @ localhost as you</span>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>On first open</strong> the status will be <span class="mock-status pending">Checking…</span> or <span class="mock-status err">Not connected</span> &mdash; that's expected. You haven't filled in the database fields yet. Step 05.
+        </div>
+      </section>
+
+      <!-- Step 05 -->
+      <section class="wizard-step" id="step-05">
+        <div class="step-head">
+          <span class="step-num">Step 05</span>
+          <h2>Database fields</h2>
+        </div>
+        <p>
+          Fill in where your Postgres lives. If you ran <code>install.sh</code> without <code>--skip-postgres</code>, these are already pre-filled by the installer &mdash; just hit <strong>Connect &amp; initialize</strong>. If you used a cloud DB, paste the creds from Neon / Supabase here.
+        </p>
+
+        <div class="mock" data-title="ChronicleDB → Database">
+          <div class="mock-field"><label>Host</label><span class="input filled">localhost</span></div>
+          <div class="mock-field"><label>Port</label><span class="input filled">5432</span></div>
+          <div class="mock-field"><label>Database</label><span class="input filled">chronicledb</span></div>
+          <div class="mock-field"><label>User</label><span class="input filled">you</span></div>
+          <div class="mock-field"><label>Password</label><span class="input">(blank for local)</span></div>
+          <div class="mock-field"><label>ST data root</label><span class="input">auto-detected</span></div>
+          <span class="mock-btn">Connect &amp; initialize</span>
+        </div>
+
+        <div data-os-only="mac linux" class="callout">
+          <strong>Local defaults:</strong> host <code>localhost</code>, port <code>5432</code>, db <code>chronicledb</code>, user is your OS username, password is blank (Postgres uses local trust auth by default on brew / apt installs).
+        </div>
+
+        <div class="callout">
+          <strong>Cloud DB (Neon):</strong> host <code>ep-xxx.neon.tech</code>, port <code>5432</code>, db <code>chronicledb</code>, user + password from the Neon Dashboard's connection string. Neon requires SSL &mdash; ChronicleDB enables it automatically when the host isn't <code>localhost</code>.
+        </div>
+
+        <div class="callout">
+          <strong>Cloud DB (Supabase):</strong> use the <strong>transaction pooler</strong> host (port <code>6543</code>) from Settings → Database → Connection pooling. The direct Postgres host on port 5432 works too but hits connection limits faster on the free tier.
+        </div>
+
+        <div class="callout">
+          <strong>ST data root</strong> is only worth touching if your SillyTavern lives somewhere unusual and the plugin can't find <code>characters/</code> and <code>chats/</code> on its own. Leave blank otherwise.
+        </div>
+
+        <p style="margin-top:1rem;">
+          When you click <strong>Connect &amp; initialize</strong>, the plugin runs <code>CREATE EXTENSION IF NOT EXISTS vector</code> and <code>pg_trgm</code>, then builds the full schema (tables, indexes, constraints). On a cloud DB this is the moment you'll find out if your user has the <code>CREATE EXTENSION</code> privilege &mdash; Neon and Supabase both grant it by default.
+        </p>
+      </section>
+
+      <!-- Step 06 -->
+      <section class="wizard-step" id="step-06">
+        <div class="step-head">
+          <span class="step-num">Step 06</span>
+          <h2>LLM + embedding config</h2>
+        </div>
+        <p>
+          Two model blocks. The <strong>memory model</strong> reads your chats and pulls structured memory out &mdash; a cheap, fast model is fine; you do NOT need a frontier model here. The <strong>embedding model</strong> converts text into 768-dim vectors for semantic search.
+        </p>
+
+        <div class="mock" data-title="ChronicleDB → Memory model">
+          <div class="mock-field"><label>API type</label><span class="input filled">Gemini</span></div>
+          <div class="mock-field"><label>API URL</label><span class="input">https://generativelanguage.googleapis.com/v1beta</span></div>
+          <div class="mock-field"><label>API key</label><span class="input filled">AIza…•••••••••••••</span></div>
+          <div class="mock-field"><label>Model</label><span class="input filled">gemini-2.5-flash-lite</span></div>
+        </div>
+
+        <div class="callout">
+          <strong>Recommended:</strong> Gemini + <code>gemini-2.5-flash-lite</code>. Fast, ~$0.01 per 1M tokens, generous free tier. Get a key at <a href="https://aistudio.google.com/apikey" style="color:var(--accent)">aistudio.google.com/apikey</a>.
+        </div>
+
+        <div class="callout warn">
+          <strong>Don't use frontier models for extraction.</strong> The prompt is structured and doesn't need deep reasoning. Save your budget for the actual roleplay model.
+        </div>
+
+        <div class="callout">
+          <strong>OpenAI-compatible endpoints</strong> (OpenRouter, LiteLLM, Ollama, LM Studio, vLLM): pick <em>OpenAI-compatible</em> as the API type, set the API URL to your endpoint's <code>/v1</code> base, paste the key, set the model name exactly as your provider lists it.
+        </div>
+
+        <div class="mock" data-title="ChronicleDB → Embedding model">
+          <div class="mock-field"><label>API type</label><span class="input filled">Gemini</span></div>
+          <div class="mock-field"><label>Model</label><span class="input filled">gemini-embedding-2-preview</span></div>
+          <div class="mock-field"><label>Dimension</label><span class="input filled">768</span></div>
+          <div class="mock-field"><label>API URL</label><span class="input">(blank)</span></div>
+          <div class="mock-field"><label>API key</label><span class="input">(blank = reuse memory key)</span></div>
+        </div>
+
+        <div class="callout">
+          <strong>Dimension is fixed at 768.</strong> The schema's <code>vector(768)</code> columns are baked in. Pick a model that natively outputs 768 dims, or one that honors a <code>dimensions</code> parameter &mdash; Gemini's <code>gemini-embedding-2-preview</code>, OpenAI's <code>text-embedding-3-small</code> / <code>3-large</code>, and Vertex's <code>text-embedding-004</code> / <code>005</code> all qualify.
+        </div>
+
+        <div class="callout">
+          <strong>Blank API key on the embedding block</strong> is fine &mdash; the plugin reuses the memory model's key if both use the same provider. Only set it if you're splitting providers (e.g. Gemini for extraction, Voyage for embeddings).
+        </div>
+      </section>
+
+      <!-- Step 07 -->
+      <section class="wizard-step" id="step-07">
+        <div class="step-head">
+          <span class="step-num">Step 07</span>
+          <h2>Memory type toggles</h2>
+        </div>
+        <p>
+          Four switches gate what the extractor writes to the DB. All on by default; turn off any you don't want. These only affect future extractions &mdash; existing memory stays put.
+        </p>
+
+        <div class="mock" data-title="ChronicleDB → What to remember">
+          <div class="mock-toggle on"><div class="sw"></div><span>Relationships</span></div>
+          <div class="mock-toggle on"><div class="sw"></div><span>Events &amp; timeline</span></div>
+          <div class="mock-toggle on"><div class="sw"></div><span>What each character knows</span></div>
+          <div class="mock-toggle on"><div class="sw"></div><span>World state</span></div>
+        </div>
+
+        <table class="config-table" style="margin-top:1rem;">
+          <thead><tr><th>Toggle</th><th>What it captures</th><th>When to turn off</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Relationships</td>
+              <td>Directional sentiment + intensity between every pair of characters who interact, with a short description.</td>
+              <td>Solo-character RPs with no inter-character dynamics.</td>
+            </tr>
+            <tr>
+              <td>Events &amp; timeline</td>
+              <td>What happened each batch, with significance, participants, verbatim source quote, and causal chains.</td>
+              <td>Pure character-study chats with no plot.</td>
+            </tr>
+            <tr>
+              <td>What each character knows</td>
+              <td>Per-character epistemic state &mdash; what they've witnessed, been told, or explicitly don't know.</td>
+              <td>Omniscient narration where no one is meaningfully ignorant.</td>
+            </tr>
+            <tr>
+              <td>World state</td>
+              <td>Key-value facts about the setting (weather, faction standings, item ownership) with validity windows.</td>
+              <td>Dialogue-driven chats with minimal world detail.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>Traits and plot threads aren't toggle-able</strong> &mdash; they're core to the memory block. If you want fewer traits surfacing, tune the extraction prompt's caps (tight by default) or prune via the mindmap.
+        </div>
+      </section>
+
+      <!-- Step 08 -->
+      <section class="wizard-step" id="step-08">
+        <div class="step-head">
+          <span class="step-num">Step 08</span>
+          <h2>Behavior knobs</h2>
+        </div>
+        <p>
+          How memory gets built while you chat and how much of it lands in your prompt. Safe defaults; touch when you have a reason.
+        </p>
+
+        <div class="mock" data-title="ChronicleDB → Behavior">
+          <div class="mock-toggle on"><div class="sw"></div><span>Auto-build memory on new chats</span></div>
+          <div class="mock-field" style="margin-top:.5rem;"><label>Update every N replies</label><span class="input filled">1</span></div>
+          <div class="mock-field"><label>Memory budget (tokens)</label><span class="input filled">3000</span></div>
+          <div class="mock-field"><label>Keep last N raw</label><span class="input filled">5</span></div>
+          <div class="mock-field"><label>Refresh arcs every N</label><span class="input filled">30</span></div>
+        </div>
+
+        <table class="config-table" style="margin-top:1rem;">
+          <thead><tr><th>Knob</th><th>Default</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Auto-build memory</td>
+              <td>on</td>
+              <td>Every reply automatically updates memory. Turn off if you only want memory from chats you explicitly ingest.</td>
+            </tr>
+            <tr>
+              <td>Update every N replies</td>
+              <td>1</td>
+              <td>How often the extractor fires. <code>1</code> = every message; <code>3</code> = every third. Higher = fewer API calls, coarser event-granularity.</td>
+            </tr>
+            <tr>
+              <td>Memory budget (tokens)</td>
+              <td>3000</td>
+              <td>Max tokens in the injected memory block. Higher = more memory in context, fewer tokens for the actual story.</td>
+            </tr>
+            <tr>
+              <td>Keep last N raw</td>
+              <td>5</td>
+              <td>Padding window. The latest N messages stay in ST's native context and aren't ingested yet. Lets you swipe / edit without triggering cleanup.</td>
+            </tr>
+            <tr>
+              <td>Refresh arcs every N</td>
+              <td>30</td>
+              <td>Incremental Louvain rebuild of the story-arc hierarchy, fires every N new events. Title-reuse makes the per-fire LLM cost near zero. <code>0</code> disables &mdash; only manual full-chat ingest rebuilds arcs.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>Cost-tuning:</strong> if extraction API cost is biting, the cheapest lever is bumping <em>Update every N replies</em> from 1 to 3 or 5. You lose some sub-scene event granularity but the memory block is nearly identical.
+        </div>
+      </section>
+
+      <!-- Step 09 -->
+      <section class="wizard-step" id="step-09">
+        <div class="step-head">
+          <span class="step-num">Step 09</span>
+          <h2>Per-character memory</h2>
+        </div>
+        <p>
+          Each character has their own memory scope. Three modes plus a per-character chat picker that lets you opt specific past chats in or out. These settings are per-character, not global.
+        </p>
+
+        <div class="mock" data-title="ChronicleDB → Character memory">
+          <div class="mock-field"><label>Memory mode</label><span class="input filled">Persistent — remember across chats</span></div>
+          <hr>
+          <div style="font-size:.65rem;color:var(--gray-dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">Include chats</div>
+          <div class="mock-toggle on"><div class="sw"></div><span>Chat from 2026-04-12 — The Glass Library</span></div>
+          <div class="mock-toggle on"><div class="sw"></div><span>Chat from 2026-04-15 — Eden's bargain</span></div>
+          <div class="mock-toggle"><div class="sw"></div><span>Chat from 2026-04-18 — side story, draft</span></div>
+          <div style="margin-top:.6rem;">
+            <span class="mock-btn-ghost">Select all</span>
+            <span class="mock-btn-ghost">Select none</span>
+            <span class="mock-btn-ghost">Build memory from all</span>
+          </div>
+        </div>
+
+        <table class="config-table" style="margin-top:1rem;">
+          <thead><tr><th>Mode</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Persistent</strong></td>
+              <td>Character remembers across every checked chat. The inject pulls from all of them, scoped to this character's participations.</td>
+            </tr>
+            <tr>
+              <td><strong>Isolated</strong></td>
+              <td>Fresh slate per chat. No cross-pollination. New extractions still write to the DB, but retrieval only surfaces this-chat data.</td>
+            </tr>
+            <tr>
+              <td><strong>Read-only</strong></td>
+              <td>Reads existing memory but doesn't add new extractions. Useful when you want to test / read-through an archived story without polluting it.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>Per-chat scoping is automatic</strong> for new characters extracted after mid-April 2026. Older global character rows (from before the scoping change) keep working and are still visible through the chat picker &mdash; they just aren't bleed-isolated.
+        </div>
+
+        <div class="callout">
+          <strong>Build memory from all</strong> reads every past chat for this character and batch-processes them through the extractor. Depending on chat length and API speed this can take several minutes and will spend API tokens proportional to chat length.
+        </div>
+      </section>
+
+      <!-- Step 10 -->
+      <section class="wizard-step" id="step-10">
+        <div class="step-head">
+          <span class="step-num">Step 10</span>
+          <h2>You're done</h2>
+        </div>
+        <p>
+          That's it. Open a chat, send a message, watch the memory block fire in your terminal or in SillyTavern's chat completion log. Your next few messages will be light on memory (the DB is still bootstrapping); after 5-10 turns the inject becomes rich.
+        </p>
+
+        <div class="mock" data-title="First turn with memory active">
+          <div style="font-size:.7rem;color:var(--gray);line-height:2;">
+            <span class="mock-status pending"
+                  data-status-cycle
+                  data-status-final-class="ok"
+                  data-status-final-text="Extraction fired">Extracting…</span>
+            &mdash; pulled 2 events, 1 trait, 3 relationships<br>
+            <span class="mock-status pending"
+                  data-status-cycle
+                  data-status-final-class="ok"
+                  data-status-final-text="Inject assembled">Assembling…</span>
+            &mdash; 1,247 tokens / 3,000 budget<br>
+            <span class="mock-status pending"
+                  data-status-cycle
+                  data-status-final-class="ok"
+                  data-status-final-text="Vector index updated">Indexing…</span>
+            &mdash; 3 new memory_embeddings
+          </div>
+        </div>
+
+        <h2 style="font-size:1.1rem;margin-top:2rem;">Where to go next</h2>
+        <ul style="list-style:none;padding:0;">
+          <li style="padding:.4rem 0 .4rem 1.5rem;position:relative;font-size:.8rem;color:var(--gray);">
+            <span style="position:absolute;left:0;color:var(--accent);">▸</span>
+            Click <strong>Open mind map</strong> in the drawer &mdash; it'll launch a 3D WebGL graph of every character, event, and plot thread this chat has accumulated.
+          </li>
+          <li style="padding:.4rem 0 .4rem 1.5rem;position:relative;font-size:.8rem;color:var(--gray);">
+            <span style="position:absolute;left:0;color:var(--accent);">▸</span>
+            Check <strong>Debug: recent LLM calls</strong> at the bottom of the drawer if something feels off. Every extraction and embedding call shows up with status, latency, and error.
+          </li>
+          <li style="padding:.4rem 0 .4rem 1.5rem;position:relative;font-size:.8rem;color:var(--gray);">
+            <span style="position:absolute;left:0;color:var(--accent);">▸</span>
+            To import an existing chat history: <strong>Character memory</strong> &rarr; <strong>Build memory from all</strong>.
+          </li>
+          <li style="padding:.4rem 0 .4rem 1.5rem;position:relative;font-size:.8rem;color:var(--gray);">
+            <span style="position:absolute;left:0;color:var(--accent);">▸</span>
+            Questions or bugs: <a href="https://github.com/alani-fan-club/chronicledb/issues" style="color:var(--accent)">GitHub Issues</a> or <a href="https://discord.gg/alanifanclub" style="color:var(--accent)">Discord</a>.
+          </li>
+        </ul>
+
+        <div style="margin-top:2rem;text-align:center;">
+          <a href="index.html" class="mock-btn" style="text-decoration:none;">← Back to overview</a>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <footer class="site-footer">
+    <a href="index.html">Back to overview</a>
+    <a href="https://github.com/alani-fan-club/chronicledb">GitHub</a>
+    <a href="https://discord.gg/alanifanclub">Discord</a>
+  </footer>
+
+  <script>
+    // Rail active-state tracking: mark the rail link matching the step
+    // currently most visible in the viewport.
+    const steps = document.querySelectorAll('.wizard-step');
+    const railLinks = document.querySelectorAll('.wizard-rail a');
+    const linkById = new Map();
+    for (const a of railLinks) linkById.set(a.getAttribute('href').slice(1), a);
+
+    const observer = new IntersectionObserver((entries) => {
+      // Pick the entry closest to the top of the viewport that's currently
+      // intersecting. If none intersect, leave the active state alone.
+      let best = null;
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        if (!best || e.boundingClientRect.top < best.boundingClientRect.top) best = e;
+      }
+      if (!best) return;
+      for (const a of railLinks) a.classList.remove('active');
+      for (const s of steps) s.classList.remove('active');
+      const id = best.target.id;
+      best.target.classList.add('active');
+      const link = linkById.get(id);
+      if (link) link.classList.add('active');
+    }, { rootMargin: '-20% 0px -40% 0px', threshold: [0, 0.25, 0.5] });
+
+    for (const s of steps) observer.observe(s);
+
+    // Tab switcher for branching steps (local vs cloud)
+    document.querySelectorAll('.branch').forEach((branch) => {
+      const tabs = branch.querySelectorAll('.branch-tab');
+      const panels = branch.querySelectorAll('.branch-panel');
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const key = tab.dataset.branch;
+          tabs.forEach((t) => t.classList.toggle('active', t === tab));
+          panels.forEach((p) => p.classList.toggle('active', p.dataset.branch === key));
+        });
+      });
+    });
+
+    // OS picker — persist in localStorage, auto-detect from UA on first visit.
+    const osButtons = document.querySelectorAll('.os-btn');
+    function detectOs() {
+      const ua = navigator.userAgent;
+      if (/Mac/i.test(ua)) return 'mac';
+      if (/Windows/i.test(ua)) return 'windows';
+      return 'linux';
+    }
+    function setOs(os) {
+      document.body.dataset.os = os;
+      localStorage.setItem('chronicledb_install_os', os);
+      osButtons.forEach((b) => b.classList.toggle('active', b.dataset.os === os));
+    }
+    osButtons.forEach((b) => b.addEventListener('click', () => setOs(b.dataset.os)));
+    setOs(localStorage.getItem('chronicledb_install_os') || detectOs());
+
+    // ── Overdrive: CRT manual ─────────────────────────
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Tokenize HTML so the typewriter can replay character-by-character
+    // while preserving the color-class spans that live inside each pre.
+    // Tags emit whole (instant), characters one at a time. HTML entities
+    // (&amp; &lt; ...) count as one character so the effect feels natural.
+    function tokenizeHtml(html) {
+      const tokens = [];
+      let i = 0;
+      while (i < html.length) {
+        const ch = html[i];
+        if (ch === '<') {
+          const end = html.indexOf('>', i);
+          if (end === -1) { tokens.push({ t: 'c', v: ch }); i++; continue; }
+          tokens.push({ t: 'tag', v: html.slice(i, end + 1) });
+          i = end + 1;
+        } else if (ch === '&') {
+          const end = html.indexOf(';', i);
+          if (end !== -1 && end - i < 10) {
+            tokens.push({ t: 'c', v: html.slice(i, end + 1) });
+            i = end + 1;
+          } else {
+            tokens.push({ t: 'c', v: ch });
+            i++;
+          }
+        } else {
+          tokens.push({ t: 'c', v: ch, nl: ch === '\n' });
+          i++;
+        }
+      }
+      return tokens;
+    }
+
+    function playTypewriter(codeEl) {
+      const full = codeEl.innerHTML;
+      const tokens = tokenizeHtml(full);
+      codeEl.innerHTML = '';
+      codeEl.classList.add('typing');
+      // Lock the rendered height to the final content height so the
+      // step card doesn't visibly grow while typing; otherwise the
+      // surrounding scroll-anchoring can jitter.
+      const measurer = codeEl.cloneNode(true);
+      measurer.innerHTML = full;
+      measurer.style.visibility = 'hidden';
+      measurer.style.position = 'absolute';
+      measurer.style.pointerEvents = 'none';
+      codeEl.parentElement.appendChild(measurer);
+      const finalHeight = measurer.getBoundingClientRect().height;
+      measurer.remove();
+      codeEl.style.minHeight = finalHeight + 'px';
+
+      let i = 0;
+      let buf = '';
+      const CHAR_MS = 10;
+      const NL_MS = 40;
+
+      function step() {
+        if (i >= tokens.length) {
+          codeEl.innerHTML = full;
+          codeEl.classList.remove('typing');
+          return;
+        }
+        // Flush any pending tags (zero-cost)
+        while (i < tokens.length && tokens[i].t === 'tag') {
+          buf += tokens[i].v;
+          i++;
+        }
+        if (i >= tokens.length) {
+          codeEl.innerHTML = full;
+          codeEl.classList.remove('typing');
+          return;
+        }
+        const t = tokens[i];
+        buf += t.v;
+        codeEl.innerHTML = buf;
+        const delay = t.nl ? NL_MS : CHAR_MS;
+        i++;
+        setTimeout(step, delay);
+      }
+      step();
+    }
+
+    // Attach the typewriter to every terminal-style mock pre. Fires once
+    // per element on first viewport entry.
+    const typewriterBlocks = document.querySelectorAll('.mock pre code');
+    if (!reducedMotion && typewriterBlocks.length > 0) {
+      const typeObs = new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          obs.unobserve(e.target);
+          // Tiny delay so the fade-in of the containing step can settle
+          // before the cursor appears — reads more like an intentional
+          // rendering pipeline than a race.
+          setTimeout(() => playTypewriter(e.target), 180);
+        }
+      }, { threshold: 0.25, rootMargin: '0px 0px -10% 0px' });
+      typewriterBlocks.forEach((b) => typeObs.observe(b));
+    }
+
+    // Scroll-triggered assembly: mock-fields + mock-toggles fade up in
+    // top-to-bottom waves when their .mock parent enters the viewport.
+    const assemblyMocks = document.querySelectorAll('.mock');
+    if (!reducedMotion) {
+      assemblyMocks.forEach((m) => {
+        const parts = m.querySelectorAll('.mock-field, .mock-toggle');
+        if (parts.length === 0) return; // pure-pre mocks don't stagger
+        parts.forEach((p, idx) => p.style.setProperty('--stagger', idx));
+        m.dataset.assembling = 'pending';
+      });
+
+      const assemblyObs = new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const m = e.target;
+          if (m.dataset.assembling === 'ready') { obs.unobserve(m); continue; }
+          // Force reflow before flipping to ready so the transition
+          // from pending → ready actually plays.
+          void m.offsetWidth;
+          requestAnimationFrame(() => { m.dataset.assembling = 'ready'; });
+          obs.unobserve(m);
+        }
+      }, { threshold: 0.2, rootMargin: '0px 0px -15% 0px' });
+
+      assemblyMocks.forEach((m) => {
+        if (m.dataset.assembling === 'pending') assemblyObs.observe(m);
+      });
+    }
+
+    // Status pill cycle — elements with data-status-cycle start in the
+    // .pending state with custom text and transition to the configured
+    // final state a beat after entering the viewport.
+    const cyclePills = document.querySelectorAll('[data-status-cycle]');
+    if (!reducedMotion && cyclePills.length > 0) {
+      const pillObs = new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const pill = e.target;
+          obs.unobserve(pill);
+          const finalCls = pill.dataset.statusFinalClass || 'ok';
+          const finalTxt = pill.dataset.statusFinalText || 'Connected';
+          const delay = 900 + Math.random() * 400;
+          pill.setAttribute('data-cycling', '1');
+          setTimeout(() => {
+            pill.classList.remove('pending', 'err');
+            pill.classList.add(finalCls);
+            pill.textContent = finalTxt;
+            setTimeout(() => pill.removeAttribute('data-cycling'), 700);
+          }, delay);
+        }
+      }, { threshold: 0.4 });
+      cyclePills.forEach((p) => pillObs.observe(p));
+    }
+  </script>
+</body>
+</html>
