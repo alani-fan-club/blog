@@ -747,6 +747,7 @@
       <a href="#step-08"><span class="num">08</span>Behavior</a>
       <a href="#step-09"><span class="num">09</span>Per-Character</a>
       <a href="#step-10"><span class="num">10</span>Done</a>
+      <a href="#troubleshooting"><span class="num">⚠</span>Troubleshooting</a>
     </nav>
 
     <main>
@@ -815,17 +816,15 @@
           </div>
 
           <div class="branch-panel active" data-branch="local">
-            <!-- Local Postgres on Windows requires WSL — the script is bash,
-                 and pgvector for native Windows is a build-your-own affair. -->
+            <!-- Windows: native PowerShell installer using PGlite. No WSL,
+                 no Postgres install, no admin elevation — junctions cover
+                 the symlink piece without Developer Mode. -->
             <div data-os-only="windows" style="margin-bottom:1.5rem;">
-              <div class="callout" style="border-left-color:var(--cherry);background:color-mix(in srgb, var(--cherry) 5%, transparent);">
-                <strong>Local Postgres on Windows requires WSL2.</strong> The installer is a bash script, and pgvector for native Windows is a build-from-source headache. If you'd rather skip WSL, switch to the <strong>Cloud DB</strong> tab &mdash; that path is PowerShell-native.
-              </div>
-              <p style="font-size:.75rem;color:var(--gray);margin-top:1rem;">Open <strong>PowerShell as Administrator</strong> and run:</p>
-              <pre data-lang="powershell"><code><span class="cmd">wsl</span> --install -d Ubuntu</code></pre>
-              <p style="font-size:.75rem;color:var(--gray);">Reboot when Windows asks; Ubuntu launches on next login &mdash; set a username + password. <strong>Move your SillyTavern install into the Ubuntu filesystem</strong> (the WSL home dir, <code>~/</code>), then re-do Step 01's git clone from inside that Ubuntu shell. Everything below runs in Ubuntu, not PowerShell.</p>
+              <p>Open PowerShell (regular, not Administrator) and run:</p>
+              <pre data-lang="powershell"><code><span class="cmd">irm</span> https://raw.githubusercontent.com/alani-fan-club/chronicledb/master/install.ps1 | <span class="cmd">iex</span></code></pre>
+              <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;">No WSL, no admin, no Postgres install &mdash; the embedded PGlite database lives entirely inside the plugin. The installer junctions the plugin and UI extension into your SillyTavern folder (junctions, unlike symlinks, don't need elevation or Developer Mode).</p>
               <div class="callout">
-                <strong>Using ST in your Windows browser:</strong> once ST starts inside WSL, <code>http://localhost:8000</code> in your regular Windows browser just works &mdash; WSL2 forwards ports automatically.
+                <strong>Prereqs:</strong> <a href="https://nodejs.org" style="color:var(--accent)">Node.js 18+</a> and <a href="https://git-scm.com/download/win" style="color:var(--accent)">Git for Windows</a>. The installer checks for both and tells you what's missing.
               </div>
             </div>
 
@@ -897,11 +896,53 @@
             </p>
 
             <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.25rem 0 .4rem;">A. Create a cloud Postgres</h3>
-            <p style="font-size:.75rem;color:var(--gray);">Pick one. Both have free tiers and pgvector built in.</p>
-            <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
-              <li><strong>Neon</strong> (<a href="https://neon.tech" style="color:var(--accent)">neon.tech</a>) &mdash; sign up, create a project named <code>chronicledb</code>, run <code>CREATE EXTENSION vector; CREATE EXTENSION pg_trgm;</code> in the SQL Editor, then copy the connection string from the Dashboard.</li>
-              <li><strong>Supabase</strong> (<a href="https://supabase.com" style="color:var(--accent)">supabase.com</a>) &mdash; sign up, create a project, toggle <code>pg_trgm</code> on under <em>Database &rarr; Extensions</em>, then grab host/port/database/user/password from <em>Settings &rarr; Database</em>.</li>
-            </ol>
+            <p style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;">Pick one. Both have free tiers and ship pgvector. Whichever you pick, you'll end up with a connection string of the form <code>postgresql://USER:PASSWORD@HOST:PORT/DATABASE</code> &mdash; you'll map the five fields from that into the ST settings panel in Step 05.</p>
+
+            <details style="margin-bottom:1rem;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;background:color-mix(in srgb, var(--accent) 3%, transparent);">
+              <summary style="cursor:pointer;font-weight:600;font-size:.8rem;">Supabase &mdash; step by step</summary>
+              <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-top:.75rem;">
+                <li>Sign up at <a href="https://supabase.com" style="color:var(--accent)">supabase.com</a> and create a new project. Set a database password &mdash; <strong>save it somewhere</strong>, Supabase only shows it once.</li>
+                <li>Wait for the project to provision (~1 min).</li>
+                <li>Go to <em>Database &rarr; Extensions</em>. Toggle on both <code>vector</code> (pgvector) and <code>pg_trgm</code>. Without these the schema init fails at the <code>CREATE EXTENSION</code> lines.</li>
+                <li>Open <em>Project Settings &rarr; Database</em> &rarr; <em>Connection string</em>. Copy the <strong>URI</strong> tab. It looks like:
+                  <pre style="margin:.5rem 0;font-size:.7rem;"><code>postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxx.supabase.co:5432/postgres</code></pre>
+                </li>
+                <li>The five fields you'll paste into ST's Database panel:
+                  <table style="font-size:.75rem;margin-top:.5rem;border-collapse:collapse;">
+                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Host</strong></td><td><code>db.xxxxxxxxxxxx.supabase.co</code></td></tr>
+                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Port</strong></td><td><code>5432</code> (direct connection &mdash; <strong>not</strong> 6543, the pooler)</td></tr>
+                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Database</strong></td><td><code>postgres</code></td></tr>
+                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>User</strong></td><td><code>postgres</code></td></tr>
+                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Password</strong></td><td>the one you saved in step 1</td></tr>
+                  </table>
+                </li>
+              </ol>
+              <div class="callout" style="margin-top:.75rem;">
+                <strong>Two Supabase quirks to know:</strong>
+                <ul style="font-size:.75rem;color:var(--gray);line-height:1.6;margin:.4rem 0 0;padding-left:1.25rem;">
+                  <li><strong>Use port 5432, not 6543.</strong> 6543 is the transaction pooler (PgBouncer); pgvector and the schema-init transactions ChronicleDB runs at startup don't behave under it. Direct on 5432 is what you want.</li>
+                  <li><strong>Free tier pauses after a week of inactivity.</strong> The first request after a pause hangs ~30s while the project wakes up. ChronicleDB's reconnect logic catches it but the status badge will flicker red briefly &mdash; that's normal.</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-bottom:1rem;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;background:color-mix(in srgb, var(--accent) 3%, transparent);">
+              <summary style="cursor:pointer;font-weight:600;font-size:.8rem;">Neon &mdash; step by step</summary>
+              <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-top:.75rem;">
+                <li>Sign up at <a href="https://neon.tech" style="color:var(--accent)">neon.tech</a> and create a project. Default database name is fine.</li>
+                <li>Open the SQL Editor and run:
+                  <pre style="margin:.5rem 0;font-size:.7rem;"><code>CREATE EXTENSION vector;
+CREATE EXTENSION pg_trgm;</code></pre>
+                </li>
+                <li>From the project Dashboard, copy the <strong>Connection string</strong> (Direct, not Pooler):
+                  <pre style="margin:.5rem 0;font-size:.7rem;"><code>postgresql://USER:PASSWORD@ep-xxxxx.region.aws.neon.tech/dbname</code></pre>
+                </li>
+                <li>Map into ST's Database panel: host = <code>ep-xxxxx.region.aws.neon.tech</code>, port = <code>5432</code>, database = whatever name you see after the last <code>/</code>, user + password = whatever's between <code>://</code> and <code>@</code>.</li>
+              </ol>
+              <div class="callout" style="margin-top:.75rem;">
+                <strong>Neon quirks:</strong> use the <em>Direct</em> connection string, not the pooler. Free-tier branches autosuspend after 5 min idle &mdash; the wakeup is faster than Supabase (a second or two) but the first query after idle still pays the cost.
+              </div>
+            </details>
 
             <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.5rem 0 .4rem;">B. Wire the plugin into SillyTavern</h3>
 
@@ -911,31 +952,15 @@
               <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh --skip-postgres</code></pre>
             </div>
 
-            <!-- Windows native: no WSL, so install.sh won't run. Do the
-                 four things it would have done, in PowerShell. -->
+            <!-- Windows: same install.ps1 as the local path, but with the
+                 -ExternalPostgres flag so the installer skips the embedded
+                 PGlite default and waits for cloud creds in the ST UI. -->
             <div data-os-only="windows">
-              <div class="callout" style="margin-bottom:1rem;">
-                <strong>Good news:</strong> with a cloud DB, you don't need WSL. <code>install.sh</code> is bash-only, so you'll run the four steps it would've done manually. Open <strong>PowerShell as Administrator</strong> (admin needed for the symlinks).
-              </div>
-              <pre data-lang="powershell"><code><span class="cmt"># 1. Install server-plugin dependencies</span>
-<span class="cmd">cd</span> $HOME\.chronicledb\server-plugin
-<span class="cmd">npm</span> install
-
-<span class="cmt"># 2. Symlink the server plugin into SillyTavern</span>
-<span class="cmd">New-Item</span> -ItemType SymbolicLink `
-  -Path $HOME\SillyTavern\plugins\chronicle-db `
-  -Target $HOME\.chronicledb\server-plugin
-
-<span class="cmt"># 3. Symlink the UI extension</span>
-<span class="cmd">New-Item</span> -ItemType SymbolicLink `
-  -Path $HOME\SillyTavern\public\scripts\extensions\third-party\chronicle-db `
-  -Target $HOME\.chronicledb\ui-extension
-
-<span class="cmt"># 4. Enable server plugins in config.yaml</span>
-<span class="cmd">(Get-Content</span> $HOME\SillyTavern\config.yaml<span class="cmd">)</span> `
-  -replace <span class="str">'^enableServerPlugins:.*'</span>, <span class="str">'enableServerPlugins: true'</span> `
-  | <span class="cmd">Set-Content</span> $HOME\SillyTavern\config.yaml</code></pre>
-              <p class="muted">Replace <code>$HOME\SillyTavern</code> with your actual ST path if it's elsewhere. If PowerShell won't let you create symlinks, either re-launch it as Administrator or enable Developer Mode in Windows Settings (<em>Settings &rarr; Privacy &amp; Security &rarr; For developers</em>).</p>
+              <p style="font-size:.75rem;color:var(--gray);">In a regular PowerShell window:</p>
+              <pre data-lang="powershell"><code><span class="cmt"># Download once so we can pass the flag (iex doesn't forward args)</span>
+<span class="cmd">iwr</span> https://raw.githubusercontent.com/alani-fan-club/chronicledb/master/install.ps1 -OutFile $env:TEMP\install.ps1
+<span class="cmd">&amp;</span> $env:TEMP\install.ps1 -ExternalPostgres</code></pre>
+              <p class="muted">Same installer as the local path, just with <code>-ExternalPostgres</code> so it skips the embedded PGlite default. Paste the cloud DB host/port/db/user/password into the ST settings panel after restart.</p>
             </div>
 
             <div data-os-only="mac linux">
@@ -1049,6 +1074,7 @@
         </p>
 
         <div class="mock" data-title="ChronicleDB → Database">
+          <div class="mock-field"><label>Storage backend</label><span class="input filled">External Postgres</span></div>
           <div class="mock-field"><label>Host</label><span class="input filled">localhost</span></div>
           <div class="mock-field"><label>Port</label><span class="input filled">5432</span></div>
           <div class="mock-field"><label>Database</label><span class="input filled">chronicledb</span></div>
@@ -1058,16 +1084,20 @@
           <span class="mock-btn">Connect &amp; initialize</span>
         </div>
 
+        <div class="callout">
+          <strong>Storage backend toggle:</strong> if it's set to <code>Embedded — PGlite</code> there's nothing to fill in; the database lives at <code>~/.chronicledb/pgdata</code> and is created on first connect. Switch to <code>External Postgres</code> to reveal the connection fields below.
+        </div>
+
         <div data-os-only="mac linux" class="callout">
-          <strong>Local defaults:</strong> host <code>localhost</code>, port <code>5432</code>, db <code>chronicledb</code>, user is your OS username, password is blank (Postgres uses local trust auth by default on brew / apt installs).
+          <strong>Local Postgres defaults:</strong> host <code>localhost</code>, port <code>5432</code>, db <code>chronicledb</code>, user is your OS username, password is blank (Postgres uses local trust auth by default on brew / apt installs).
         </div>
 
         <div class="callout">
-          <strong>Cloud DB (Neon):</strong> host <code>ep-xxx.neon.tech</code>, port <code>5432</code>, db <code>chronicledb</code>, user + password from the Neon Dashboard's connection string. Neon requires SSL &mdash; ChronicleDB enables it automatically when the host isn't <code>localhost</code>.
+          <strong>Cloud DB (Neon):</strong> host <code>ep-xxx.region.aws.neon.tech</code>, port <code>5432</code>, db = whatever name appears after the last <code>/</code> in the connection string, user + password from the Neon Dashboard's <em>Direct</em> connection string (not the Pooler). Neon requires SSL &mdash; ChronicleDB enables it automatically when the host isn't <code>localhost</code>.
         </div>
 
         <div class="callout">
-          <strong>Cloud DB (Supabase):</strong> use the <strong>transaction pooler</strong> host (port <code>6543</code>) from Settings → Database → Connection pooling. The direct Postgres host on port 5432 works too but hits connection limits faster on the free tier.
+          <strong>Cloud DB (Supabase):</strong> host <code>db.xxxxxxxxxxxx.supabase.co</code>, port <code>5432</code> (the <strong>direct</strong> connection, <em>not</em> the pooler on 6543), db <code>postgres</code>, user <code>postgres</code>, password = whatever you set when creating the project. The pooler on 6543 runs in transaction mode and breaks DDL + pgvector init.
         </div>
 
         <div class="callout">
@@ -1093,11 +1123,16 @@
           <div class="mock-field"><label>API type</label><span class="input filled">Gemini</span></div>
           <div class="mock-field"><label>API URL</label><span class="input">https://generativelanguage.googleapis.com/v1beta</span></div>
           <div class="mock-field"><label>API key</label><span class="input filled">AIza…•••••••••••••</span></div>
-          <div class="mock-field"><label>Model</label><span class="input filled">gemini-2.5-flash-lite</span></div>
+          <div class="mock-field"><label>Model</label><span class="input filled">gemini-3.1-flash-lite-preview</span></div>
         </div>
 
-        <div class="callout">
-          <strong>Recommended:</strong> Gemini + <code>gemini-2.5-flash-lite</code>. Fast, ~$0.01 per 1M tokens, generous free tier. Get a key at <a href="https://aistudio.google.com/apikey" style="color:var(--accent)">aistudio.google.com/apikey</a>.
+        <div class="callout" style="border-left-color:var(--accent);background:color-mix(in srgb, var(--accent) 8%, transparent);">
+          <strong>Strongly recommended &mdash; both free:</strong>
+          <ul style="font-size:.8rem;line-height:1.7;margin:.5rem 0 0;padding-left:1.25rem;">
+            <li>Memory model: <code>gemini-3.1-flash-lite-preview</code></li>
+            <li>Embedding model: <code>gemini-embedding-2-preview</code> (covered in the next block)</li>
+          </ul>
+          <p style="font-size:.75rem;color:var(--gray);margin:.5rem 0 0;">Both fall under the Gemini free tier &mdash; see the <a href="https://ai.google.dev/gemini-api/docs/pricing" style="color:var(--accent)">Gemini pricing page</a> (the "Free Tier" column) for current rate limits. Get a key at <a href="https://aistudio.google.com/apikey" style="color:var(--accent)">aistudio.google.com/apikey</a> &mdash; it takes ~30 seconds, no credit card.</p>
         </div>
 
         <div class="callout warn">
@@ -1331,6 +1366,99 @@
         <div style="margin-top:2rem;text-align:center;">
           <a href="index.html" class="mock-btn" style="text-decoration:none;">← Back to overview</a>
         </div>
+      </section>
+
+      <!-- Troubleshooting: real reports from real installs. Update as new
+           ones come in; this is the page people scroll to when stuck. -->
+      <section class="wizard-step" id="troubleshooting">
+        <div class="step-head">
+          <span class="step-num">⚠</span>
+          <h2>Common problems</h2>
+        </div>
+        <p>
+          Install gone sideways? Almost every report so far has been one of the issues below. Each one says what the symptom looks like, why it happens, and the exact fix.
+        </p>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">Mind map character sidebar is empty (no character cards loading)</summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> The mind map opens, you see graph nodes for whatever extraction has produced, but the <em>Characters</em> sidebar on the right shows only "SHOW ALL" with nothing under it.</p>
+            <p><strong>Cause:</strong> The plugin reads character cards from <code>&lt;ST data root&gt;/characters/*.png</code>. It auto-detects the data root from <code>process.cwd()</code>, which is wrong on Windows when SillyTavern is launched via a shortcut or batch file that doesn't <code>cd</code> into the ST install directory first &mdash; cwd ends up being something like <code>C:\Windows\system32</code> instead of the ST root.</p>
+            <p><strong>Fix:</strong> In the ChronicleDB settings panel, fill in the <strong>SillyTavern data root (optional)</strong> field with the absolute path to your data directory. Examples:</p>
+            <ul style="padding-left:1.5rem;line-height:1.8;">
+              <li>Standard install: <code>C:\Users\YOU\SillyTavern\data\default-user</code></li>
+              <li>SillyTavern Launcher: <code>C:\Users\YOU\SillyTavern-Launcher\SillyTavern\data\default-user</code></li>
+              <li>macOS / Linux: <code>~/SillyTavern/data/default-user</code></li>
+            </ul>
+            <p>Save, refresh the mind map page, sidebar should populate.</p>
+          </div>
+        </details>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">SillyTavern crashes on startup with <code>cannot find module 'express'</code></summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> ST refuses to start; the terminal log shows <code>Error: Cannot find module 'express'</code> with a stack trace pointing at the chronicle-db plugin.</p>
+            <p><strong>Cause:</strong> Older release tarballs (v0.1.x) didn't list <code>express</code> in the server-plugin's <code>package.json</code> &mdash; it was relying on a top-level <code>npm install</code> at the repo root that you may have skipped if you cloned the plugin folder by hand.</p>
+            <p><strong>Fix:</strong> Either pull the latest master (where express is now declared), or just install it directly into the plugin folder:</p>
+            <pre data-lang="bash"><code><span class="cmd">cd</span> &lt;wherever you cloned chronicledb&gt;/server-plugin
+<span class="cmd">npm</span> install express</code></pre>
+            <p>Then restart ST.</p>
+          </div>
+        </details>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">Status badge stays red &mdash; <code>getaddrinfo ENOTFOUND</code> in the log</summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> Status badge is red, and the ST terminal log shows <code>getaddrinfo ENOTFOUND db.something.supabase.co</code> (or similar) on each connect attempt.</p>
+            <p><strong>Cause:</strong> The hostname in the Database panel doesn't resolve via DNS. The most common reasons: a typo, a leading/trailing space (yes, really), or you pasted the placeholder from the Supabase docs (<code>db.[YOUR-REF].supabase.co</code>) without substituting your actual project ref.</p>
+            <p><strong>Fix:</strong> Open the Database section, double-check the host field. For Supabase, it should be <code>db.&lt;your-12-char-project-ref&gt;.supabase.co</code> &mdash; no <code>[</code>, <code>]</code>, or trailing whitespace. Save and the plugin retries automatically.</p>
+          </div>
+        </details>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">Status badge stays red &mdash; Supabase connects but schema init fails</summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> The plugin reaches Supabase but <strong>Connect &amp; initialize</strong> errors out, often with a complaint about <code>CREATE EXTENSION</code> or DDL inside a transaction.</p>
+            <p><strong>Cause:</strong> Two possibilities, both Supabase-specific.</p>
+            <ol style="padding-left:1.5rem;line-height:1.8;">
+              <li><strong>Wrong port.</strong> 6543 is the transaction pooler &mdash; pgvector + the schema-init transactions don't survive PgBouncer's transaction mode. Use <strong>5432</strong> (the direct connection) instead.</li>
+              <li><strong>Extensions not enabled.</strong> Supabase doesn't enable <code>vector</code> and <code>pg_trgm</code> by default. Open <em>Database → Extensions</em> in the Supabase dashboard and toggle both on.</li>
+            </ol>
+          </div>
+        </details>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">PowerShell refuses to create the symlinks (Windows manual install)</summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> <code>New-Item -ItemType SymbolicLink</code> errors out with "A required privilege is not held by the client" or similar.</p>
+            <p><strong>Fix:</strong> Don't use SymbolicLink &mdash; use a Junction instead. Junctions are NTFS reparse points for directories that don't require admin or Developer Mode:</p>
+            <pre data-lang="powershell"><code><span class="cmd">New-Item</span> -ItemType Junction `
+  -Path $HOME\SillyTavern\plugins\chronicle-db `
+  -Target &lt;path-to-chronicledb&gt;\server-plugin</code></pre>
+            <p>Or just run <code>install.ps1</code> &mdash; it uses junctions out of the box, no manual steps needed.</p>
+          </div>
+        </details>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">Mind map nodes are present but no memory ever appears in chat context</summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> Extraction is clearly happening (you can see characters and events in the mind map), but ST's chat completion log shows no <code>[ChronicleDB Memory]</code> block being injected.</p>
+            <p><strong>First check:</strong> the <em>Enable ChronicleDB</em> toggle at the top of the settings panel is on. If yes, open <em>Debug: recent LLM calls</em> at the bottom and confirm the memory model is being called &mdash; if it's silent during a fresh reply, the inject hook isn't firing. Restart ST once; if still silent, file an issue with the contents of the debug table.</p>
+          </div>
+        </details>
+
+        <details style="margin:1rem 0;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;">Same character appears as multiple nodes in the mind map</summary>
+          <div style="margin-top:.75rem;font-size:.8rem;color:var(--gray);line-height:1.6;">
+            <p><strong>Symptom:</strong> "James Roe" and "Captain Roe" (or "Lyra" / "Lady Lyra" / "the merchant's daughter" etc.) show up as separate nodes even though they're the same person in your story.</p>
+            <p><strong>Cause:</strong> Pre-master extractor only deduped on exact name match. Newer builds (post the alias-aware <code>upsertCharacter</code> fix) collapse surface variants automatically going forward, but pre-existing duplicates need a one-shot merge.</p>
+            <p><strong>Fix:</strong> Pull master and run <code>server-plugin/merge-characters.js</code> from the repo root. Pass <code>--canonical "Real Name"</code> and <code>--merge "Variant 1" "Variant 2" ...</code>. Add <code>--dry-run</code> first to preview. <strong>Stop ST first</strong> if you're on PGlite (single-writer lock).</p>
+          </div>
+        </details>
+
+        <p style="margin-top:1.5rem;font-size:.8rem;color:var(--gray);">
+          Hit something not covered here? Open an issue at <a href="https://github.com/alani-fan-club/chronicledb/issues" style="color:var(--accent)">github.com/alani-fan-club/chronicledb/issues</a> with the contents of the ST terminal log around the failure &mdash; that's almost always enough to diagnose.
+        </p>
       </section>
 
     </main>
