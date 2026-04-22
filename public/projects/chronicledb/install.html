@@ -737,8 +737,8 @@
   <div class="wizard">
 
     <nav class="wizard-rail" aria-label="Install steps">
-      <a href="#step-01"><span class="num">01</span>Download</a>
-      <a href="#step-02"><span class="num">02</span>Database</a>
+      <a href="#step-01"><span class="num">01</span>Download zip</a>
+      <a href="#step-02"><span class="num">02</span>Extract &amp; enable</a>
       <a href="#step-03"><span class="num">03</span>Restart ST</a>
       <a href="#step-04"><span class="num">04</span>Open Panel</a>
       <a href="#step-05"><span class="num">05</span>DB Fields</a>
@@ -747,6 +747,7 @@
       <a href="#step-08"><span class="num">08</span>Behavior</a>
       <a href="#step-09"><span class="num">09</span>Per-Character</a>
       <a href="#step-10"><span class="num">10</span>Done</a>
+      <a href="#advanced-install"><span class="num">+</span>Advanced install</a>
       <a href="#troubleshooting"><span class="num">⚠</span>Troubleshooting</a>
     </nav>
 
@@ -756,239 +757,116 @@
       <section class="wizard-step" id="step-01">
         <div class="step-head">
           <span class="step-num">Step 01</span>
-          <h2>Get the code</h2>
-        </div>
-
-        <div data-os-only="windows" class="callout" style="margin-bottom:1.5rem;">
-          <strong>Windows note:</strong> you can do Step 01 in either PowerShell or Git Bash &mdash; both have <code>git</code> once you install <a href="https://git-scm.com/download/win" style="color:var(--accent)">Git for Windows</a>. Whether you need WSL at all depends on your database choice in Step 02 &mdash; a cloud DB skips WSL entirely.
+          <h2>Download the zip</h2>
         </div>
 
         <p>
-          Two ways to grab ChronicleDB: <strong>git clone</strong> (recommended &mdash; easy to pull updates later) or <strong>download the ZIP</strong> (no git required). Either way you'll end up with the repo on disk, and Step 02 will run the installer from there.
+          Grab <code>chronicledb-v0.2.3.zip</code> from the v0.2.3 release. The zip is self-contained &mdash; no git, no Node toolchain, no shell scripts. <code>node_modules</code> is bundled; the internal folder layout mirrors SillyTavern's so files land where ST expects them when you extract in Step 02.
         </p>
 
-        <div class="branch" role="tablist">
-          <div class="branch-tabs">
-            <button class="branch-tab active" data-branch="git" role="tab">git clone (recommended)</button>
-            <button class="branch-tab" data-branch="zip" role="tab">Download ZIP</button>
-          </div>
-
-          <div class="branch-panel active" data-branch="git">
-            <p>Open a terminal and run:</p>
-            <pre data-lang="bash"><code><span class="cmd">git</span> clone https://github.com/alani-fan-club/chronicledb ~/.chronicledb
-<span class="cmd">cd</span> ~/.chronicledb</code></pre>
-            <div class="callout">
-              <strong>Why this location?</strong> <code>~/.chronicledb</code> is the default the installer expects. Put it anywhere you like &mdash; just remember the path for Step 02.
-            </div>
-            <p class="muted">Updating later: <code>cd ~/.chronicledb &amp;&amp; git pull</code>, then restart SillyTavern.</p>
-          </div>
-
-          <div class="branch-panel" data-branch="zip">
-            <p>If you don't have git installed, grab a ZIP from GitHub:</p>
-            <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
-              <li>Go to <a href="https://github.com/alani-fan-club/chronicledb" style="color:var(--accent)">github.com/alani-fan-club/chronicledb</a></li>
-              <li>Click the green <strong>Code</strong> button &rarr; <strong>Download ZIP</strong></li>
-              <li>Unzip it somewhere you'll remember &mdash; e.g. <code>~/.chronicledb</code>:</li>
-            </ol>
-            <pre data-lang="bash"><code><span class="cmd">unzip</span> ~/Downloads/chronicledb-master.zip -d ~/
-<span class="cmd">mv</span> ~/chronicledb-master ~/.chronicledb
-<span class="cmd">cd</span> ~/.chronicledb</code></pre>
-            <p class="muted">Updating later without git means repeating this download + unzip dance. Consider installing git first if you plan to stay on the project.</p>
-          </div>
+        <div style="margin:1.5rem 0;">
+          <a href="https://github.com/alani-fan-club/chronicledb/releases/download/v0.2.3/chronicledb-v0.2.3.zip" class="mock-btn" style="text-decoration:none;font-size:.75rem;padding:.6rem 1.2rem;">Download chronicledb-v0.2.3.zip</a>
+          <p class="muted" style="margin-top:.6rem;font-size:.7rem;">
+            Or browse all assets on the <a href="https://github.com/alani-fan-club/chronicledb/releases/latest" style="color:var(--accent)">latest release page</a>. The asset name follows the pattern <code>chronicledb-vX.Y.Z.zip</code> &mdash; the download button above is hardcoded to the current release and gets bumped each tag.
+          </p>
         </div>
 
+        <div class="callout">
+          <strong>What's inside the zip</strong> (you don't rearrange anything &mdash; the folders mirror ST's layout so it extracts into the right places):
+          <ul style="font-size:.75rem;color:var(--gray);line-height:1.7;margin:.4rem 0 0;padding-left:1.25rem;">
+            <li><code>plugins/chronicle-db/</code> &mdash; server plugin with bundled <code>node_modules</code> (incl. <code>@electric-sql/pglite</code> for the embedded DB)</li>
+            <li><code>public/scripts/extensions/third-party/chronicle-db/</code> &mdash; UI extension (the drawer you'll see in Step 04)</li>
+          </ul>
+        </div>
+
+        <div data-os-only="windows" class="callout">
+          <strong>Windows note:</strong> save the zip somewhere you can find it again, e.g. <code>Downloads</code>. Don't double-click to "open" it &mdash; that opens the zip in-place inside Explorer's zip viewer, which is not the same as extracting. Step 02 has the right-click flow.
+        </div>
+
+        <p class="muted">
+          Prefer running your own Postgres and pulling updates via <code>git pull</code>? See the <a href="#advanced-install" style="color:var(--accent)">Advanced install</a> section at the bottom &mdash; <code>install.sh</code> / <code>install.ps1</code> are still supported there.
+        </p>
       </section>
 
       <!-- Step 02 -->
       <section class="wizard-step" id="step-02">
         <div class="step-head">
           <span class="step-num">Step 02</span>
-          <h2>Set up the database</h2>
+          <h2>Extract into SillyTavern &amp; enable plugins</h2>
         </div>
         <p>
-          Two routes. If you want a local Postgres, run the included <code>install.sh</code> &mdash; it sets up everything in one shot (Postgres, symlinks into ST, config.yaml patch). If you'd rather use a free cloud DB, skip the script and do the wiring manually.
+          Extract the zip so its two folders land on top of your SillyTavern install, then flip one line in <code>config.yaml</code>. That's the whole install.
         </p>
 
-        <div class="branch" role="tablist">
-          <div class="branch-tabs">
-            <button class="branch-tab active" data-branch="local" role="tab">Run install.sh (local)</button>
-            <button class="branch-tab" data-branch="cloud" role="tab">Use a cloud DB (skip install.sh)</button>
+        <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.25rem 0 .4rem;">A. Extract the zip into your SillyTavern folder</h3>
+
+        <!-- macOS: Finder GUI or unzip in Terminal -->
+        <div data-os-only="mac">
+          <p>Two options &mdash; pick whichever you're comfortable with.</p>
+          <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;"><strong>Finder:</strong> double-click <code>chronicledb-v0.2.3.zip</code> in <code>Downloads</code>. That creates a <code>chronicledb-v0.2.3/</code> folder alongside it. Open that folder; you'll see <code>plugins/</code> and <code>public/</code> inside. Drag both into your SillyTavern folder &mdash; macOS will ask to merge; choose <strong>Merge</strong>.</p>
+          <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;"><strong>Terminal:</strong></p>
+          <pre data-lang="bash"><code><span class="cmd">cd</span> ~/SillyTavern
+<span class="cmd">unzip</span> -o ~/Downloads/chronicledb-v0.2.3.zip</code></pre>
+          <p class="muted"><code>-o</code> overwrites any existing files without prompting, which is what you want when you're upgrading a previous install.</p>
+        </div>
+
+        <!-- Linux: unzip in terminal -->
+        <div data-os-only="linux">
+          <p>From a terminal inside your SillyTavern folder:</p>
+          <pre data-lang="bash"><code><span class="cmd">cd</span> ~/SillyTavern
+<span class="cmd">unzip</span> -o ~/Downloads/chronicledb-v0.2.3.zip</code></pre>
+          <p class="muted"><code>-o</code> overwrites in place so upgrades from a previous ChronicleDB install don't need to be uninstalled first.</p>
+          <div class="callout">
+            <strong>No <code>unzip</code>?</strong> <code>sudo apt install unzip</code> on Debian/Ubuntu, or <code>sudo dnf install unzip</code> on Fedora.
           </div>
+        </div>
 
-          <div class="branch-panel active" data-branch="local">
-            <!-- Windows: native PowerShell installer using PGlite. No WSL,
-                 no Postgres install, no admin elevation — junctions cover
-                 the symlink piece without Developer Mode. -->
-            <div data-os-only="windows" style="margin-bottom:1.5rem;">
-              <p>Open PowerShell (regular, not Administrator) and run:</p>
-              <pre data-lang="powershell"><code><span class="cmd">irm</span> https://raw.githubusercontent.com/alani-fan-club/chronicledb/master/install.ps1 | <span class="cmd">iex</span></code></pre>
-              <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;">No WSL, no admin, no Postgres install &mdash; the embedded PGlite database lives entirely inside the plugin. The installer junctions the plugin and UI extension into your SillyTavern folder (junctions, unlike symlinks, don't need elevation or Developer Mode).</p>
-              <div class="callout">
-                <strong>Prereqs:</strong> <a href="https://nodejs.org" style="color:var(--accent)">Node.js 18+</a> and <a href="https://git-scm.com/download/win" style="color:var(--accent)">Git for Windows</a>. The installer checks for both and tells you what's missing.
-              </div>
-            </div>
-
-            <p>From inside the ChronicleDB directory you cloned in Step 01:</p>
-            <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh</code></pre>
-            <p>The script will prompt a few times. Answer <strong>yes</strong> to each to keep going. Here's what it does and what you'll see:</p>
-
-            <!-- macOS: Homebrew -->
-            <div data-os-only="mac">
-              <div class="mock" data-title="install.sh — terminal (macOS)">
-                <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: macos
-<span class="cmt">[chronicledb]</span> Found SillyTavern at /Users/you/SillyTavern
-<span class="cmt">[chronicledb]</span> PostgreSQL is not installed.
-<span class="cmt">[?]</span> Install PostgreSQL 17 + pgvector via Homebrew now? <span class="cmd">[Y/n]</span> <span class="str">y</span>
-<span class="cmt">[+]</span> Running: brew install postgresql@17 pgvector
-<span class="cmt">[+]</span> Running: brew services start postgresql@17
-<span class="cmt">[+]</span> npm install in server-plugin ...
-<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
-<span class="cmt">[+]</span> Symlinking UI extension ...
-<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
-<span class="cmt">[+]</span> Creating database 'chronicledb' ...
-<span class="cmt">[+]</span> Enabling extensions (vector, pg_trgm) ...
-<span class="cmd">[ok]</span> Install complete.
-         Database: chronicledb @ localhost:5432 as <span class="str">$USER</span>
-         Plugin:   ~/SillyTavern/.../third-party/chronicle-db</code></pre>
-              </div>
-              <div class="callout">
-                <strong>Prereq:</strong> Homebrew (<a href="https://brew.sh" style="color:var(--accent)">brew.sh</a>). If you don't have it, the script will tell you to install it first.
-              </div>
-            </div>
-
-            <!-- Linux and Windows (WSL) both use apt -->
-            <div data-os-only="linux windows">
-              <div class="mock" data-title="install.sh — terminal (Ubuntu / Debian / WSL)">
-                <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: linux
-<span class="cmt">[chronicledb]</span> Found SillyTavern at /home/you/SillyTavern
-<span class="cmt">[chronicledb]</span> PostgreSQL is not installed.
-<span class="cmt">[?]</span> Install PostgreSQL 17 + pgvector via apt now? (will sudo) <span class="cmd">[Y/n]</span> <span class="str">y</span>
-<span class="cmt">[+]</span> Running: sudo apt-get install postgresql-17 postgresql-17-pgvector
-<span class="cmt">[+]</span> Running: sudo systemctl start postgresql
-<span class="cmt">[+]</span> Creating Postgres role for current user 'you' ...
-<span class="cmt">[+]</span> npm install in server-plugin ...
-<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
-<span class="cmt">[+]</span> Symlinking UI extension ...
-<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
-<span class="cmt">[+]</span> Creating database 'chronicledb' ...
-<span class="cmt">[+]</span> Enabling extensions (vector, pg_trgm) ...
-<span class="cmd">[ok]</span> Install complete.
-         Database: chronicledb @ localhost:5432 as <span class="str">you</span>
-         Plugin:   ~/SillyTavern/.../third-party/chronicle-db</code></pre>
-              </div>
-              <div class="callout warn">
-                <strong>Expect a sudo password prompt.</strong> The script <code>sudo</code>s to install Postgres via apt and create your OS user's Postgres role.
-              </div>
-            </div>
-
-            <div class="callout">
-              <strong>Idempotent.</strong> If the script fails partway (network hiccup, permission prompt you missed), just re-run it. It detects what's already done and skips those steps.
-            </div>
-
-            <p class="muted">
-              Settings for Step 05: host <code>localhost</code>, port <code>5432</code>, database <code>chronicledb</code>, user = your system username, no password.
-            </p>
+        <!-- Windows: Explorer right-click flow, plus a PowerShell alternative -->
+        <div data-os-only="windows">
+          <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
+            <li>In File Explorer, open the folder where you saved the zip (e.g. <code>Downloads</code>).</li>
+            <li>Right-click <code>chronicledb-v0.2.3.zip</code> &rarr; <strong>Extract All...</strong></li>
+            <li>In the Extract dialog, change the destination to the root of your SillyTavern install &mdash; e.g. <code>C:\Users\YOU\SillyTavern</code> or wherever you run <code>Start.bat</code> from. Click <strong>Extract</strong>.</li>
+            <li>Windows will prompt to merge the <code>plugins</code> and <code>public</code> folders with the existing ones &mdash; choose <strong>Replace the files in the destination</strong>.</li>
+          </ol>
+          <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;">PowerShell equivalent if you prefer a one-liner:</p>
+          <pre data-lang="powershell"><code><span class="cmd">Expand-Archive</span> -Path $HOME\Downloads\chronicledb-v0.2.3.zip -DestinationPath $HOME\SillyTavern -Force</code></pre>
+          <div class="callout">
+            <strong>No admin, no Developer Mode, no WSL.</strong> The zip install is plain file copy &mdash; it doesn't create symlinks, junctions, or any elevated filesystem object, so the previous PowerShell 5.1 / BOM / privilege grief is gone.
           </div>
+        </div>
 
-          <div class="branch-panel" data-branch="cloud">
-            <p>
-              Set up a free cloud Postgres first, then run <code>install.sh</code> with the <code>--skip-postgres</code> flag &mdash; it'll do the npm install, ST symlinks, and <code>config.yaml</code> patch without touching a local database.
-            </p>
+        <div class="callout">
+          <strong>What should be on disk after this:</strong>
+          <ul style="font-size:.75rem;color:var(--gray);line-height:1.7;margin:.4rem 0 0;padding-left:1.25rem;">
+            <li><code>&lt;ST&gt;/plugins/chronicle-db/</code> &mdash; with a populated <code>node_modules/</code> inside</li>
+            <li><code>&lt;ST&gt;/public/scripts/extensions/third-party/chronicle-db/</code></li>
+          </ul>
+          <p style="font-size:.7rem;color:var(--gray);margin-top:.4rem;">If those two paths exist, extraction worked. Nothing else in your ST folder should have changed.</p>
+        </div>
 
-            <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.25rem 0 .4rem;">A. Create a cloud Postgres</h3>
-            <p style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;">Pick one. Both have free tiers and ship pgvector. Whichever you pick, you'll end up with a connection string of the form <code>postgresql://USER:PASSWORD@HOST:PORT/DATABASE</code> &mdash; you'll map the five fields from that into the ST settings panel in Step 05.</p>
+        <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.5rem 0 .4rem;">B. Enable server plugins</h3>
 
-            <details style="margin-bottom:1rem;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;background:color-mix(in srgb, var(--accent) 3%, transparent);">
-              <summary style="cursor:pointer;font-weight:600;font-size:.8rem;">Supabase &mdash; step by step</summary>
-              <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-top:.75rem;">
-                <li>Sign up at <a href="https://supabase.com" style="color:var(--accent)">supabase.com</a> and create a new project. Set a database password &mdash; <strong>save it somewhere</strong>, Supabase only shows it once.</li>
-                <li>Wait for the project to provision (~1 min).</li>
-                <li>Go to <em>Database &rarr; Extensions</em>. Toggle on both <code>vector</code> (pgvector) and <code>pg_trgm</code>. Without these the schema init fails at the <code>CREATE EXTENSION</code> lines.</li>
-                <li>Open <em>Project Settings &rarr; Database</em> &rarr; <em>Connection string</em>. Copy the <strong>URI</strong> tab. It looks like:
-                  <pre style="margin:.5rem 0;font-size:.7rem;"><code>postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxx.supabase.co:5432/postgres</code></pre>
-                </li>
-                <li>The five fields you'll paste into ST's Database panel:
-                  <table style="font-size:.75rem;margin-top:.5rem;border-collapse:collapse;">
-                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Host</strong></td><td><code>db.xxxxxxxxxxxx.supabase.co</code></td></tr>
-                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Port</strong></td><td><code>5432</code> (direct connection &mdash; <strong>not</strong> 6543, the pooler)</td></tr>
-                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Database</strong></td><td><code>postgres</code></td></tr>
-                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>User</strong></td><td><code>postgres</code></td></tr>
-                    <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Password</strong></td><td>the one you saved in step 1</td></tr>
-                  </table>
-                </li>
-              </ol>
-              <div class="callout" style="margin-top:.75rem;">
-                <strong>Two Supabase quirks to know:</strong>
-                <ul style="font-size:.75rem;color:var(--gray);line-height:1.6;margin:.4rem 0 0;padding-left:1.25rem;">
-                  <li><strong>Use port 5432, not 6543.</strong> 6543 is the transaction pooler (PgBouncer); pgvector and the schema-init transactions ChronicleDB runs at startup don't behave under it. Direct on 5432 is what you want.</li>
-                  <li><strong>Free tier pauses after a week of inactivity.</strong> The first request after a pause hangs ~30s while the project wakes up. ChronicleDB's reconnect logic catches it but the status badge will flicker red briefly &mdash; that's normal.</li>
-                </ul>
-              </div>
-            </details>
+        <p>
+          SillyTavern only loads server plugins when one line is flipped in <code>config.yaml</code> at your ST install's root. Open it in any text editor:
+        </p>
 
-            <details style="margin-bottom:1rem;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;background:color-mix(in srgb, var(--accent) 3%, transparent);">
-              <summary style="cursor:pointer;font-weight:600;font-size:.8rem;">Neon &mdash; step by step</summary>
-              <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-top:.75rem;">
-                <li>Sign up at <a href="https://neon.tech" style="color:var(--accent)">neon.tech</a> and create a project. Default database name is fine.</li>
-                <li>Open the SQL Editor and run:
-                  <pre style="margin:.5rem 0;font-size:.7rem;"><code>CREATE EXTENSION vector;
-CREATE EXTENSION pg_trgm;</code></pre>
-                </li>
-                <li>From the project Dashboard, copy the <strong>Connection string</strong> (Direct, not Pooler):
-                  <pre style="margin:.5rem 0;font-size:.7rem;"><code>postgresql://USER:PASSWORD@ep-xxxxx.region.aws.neon.tech/dbname</code></pre>
-                </li>
-                <li>Map into ST's Database panel: host = <code>ep-xxxxx.region.aws.neon.tech</code>, port = <code>5432</code>, database = whatever name you see after the last <code>/</code>, user + password = whatever's between <code>://</code> and <code>@</code>.</li>
-              </ol>
-              <div class="callout" style="margin-top:.75rem;">
-                <strong>Neon quirks:</strong> use the <em>Direct</em> connection string, not the pooler. Free-tier branches autosuspend after 5 min idle &mdash; the wakeup is faster than Supabase (a second or two) but the first query after idle still pays the cost.
-              </div>
-            </details>
+        <div class="mock" data-title="config.yaml">
+          <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt"># ...other settings above...</span>
+<span class="cmd">enableServerPlugins:</span> <span class="str">true</span>
+<span class="cmt"># ...other settings below...</span></code></pre>
+        </div>
 
-            <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.5rem 0 .4rem;">B. Wire the plugin into SillyTavern</h3>
+        <p>
+          If the key is already there and set to <code>true</code>, you're done &mdash; save and skip to Step 03. If it's <code>false</code> or missing, set/add it, save, and move on.
+        </p>
 
-            <!-- macOS / Linux / WSL: the bash one-liner -->
-            <div data-os-only="mac linux">
-              <p style="font-size:.75rem;color:var(--gray);">From the directory you cloned in Step 01:</p>
-              <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh --skip-postgres</code></pre>
-            </div>
+        <div class="callout">
+          <strong>Where is <code>config.yaml</code>?</strong> Same folder as <code>Start.bat</code> / <code>start.sh</code> &mdash; the root of your SillyTavern install, not inside <code>data/</code>. Create it from <code>default/config.yaml</code> if you've never edited it before.
+        </div>
 
-            <!-- Windows: same install.ps1 as the local path, but with the
-                 -ExternalPostgres flag so the installer skips the embedded
-                 PGlite default and waits for cloud creds in the ST UI. -->
-            <div data-os-only="windows">
-              <p style="font-size:.75rem;color:var(--gray);">In a regular PowerShell window:</p>
-              <pre data-lang="powershell"><code><span class="cmt"># Download once so we can pass the flag (iex doesn't forward args)</span>
-<span class="cmd">iwr</span> https://raw.githubusercontent.com/alani-fan-club/chronicledb/master/install.ps1 -OutFile $env:TEMP\install.ps1
-<span class="cmd">&amp;</span> $env:TEMP\install.ps1 -ExternalPostgres</code></pre>
-              <p class="muted">Same installer as the local path, just with <code>-ExternalPostgres</code> so it skips the embedded PGlite default. Paste the cloud DB host/port/db/user/password into the ST settings panel after restart.</p>
-            </div>
-
-            <div data-os-only="mac linux">
-              <div class="mock" data-title="install.sh --skip-postgres — terminal">
-                <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: macos
-<span class="cmt">[chronicledb]</span> Found SillyTavern at /Users/you/SillyTavern
-<span class="cmt">[chronicledb]</span> Node v20.11.0
-<span class="cmt">[chronicledb]</span> Skipping local PostgreSQL setup (--skip-postgres)
-<span class="cmt">[chronicledb]</span> Skipping pgvector check (--skip-postgres)
-<span class="cmt">[+]</span> npm install in server-plugin ...
-<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
-<span class="cmt">[+]</span> Symlinking UI extension ...
-<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
-<span class="cmt">[chronicledb]</span> Skipping database creation (--skip-postgres).
-<span class="cmt">[chronicledb]</span>   Paste your cloud DB connection info into the ST
-<span class="cmt">[chronicledb]</span>   settings panel after restart.
-<span class="cmd">[ok]</span> Install complete.</code></pre>
-              </div>
-
-              <div class="callout">
-                <strong>Why a flag instead of detection?</strong> The script can't tell whether you want a local or cloud DB from the outside, so it asks explicitly. <code>SKIP_POSTGRES=1</code> as an env var works too if you prefer.
-              </div>
-            </div>
-
-            <div class="callout warn">
-              <strong>Keep your connection string private.</strong> It includes credentials. If you share your settings export, strip the password first.
-            </div>
-          </div>
+        <div class="callout warn">
+          <strong>This is the one manual config step.</strong> Unlike the old <code>install.sh</code>, the zip install doesn't patch <code>config.yaml</code> for you &mdash; it's a plain file copy. Miss this and ST silently ignores the plugin on boot (you'll notice in Step 03).
         </div>
       </section>
 
@@ -1019,7 +897,7 @@ CREATE EXTENSION pg_trgm;</code></pre>
         </div>
 
         <div class="callout warn">
-          <strong>If <code>enableServerPlugins</code> is missing or <code>false</code></strong>, the plugin is being silently ignored. Set it to <code>true</code> and restart again. The installer does this for you, but a SillyTavern update can occasionally revert it during a config merge.
+          <strong>If <code>enableServerPlugins</code> is missing or <code>false</code></strong>, the plugin is being silently ignored. Re-check Step 02B &mdash; set it to <code>true</code>, save, and restart ST again. A SillyTavern update can also revert it during a config merge, so this is worth re-checking after any ST upgrade.
         </div>
       </section>
 
@@ -1054,12 +932,16 @@ CREATE EXTENSION pg_trgm;</code></pre>
                   data-status-cycle
                   data-status-final-class="ok"
                   data-status-final-text="Connected">Checking…</span>
-            <span class="mock-hint" style="margin-left:.4rem;">chronicledb @ localhost as you</span>
+            <span class="mock-hint" style="margin-left:.4rem;">embedded PGlite @ &lt;ST&gt;/plugins/chronicle-db/pgdata</span>
           </div>
         </div>
 
         <div class="callout">
-          <strong>On first open</strong> the status will be <span class="mock-status pending">Checking…</span> or <span class="mock-status err">Not connected</span> &mdash; that's expected. You haven't filled in the database fields yet. Step 05.
+          <strong>On the zip install, status should go green on its own.</strong> The default backend is embedded PGlite, created at <code>&lt;ST&gt;/plugins/chronicle-db/pgdata</code> on first connect &mdash; no fields to fill in, no external DB to stand up. If you see <span class="mock-status err">Not connected</span> or a <span class="mock-status pending">Checking…</span> that never resolves, head to <a href="#troubleshooting" style="color:var(--accent)">Troubleshooting</a>.
+        </div>
+
+        <div class="callout">
+          <strong>Running your own Postgres?</strong> Step 05 covers the database fields. Zip-install users on the default PGlite backend can skim or skip it.
         </div>
       </section>
 
@@ -1067,10 +949,15 @@ CREATE EXTENSION pg_trgm;</code></pre>
       <section class="wizard-step" id="step-05">
         <div class="step-head">
           <span class="step-num">Step 05</span>
-          <h2>Database fields</h2>
+          <h2>Database fields <span style="font-size:.6rem;letter-spacing:.15em;color:var(--gray-dim);text-transform:uppercase;margin-left:.5rem;">(optional &mdash; external Postgres only)</span></h2>
         </div>
-        <p>
-          Fill in where your Postgres lives. If you ran <code>install.sh</code> without <code>--skip-postgres</code>, these are already pre-filled by the installer &mdash; just hit <strong>Connect &amp; initialize</strong>. If you used a cloud DB, paste the creds from Neon / Supabase here.
+
+        <div class="callout">
+          <strong>Skip this step if you're on the default zip install.</strong> Embedded PGlite doesn't need any fields &mdash; the DB is created automatically at <code>&lt;ST&gt;/plugins/chronicle-db/pgdata</code> on first connect, and your status pill should already be green. This step only matters if you deliberately flipped <em>Storage backend</em> to <strong>External Postgres</strong> (e.g. you're running your own Postgres server, or you're using a cloud DB like Neon / Supabase).
+        </div>
+
+        <p style="margin-top:1rem;">
+          If you are on external Postgres, fill in where it lives and hit <strong>Connect &amp; initialize</strong>:
         </p>
 
         <div class="mock" data-title="ChronicleDB → Database">
@@ -1085,11 +972,11 @@ CREATE EXTENSION pg_trgm;</code></pre>
         </div>
 
         <div class="callout">
-          <strong>Storage backend toggle:</strong> if it's set to <code>Embedded — PGlite</code> there's nothing to fill in; the database lives at <code>~/.chronicledb/pgdata</code> and is created on first connect. Switch to <code>External Postgres</code> to reveal the connection fields below.
+          <strong>Storage backend toggle:</strong> stays on <code>Embedded — PGlite</code> by default &mdash; nothing to fill in. Flip to <code>External Postgres</code> to reveal the connection fields below.
         </div>
 
         <div data-os-only="mac linux" class="callout">
-          <strong>Local Postgres defaults:</strong> host <code>localhost</code>, port <code>5432</code>, db <code>chronicledb</code>, user is your OS username, password is blank (Postgres uses local trust auth by default on brew / apt installs).
+          <strong>Local Postgres defaults</strong> (if you stood one up yourself via brew / apt): host <code>localhost</code>, port <code>5432</code>, db <code>chronicledb</code>, user is your OS username, password is blank (Postgres uses local trust auth by default). The <a href="#advanced-install" style="color:var(--accent)">Advanced install</a> section runs <code>install.sh</code> which sets this up end-to-end.
         </div>
 
         <div class="callout">
@@ -1097,7 +984,7 @@ CREATE EXTENSION pg_trgm;</code></pre>
         </div>
 
         <div class="callout">
-          <strong>Cloud DB (Supabase):</strong> host <code>db.xxxxxxxxxxxx.supabase.co</code>, port <code>5432</code> (the <strong>direct</strong> connection, <em>not</em> the pooler on 6543), db <code>postgres</code>, user <code>postgres</code>, password = whatever you set when creating the project. The pooler on 6543 runs in transaction mode and breaks DDL + pgvector init.
+          <strong>Cloud DB (Supabase):</strong> host <code>db.xxxxxxxxxxxx.supabase.co</code>, port <code>5432</code> (the <strong>direct</strong> connection, <em>not</em> the pooler on 6543), db <code>postgres</code>, user <code>postgres</code>, password = whatever you set when creating the project. The pooler on 6543 runs in transaction mode and breaks DDL + pgvector init. Full step-by-step for both Neon and Supabase is in the <a href="#advanced-install" style="color:var(--accent)">Advanced install</a> section.
         </div>
 
         <div class="callout">
@@ -1366,6 +1253,252 @@ CREATE EXTENSION pg_trgm;</code></pre>
         <div style="margin-top:2rem;text-align:center;">
           <a href="index.html" class="mock-btn" style="text-decoration:none;">← Back to overview</a>
         </div>
+      </section>
+
+      <!-- Advanced install: the old install.sh / install.ps1 flow, demoted
+           from the primary path. Still the right choice for anyone who
+           wants to run their own Postgres (local or cloud) and follow
+           master via `git pull` — the zip install is released per tag and
+           can lag master. Keep the OS-tabbed + branch-tabbed structure
+           from the original Step 01 + Step 02 intact; only the framing
+           changes. -->
+      <section class="wizard-step" id="advanced-install">
+        <div class="step-head">
+          <span class="step-num">+ Advanced</span>
+          <h2>Advanced install: Postgres &amp; git-based updates</h2>
+        </div>
+        <p>
+          The zip install covers almost every case &mdash; don't use this section unless you have a specific reason. Pick the advanced path if:
+        </p>
+        <ul style="font-size:.8rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-bottom:1rem;">
+          <li>You want a full local <strong>PostgreSQL 17 + pgvector</strong> rather than the embedded PGlite (larger datasets, concurrent access, want to poke at the DB with <code>psql</code>).</li>
+          <li>You want to follow the project's <code>master</code> branch via <code>git pull</code> instead of waiting for a tagged zip.</li>
+          <li>You want a cloud Postgres (Neon / Supabase) wired in from the start, with <code>install.sh --skip-postgres</code> handling everything except the DB itself.</li>
+        </ul>
+        <p class="muted">Otherwise, stay on the zip install above &mdash; it's simpler and has fewer moving parts.</p>
+
+        <details style="margin:1.5rem 0;border:1px solid var(--gray-rule);padding:1rem 1.25rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--white-bright);">A. Clone the repo</summary>
+
+          <div data-os-only="windows" class="callout" style="margin-top:1rem;">
+            <strong>Windows note:</strong> either PowerShell or Git Bash works &mdash; both have <code>git</code> once you install <a href="https://git-scm.com/download/win" style="color:var(--accent)">Git for Windows</a>. Whether you need WSL depends on your database choice in step B &mdash; a cloud DB skips WSL entirely.
+          </div>
+
+          <p style="margin-top:1rem;">Two ways: <strong>git clone</strong> (recommended &mdash; easy to pull updates later) or <strong>download the repo ZIP</strong> (no git required). Either way you'll end up with the repo on disk, and step B will run the installer from there.</p>
+
+          <div class="branch" role="tablist" style="margin-top:1rem;">
+            <div class="branch-tabs">
+              <button class="branch-tab active" data-branch="adv-git" role="tab">git clone (recommended)</button>
+              <button class="branch-tab" data-branch="adv-zip" role="tab">Download repo ZIP</button>
+            </div>
+
+            <div class="branch-panel active" data-branch="adv-git">
+              <p>Open a terminal and run:</p>
+              <pre data-lang="bash"><code><span class="cmd">git</span> clone https://github.com/alani-fan-club/chronicledb ~/.chronicledb
+<span class="cmd">cd</span> ~/.chronicledb</code></pre>
+              <div class="callout">
+                <strong>Why this location?</strong> <code>~/.chronicledb</code> is the default the installer expects. Put it anywhere you like &mdash; just remember the path for step B.
+              </div>
+              <p class="muted">Updating later: <code>cd ~/.chronicledb &amp;&amp; git pull</code>, then re-run <code>install.sh</code> / <code>install.ps1</code> and restart SillyTavern.</p>
+            </div>
+
+            <div class="branch-panel" data-branch="adv-zip">
+              <p>If you don't have git installed, grab a source ZIP from GitHub (this is <em>not</em> the release zip &mdash; it's the raw repo):</p>
+              <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
+                <li>Go to <a href="https://github.com/alani-fan-club/chronicledb" style="color:var(--accent)">github.com/alani-fan-club/chronicledb</a></li>
+                <li>Click the green <strong>Code</strong> button &rarr; <strong>Download ZIP</strong></li>
+                <li>Unzip it somewhere you'll remember &mdash; e.g. <code>~/.chronicledb</code>:</li>
+              </ol>
+              <pre data-lang="bash"><code><span class="cmd">unzip</span> ~/Downloads/chronicledb-master.zip -d ~/
+<span class="cmd">mv</span> ~/chronicledb-master ~/.chronicledb
+<span class="cmd">cd</span> ~/.chronicledb</code></pre>
+              <p class="muted">Updating later without git means repeating this download + unzip dance. Consider installing git first if you plan to stay on master.</p>
+            </div>
+          </div>
+        </details>
+
+        <details style="margin:1.5rem 0;border:1px solid var(--gray-rule);padding:1rem 1.25rem;">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--white-bright);">B. Run the installer (local Postgres or cloud DB)</summary>
+
+          <p style="margin-top:1rem;">Two routes. If you want a local Postgres, run <code>install.sh</code> &mdash; it sets up everything in one shot (Postgres, symlinks into ST, <code>config.yaml</code> patch). If you'd rather use a free cloud DB, skip the local Postgres install and do the wiring manually.</p>
+
+          <div class="branch" role="tablist" style="margin-top:1rem;">
+            <div class="branch-tabs">
+              <button class="branch-tab active" data-branch="adv-local" role="tab">Local Postgres (install.sh)</button>
+              <button class="branch-tab" data-branch="adv-cloud" role="tab">Cloud DB (skip local Postgres)</button>
+            </div>
+
+            <div class="branch-panel active" data-branch="adv-local">
+              <div data-os-only="windows" style="margin-bottom:1.5rem;">
+                <p>Open PowerShell (regular, not Administrator) and run:</p>
+                <pre data-lang="powershell"><code><span class="cmd">irm</span> https://raw.githubusercontent.com/alani-fan-club/chronicledb/master/install.ps1 | <span class="cmd">iex</span></code></pre>
+                <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;">No WSL, no admin, no Postgres install &mdash; the embedded PGlite database lives entirely inside the plugin. The installer junctions the plugin and UI extension into your SillyTavern folder (junctions, unlike symlinks, don't need elevation or Developer Mode).</p>
+                <div class="callout">
+                  <strong>Prereqs:</strong> <a href="https://nodejs.org" style="color:var(--accent)">Node.js 18+</a> and <a href="https://git-scm.com/download/win" style="color:var(--accent)">Git for Windows</a>. The installer checks for both and tells you what's missing.
+                </div>
+              </div>
+
+              <p>From inside the ChronicleDB directory you cloned in step A:</p>
+              <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh</code></pre>
+              <p>The script will prompt a few times. Answer <strong>yes</strong> to each to keep going. Here's what it does and what you'll see:</p>
+
+              <div data-os-only="mac">
+                <div class="mock" data-title="install.sh — terminal (macOS)">
+                  <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: macos
+<span class="cmt">[chronicledb]</span> Found SillyTavern at /Users/you/SillyTavern
+<span class="cmt">[chronicledb]</span> PostgreSQL is not installed.
+<span class="cmt">[?]</span> Install PostgreSQL 17 + pgvector via Homebrew now? <span class="cmd">[Y/n]</span> <span class="str">y</span>
+<span class="cmt">[+]</span> Running: brew install postgresql@17 pgvector
+<span class="cmt">[+]</span> Running: brew services start postgresql@17
+<span class="cmt">[+]</span> npm install in server-plugin ...
+<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
+<span class="cmt">[+]</span> Symlinking UI extension ...
+<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
+<span class="cmt">[+]</span> Creating database 'chronicledb' ...
+<span class="cmt">[+]</span> Enabling extensions (vector, pg_trgm) ...
+<span class="cmd">[ok]</span> Install complete.
+         Database: chronicledb @ localhost:5432 as <span class="str">$USER</span>
+         Plugin:   ~/SillyTavern/.../third-party/chronicle-db</code></pre>
+                </div>
+                <div class="callout">
+                  <strong>Prereq:</strong> Homebrew (<a href="https://brew.sh" style="color:var(--accent)">brew.sh</a>). If you don't have it, the script will tell you to install it first.
+                </div>
+              </div>
+
+              <div data-os-only="linux windows">
+                <div class="mock" data-title="install.sh — terminal (Ubuntu / Debian / WSL)">
+                  <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: linux
+<span class="cmt">[chronicledb]</span> Found SillyTavern at /home/you/SillyTavern
+<span class="cmt">[chronicledb]</span> PostgreSQL is not installed.
+<span class="cmt">[?]</span> Install PostgreSQL 17 + pgvector via apt now? (will sudo) <span class="cmd">[Y/n]</span> <span class="str">y</span>
+<span class="cmt">[+]</span> Running: sudo apt-get install postgresql-17 postgresql-17-pgvector
+<span class="cmt">[+]</span> Running: sudo systemctl start postgresql
+<span class="cmt">[+]</span> Creating Postgres role for current user 'you' ...
+<span class="cmt">[+]</span> npm install in server-plugin ...
+<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
+<span class="cmt">[+]</span> Symlinking UI extension ...
+<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
+<span class="cmt">[+]</span> Creating database 'chronicledb' ...
+<span class="cmt">[+]</span> Enabling extensions (vector, pg_trgm) ...
+<span class="cmd">[ok]</span> Install complete.
+         Database: chronicledb @ localhost:5432 as <span class="str">you</span>
+         Plugin:   ~/SillyTavern/.../third-party/chronicle-db</code></pre>
+                </div>
+                <div class="callout warn">
+                  <strong>Expect a sudo password prompt.</strong> The script <code>sudo</code>s to install Postgres via apt and create your OS user's Postgres role.
+                </div>
+              </div>
+
+              <div class="callout">
+                <strong>Idempotent.</strong> If the script fails partway (network hiccup, permission prompt you missed), just re-run it. It detects what's already done and skips those steps.
+              </div>
+
+              <p class="muted">
+                Settings for Step 05: host <code>localhost</code>, port <code>5432</code>, database <code>chronicledb</code>, user = your system username, no password.
+              </p>
+            </div>
+
+            <div class="branch-panel" data-branch="adv-cloud">
+              <p>
+                Set up a free cloud Postgres first, then run <code>install.sh</code> with the <code>--skip-postgres</code> flag &mdash; it'll do the npm install, ST symlinks, and <code>config.yaml</code> patch without touching a local database.
+              </p>
+
+              <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.25rem 0 .4rem;">B1. Create a cloud Postgres</h3>
+              <p style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;">Pick one. Both have free tiers and ship pgvector. Whichever you pick, you'll end up with a connection string of the form <code>postgresql://USER:PASSWORD@HOST:PORT/DATABASE</code> &mdash; map the five fields from that into the ST settings panel in Step 05.</p>
+
+              <details style="margin-bottom:1rem;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;background:color-mix(in srgb, var(--accent) 3%, transparent);">
+                <summary style="cursor:pointer;font-weight:600;font-size:.8rem;">Supabase &mdash; step by step</summary>
+                <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-top:.75rem;">
+                  <li>Sign up at <a href="https://supabase.com" style="color:var(--accent)">supabase.com</a> and create a new project. Set a database password &mdash; <strong>save it somewhere</strong>, Supabase only shows it once.</li>
+                  <li>Wait for the project to provision (~1 min).</li>
+                  <li>Go to <em>Database &rarr; Extensions</em>. Toggle on both <code>vector</code> (pgvector) and <code>pg_trgm</code>. Without these the schema init fails at the <code>CREATE EXTENSION</code> lines.</li>
+                  <li>Open <em>Project Settings &rarr; Database</em> &rarr; <em>Connection string</em>. Copy the <strong>URI</strong> tab. It looks like:
+                    <pre style="margin:.5rem 0;font-size:.7rem;"><code>postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxx.supabase.co:5432/postgres</code></pre>
+                  </li>
+                  <li>The five fields you'll paste into ST's Database panel:
+                    <table style="font-size:.75rem;margin-top:.5rem;border-collapse:collapse;">
+                      <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Host</strong></td><td><code>db.xxxxxxxxxxxx.supabase.co</code></td></tr>
+                      <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Port</strong></td><td><code>5432</code> (direct connection &mdash; <strong>not</strong> 6543, the pooler)</td></tr>
+                      <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Database</strong></td><td><code>postgres</code></td></tr>
+                      <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>User</strong></td><td><code>postgres</code></td></tr>
+                      <tr><td style="padding:.2rem .75rem .2rem 0;"><strong>Password</strong></td><td>the one you saved in step 1</td></tr>
+                    </table>
+                  </li>
+                </ol>
+                <div class="callout" style="margin-top:.75rem;">
+                  <strong>Two Supabase quirks to know:</strong>
+                  <ul style="font-size:.75rem;color:var(--gray);line-height:1.6;margin:.4rem 0 0;padding-left:1.25rem;">
+                    <li><strong>Use port 5432, not 6543.</strong> 6543 is the transaction pooler (PgBouncer); pgvector and the schema-init transactions ChronicleDB runs at startup don't behave under it. Direct on 5432 is what you want.</li>
+                    <li><strong>Free tier pauses after a week of inactivity.</strong> The first request after a pause hangs ~30s while the project wakes up. ChronicleDB's reconnect logic catches it but the status badge will flicker red briefly &mdash; that's normal.</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details style="margin-bottom:1rem;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;background:color-mix(in srgb, var(--accent) 3%, transparent);">
+                <summary style="cursor:pointer;font-weight:600;font-size:.8rem;">Neon &mdash; step by step</summary>
+                <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;margin-top:.75rem;">
+                  <li>Sign up at <a href="https://neon.tech" style="color:var(--accent)">neon.tech</a> and create a project. Default database name is fine.</li>
+                  <li>Open the SQL Editor and run:
+                    <pre style="margin:.5rem 0;font-size:.7rem;"><code>CREATE EXTENSION vector;
+CREATE EXTENSION pg_trgm;</code></pre>
+                  </li>
+                  <li>From the project Dashboard, copy the <strong>Connection string</strong> (Direct, not Pooler):
+                    <pre style="margin:.5rem 0;font-size:.7rem;"><code>postgresql://USER:PASSWORD@ep-xxxxx.region.aws.neon.tech/dbname</code></pre>
+                  </li>
+                  <li>Map into ST's Database panel: host = <code>ep-xxxxx.region.aws.neon.tech</code>, port = <code>5432</code>, database = whatever name you see after the last <code>/</code>, user + password = whatever's between <code>://</code> and <code>@</code>.</li>
+                </ol>
+                <div class="callout" style="margin-top:.75rem;">
+                  <strong>Neon quirks:</strong> use the <em>Direct</em> connection string, not the pooler. Free-tier branches autosuspend after 5 min idle &mdash; the wakeup is faster than Supabase (a second or two) but the first query after idle still pays the cost.
+                </div>
+              </details>
+
+              <h3 style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:1.5rem 0 .4rem;">B2. Wire the plugin into SillyTavern</h3>
+
+              <div data-os-only="mac linux">
+                <p style="font-size:.75rem;color:var(--gray);">From the directory you cloned in step A:</p>
+                <pre data-lang="bash"><code><span class="cmd">bash</span> install.sh --skip-postgres</code></pre>
+              </div>
+
+              <div data-os-only="windows">
+                <p style="font-size:.75rem;color:var(--gray);">In a regular PowerShell window:</p>
+                <pre data-lang="powershell"><code><span class="cmt"># Download once so we can pass the flag (iex doesn't forward args)</span>
+<span class="cmd">iwr</span> https://raw.githubusercontent.com/alani-fan-club/chronicledb/master/install.ps1 -OutFile $env:TEMP\install.ps1
+<span class="cmd">&amp;</span> $env:TEMP\install.ps1 -ExternalPostgres</code></pre>
+                <p class="muted">Same installer as the local path, just with <code>-ExternalPostgres</code> so it skips the embedded PGlite default. Paste the cloud DB host/port/db/user/password into the ST settings panel after restart.</p>
+              </div>
+
+              <div data-os-only="mac linux">
+                <div class="mock" data-title="install.sh --skip-postgres — terminal">
+                  <pre style="border:none;padding:0;margin:0;background:transparent;"><code><span class="cmt">[chronicledb]</span> Platform: macos
+<span class="cmt">[chronicledb]</span> Found SillyTavern at /Users/you/SillyTavern
+<span class="cmt">[chronicledb]</span> Node v20.11.0
+<span class="cmt">[chronicledb]</span> Skipping local PostgreSQL setup (--skip-postgres)
+<span class="cmt">[chronicledb]</span> Skipping pgvector check (--skip-postgres)
+<span class="cmt">[+]</span> npm install in server-plugin ...
+<span class="cmt">[+]</span> Symlinking plugin into SillyTavern ...
+<span class="cmt">[+]</span> Symlinking UI extension ...
+<span class="cmt">[+]</span> Enabling enableServerPlugins in config.yaml ...
+<span class="cmt">[chronicledb]</span> Skipping database creation (--skip-postgres).
+<span class="cmt">[chronicledb]</span>   Paste your cloud DB connection info into the ST
+<span class="cmt">[chronicledb]</span>   settings panel after restart.
+<span class="cmd">[ok]</span> Install complete.</code></pre>
+                </div>
+
+                <div class="callout">
+                  <strong>Why a flag instead of detection?</strong> The script can't tell whether you want a local or cloud DB from the outside, so it asks explicitly. <code>SKIP_POSTGRES=1</code> as an env var works too if you prefer.
+                </div>
+              </div>
+
+              <div class="callout warn">
+                <strong>Keep your connection string private.</strong> It includes credentials. If you share your settings export, strip the password first.
+              </div>
+            </div>
+          </div>
+
+          <p class="muted" style="margin-top:1rem;">
+            After either branch completes, come back to <a href="#step-03" style="color:var(--accent)">Step 03</a> and continue from the restart.
+          </p>
+        </details>
       </section>
 
       <!-- Troubleshooting: real reports from real installs. Update as new
