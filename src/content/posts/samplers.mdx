@@ -1,0 +1,188 @@
+---
+title: "Why Your Character Won't Shut Up About Her Emerald Eyes: A Sampler Post"
+date: 2026-04-27
+author: "ALANI"
+tags: ["ai", "roleplay", "llm", "samplers"]
+draft: true
+excerpt: "A breakdown of truncation samplers and repetition penalties, from Top-K to Min-P, and why the roleplay community had to fix them."
+---
+import SamplerWidget from '../../components/SamplerWidget.astro';
+
+## 0. The problem, stated concretely
+
+You're roleplaying. Your character has emerald eyes. This is established once, in the character card, probably in the first paragraph. Three thousand tokens into the session, the model has mentioned her emerald eyes nine times. Twice in the last reply. Once as "her emerald, emerald eyes," which is not a thing humans say.
+
+You know the model isn't broken. The same model, asked to write a technical summary, does not do this. Something about the *way the next token is chosen* is producing this failure mode, and it is not obvious from the outside what that something is.
+
+There are actually two different mechanisms at play, and this post is about both. The first is **truncation and shaping**: given a probability distribution over ~100,000 tokens, how do you pick one without occasionally selecting garbage? The second is **repetition penalties**: how do you stop the model from reaching for the same phrase it used three paragraphs ago?
+
+The emerald-eyes problem is mostly a repetition-penalty problem. But to understand why repetition penalties exist alongside truncation samplers—and why you need both—you have to understand truncation samplers first. So we'll take that route. It's a roughly seven-year argument between the ML research community and the open-source/roleplay community, and the roleplayers have been pushing the frontier harder than anyone wants to admit.
+
+The structure: introduce a failure mode, show how an existing sampler tries to fix it, show where that sampler itself breaks, introduce the next one. The progression is not arbitrary. Each sampler exists because the previous one failed in a specific, legible way.
+
+---
+
+## 1. Before sampling: what comes out of the model
+
+The transformer's last layer produces a vector of real numbers, one per token in the vocabulary. These are **logits**. Call this vector $\mathbf{z} \in \mathbb{R}^V$ where $V$ is vocab size (roughly $10^5$ for modern tokenizers).
+
+Logits are not probabilities. They are unbounded, signed, and do not sum to anything meaningful. To get a probability distribution, we apply the softmax:
+
+$$p_i = \frac{\exp(z_i)}{\sum_{j=1}^{V} \exp(z_j)}$$
+
+This gives us $\mathbf{p} \in \mathbb{R}^V$ with $p_i > 0$ and $\sum_i p_i = 1$. Now we have a proper categorical distribution. The question is: how do we draw a sample from it?
+
+The naive answer is: just sample from $\mathbf{p}$ directly. This is called **pure sampling** and nobody uses it, because the long tail of the distribution contains tens of thousands of tokens that are individually implausible but collectively sum to something non-trivial. Pure sampling occasionally selects one of them. Your character's emerald eyes become her `\xef\xbf\xbd` eyes. Something has to eliminate the tail.
+
+The opposite extreme is **greedy decoding**: always pick $\arg\max_i p_i$. This is deterministic, so "hello" always gets followed by "," and the same story always unfolds the same way. For code generation this is sometimes fine. For anything generative with a creativity component—roleplay, fiction, open-ended writing—it collapses immediately into loops, because the most-likely continuation of a loop is more loop.
+
+Every sampler we're about to discuss lives in the space between these two extremes. The question is not *whether* to prune the distribution and introduce randomness, but *how*.
+
+## 2. Temperature: reshaping the distribution
+
+The earliest and most durable knob is **temperature**. We modify the logits before softmax:
+
+$$p_i = \frac{\exp(z_i / T)}{\sum_{j} \exp(z_j / T)}$$
+
+For $T = 1$ this is ordinary softmax. For $T < 1$, dividing by a small number makes logits larger in absolute value, which after softmax produces a *sharper* distribution—high-probability tokens become even higher, low ones even lower. For $T > 1$, the distribution flattens toward uniform.
+
+A more revealing way to see this: temperature is equivalent to raising each probability to the power $1/T$ and renormalizing. To see why, start from the temperature-modified softmax and factor:
+
+$$\frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)} = \frac{\exp(z_i)^{1/T}}{\sum_j \exp(z_j)^{1/T}}$$
+
+Multiply numerator and denominator by $Z^{-1/T}$ where $Z = \sum_k \exp(z_k)$ is the original partition function:
+
+$$= \frac{(\exp(z_i)/Z)^{1/T}}{\sum_j (\exp(z_j)/Z)^{1/T}} = \frac{p_i^{1/T}}{\sum_j p_j^{1/T}}$$
+
+This is the form that makes it obvious what temperature is doing geometrically. It's reshaping the distribution by pushing mass toward or away from the mode. As $T \to 0$, the distribution collapses onto the argmax (greedy). As $T \to \infty$, it approaches uniform over all $V$ tokens.
+
+**Roleplay failure this addresses:** model is too deterministic; every regen produces the same emerald eyes.
+
+**Roleplay failure this creates:** at $T = 1.3$, the distribution is flat enough that a token with 0.01% base probability now has 0.1% probability. Across a 300-token response and a 100k vocab, that's plenty of opportunities for a truly bad token to sneak through. Your character starts describing things in genuinely wrong registers—medical jargon in a tavern scene, that sort of thing.
+
+Temperature alone cannot solve this. It reshapes, but it doesn't eliminate. The tail is still there—just reweighted. We need something that actually cuts.
+
+<SamplerWidget mode="temperature" dataset="confident" />
+
+## 3. Top-K: the first truncation
+
+Fan et al. (2018), working on hierarchical story generation, proposed the most intuitive fix possible: sort the logits, keep the top $K$, throw away the rest. Set their logits to $-\infty$ so softmax maps them to zero. Renormalize the survivors.
+
+$$p_i^{\text{top-}K} = \begin{cases} \frac{\exp(z_i / T)}{\sum_{j \in S_K} \exp(z_j / T)} & i \in S_K \\ 0 & \text{otherwise} \end{cases}$$
+
+where $S_K$ is the set of indices of the top $K$ logits.
+
+This works. It eliminates the tail. Typical values are $K \in [20, 100]$.
+
+But here's the problem: $K$ is a fixed number, and the shape of the distribution isn't. Consider two scenarios in the same roleplay:
+
+**Scenario A:** your character is asked "what's your name?" The model is very confident. The top token has probability 0.95, the next three sum to 0.04, and the rest of the vocab sums to 0.01. With $K = 40$, you are including 36 tokens that together hold less than 1% of the probability mass. They are garbage. Any one of them getting sampled is a disaster.
+
+**Scenario B:** your character is describing what they see through a window in a fantasy city. The model has genuine uncertainty—twenty different setting details would all work, each with ~3% probability, and the top token has 8%. With $K = 40$, you're correctly including the reasonable options, but you're also probably including some bad ones because the tail is long and flat here too.
+
+Top-K is context-blind. It imposes a fixed-size cutoff regardless of how much probability mass that cutoff actually contains. This is the central weakness, and it drives the next sampler.
+
+<SamplerWidget mode="top-k" dataset="uncertain" />
+
+## 4. Top-P (nucleus sampling): adapting to confidence
+
+Holtzman et al. (2020), in "The Curious Case of Neural Text Degeneration"—one of the most cited decoding papers—made the observation that the number of tokens worth considering should scale with the model's confidence. High confidence: consider few. Low confidence: consider many.
+
+The mechanism: sort tokens by probability descending, take cumulative sum, keep tokens until the cumulative mass exceeds threshold $P$. Drop the rest.
+
+$$S_P = \{i : \sum_{j : p_j \geq p_i} p_j \leq P\} \cup \{\arg\max_i p_i\}$$
+
+(The union with the argmax ensures at least one token survives in degenerate cases.)
+
+In Scenario A above, Top-P with $P = 0.9$ keeps maybe 2 tokens. In Scenario B, it keeps maybe 25. The cutoff adapts. This is genuinely better than Top-K for open-ended generation, and it's why $P \approx 0.9$–$0.95$ became the default in most commercial APIs.
+
+So we're done, right?
+
+No, and the reason is subtle. It took the roleplay community to surface it publicly—academic decoding research mostly ran at $T \leq 1$, so the failure mode rarely showed up cleanly in benchmarks. The failure mode is called **temperature coupling** and it's best illustrated by watching what happens when you turn up the heat.
+
+Consider a distribution where, at $T = 1$, the top token has $p = 0.6$ and there's a cluster of five reasonable alternatives each around $p = 0.07$. Top-P at 0.9 keeps the top token plus all five alternatives. Good.
+
+Now apply $T = 2$. The distribution flattens dramatically. The top token drops to roughly $p = 0.25$. The five alternatives each rise to around $p = 0.09$. But crucially, *a bunch of previously-irrelevant tokens* have also risen, to maybe $p = 0.015$ each. Top-P at 0.9 now has to accumulate until cumulative mass hits 0.9, which takes many more tokens—twenty-plus, including a lot of garbage that was correctly excluded before.
+
+You wanted temperature to make the output *more creative among the good candidates*. Instead, temperature made Top-P *admit a bunch of bad candidates*. Top-P's behavior depends on temperature in a way that is almost never what you want.
+
+<SamplerWidget mode="top-p" dataset="uncertain" />
+
+## 5. Min-P: scaling with the mode
+
+Nguyen et al. published "Turning Up the Heat: Min-p Sampling for Creative and Coherent LLM Outputs" at ICLR 2025 as an oral. The paper is notable for two reasons: it was the first sampler paper from the roleplay-adjacent community to crack a top ML venue, and the fix is embarrassingly simple.
+
+Instead of a cumulative threshold, use a threshold *proportional to the top token's probability*:
+
+$$S_{\text{min-}P} = \{i : p_i \geq \alpha \cdot p_{\max}\}$$
+
+where $p_{\max} = \max_j p_j$ and $\alpha \in (0, 1)$ is the min-p parameter (typical values 0.05 to 0.1).
+
+Read that carefully. We're saying: a token is admissible if its probability is at least $\alpha$ times the best token's probability. The threshold *scales with the peak*. If the model is highly confident ($p_{\max} = 0.9$), the threshold becomes $0.09$, and we admit only tokens with probability $\geq 0.09$—a handful. If the model is uncertain ($p_{\max} = 0.15$), the threshold becomes $0.015$, and we admit more.
+
+Here's what this buys us. Consider the temperature coupling scenario from §4, with $\alpha = 0.1$.
+
+At $T = 1$: top token 0.6, five alternatives at 0.07 each, long tail well below. Threshold $= 0.1 \times 0.6 = 0.06$. Admit top + all five alternatives. Tail excluded.
+
+At $T = 2$: top drops to 0.25, five alternatives rise to 0.09 each, tail tokens rise to ~0.015. Threshold $= 0.1 \times 0.25 = 0.025$. Admit top + all five alternatives. Tail still excluded, because 0.015 < 0.025.
+
+Compare this to Top-P 0.9 on the same $T = 2$ distribution, which sweeps in twenty-plus tokens including most of the tail. Min-P gives you exactly what you wanted from temperature: more randomness *among reasonable candidates*, without admitting trash. The threshold self-adjusts because the mode itself moves with temperature, and the admission criterion moves with it.
+
+The ICLR 2025 paper benchmarks this against Top-P across creative writing tasks and shows consistent wins, especially at higher temperatures where Top-P's coupling is worst. In practice, Min-P at 0.05–0.1 with temperature 1.0–1.5 is the current best default for roleplay.
+
+<SamplerWidget mode="min-p" dataset="uncertain" />
+
+## 6. The other axis: repetition
+
+Everything above controls *which tokens are eligible to be sampled*. None of it addresses the emerald-eyes problem from the opening, which is a different failure mode entirely. The issue isn't that bad tokens are sneaking in. It's that *the model genuinely thinks "emerald" is the best continuation after "her"*, because it saw "emerald eyes" three paragraphs ago and LLM attention is drawn to patterns in context.
+
+This needs a separate class of intervention: penalties based on what's already been generated.
+
+### Repetition penalty
+
+The earliest and crudest. For every token that has appeared in the context, reduce its logit. Specifically (from the CTRL paper, Keskar et al. 2019):
+
+$$z_i \leftarrow \begin{cases} z_i / \lambda & z_i > 0 \text{ and } i \in \text{seen} \\ z_i \cdot \lambda & z_i < 0 \text{ and } i \in \text{seen} \\ z_i & \text{otherwise} \end{cases}$$
+
+with $\lambda > 1$ (typical 1.1 to 1.3).
+
+The asymmetric treatment of positive and negative logits is the only interesting part. If you simply subtracted a constant from the logits of seen tokens, you'd penalize extremely negative logits (already-unlikely tokens) just as much as high-probability ones. The division/multiplication formulation compresses both positive and negative logits toward zero, so already-unlikely tokens don't get further crushed into the negative infinity floor while popular tokens get pulled down.
+
+**Failure mode:** this penalizes *every* previous token equally, regardless of whether it appears once or fifty times. "The" gets penalized just as much as "emerald" after one occurrence. It's a blunt instrument.
+
+### Frequency and presence penalty
+
+OpenAI's API exposes two finer variants. **Presence penalty** subtracts a fixed amount from any seen token. **Frequency penalty** subtracts an amount proportional to the number of occurrences:
+
+$$z_i \leftarrow z_i - \alpha_f \cdot c_i - \alpha_p \cdot \mathbb{1}[c_i > 0]$$
+
+where $c_i$ is the count of token $i$ in the context. Frequency penalty escalates with repetition; presence penalty is binary.
+
+Still blunt. Neither knows about *n-gram patterns*, which is where most repetition actually lives. "Emerald eyes" is a phrasal pattern, not a token pattern—penalizing the token "emerald" alone helps, but the model will happily reach for "jade eyes" or "green, luminous eyes" next, because the attractor is the phrase shape, not the specific lexeme. More sophisticated penalties exist (the roleplay community has built several), but they're out of scope for this post.
+
+## 7. Sampler ordering
+
+In practice these get composed. The order matters enormously. A typical pipeline:
+
+1. Apply penalties (repetition, frequency, presence) on raw logits.
+2. Apply truncation sampler (Top-K, Top-P, or Min-P) to mask out tokens.
+3. Apply temperature.
+4. Softmax → sample.
+
+The position of temperature relative to truncation is the most important choice. If temperature is applied *before* truncation, Top-P sees the temperature-modified distribution, and you get the coupling problem from §4. If temperature is applied *after* truncation, the set of admitted tokens is chosen from the base distribution, and temperature only controls randomness within that set. llama.cpp defaults to temperature-last for this reason. Many commercial API implementations apply it first, which is one reason those configurations behave badly at high temperature.
+
+Min-P partially sidesteps this because its threshold tracks the mode, but the ordering still matters for exact behavior. If you're running local models, temperature-last is almost always what you want.
+
+## 8. What this means
+
+The trajectory, from 2018 to 2025:
+
+- **Top-K** (Fan 2018): cut the tail with a fixed count.
+- **Top-P** (Holtzman 2020): cut the tail with an adaptive count based on cumulative mass.
+- **Min-P** (Nguyen 2025): threshold proportional to the mode; decouples truncation from temperature.
+
+Every step solves a failure mode of the previous step. The direction of travel is toward *samplers that require less hand-tuning because they adapt to the distribution automatically*. That's the narrative arc.
+
+The roleplay community deserves credit here that ML academia does not usually give them. Min-P came out of that community. The observation that temperature coupling matters came out of that community. These are people generating tens of thousands of tokens per session, at high temperatures, for open-ended creative tasks, and they notice failure modes that the "evaluate on a fixed benchmark with $T = 0.7$" crowd does not.
+
+For your character's emerald eyes: Min-P at 0.05 with temperature around 1.0–1.2, plus a modest repetition or frequency penalty, will handle most of the problem. The rest is a prompting issue. No sampler can save you from a character card that describes her eyes three times in the first paragraph.

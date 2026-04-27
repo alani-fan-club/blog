@@ -8,6 +8,7 @@ const posts = defineCollection({
     author: z.string().default('ALANI'),
     excerpt: z.string(),
     tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
   }),
 });
 

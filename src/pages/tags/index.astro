@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { buildTagCounts } from '../../lib/tags';
 
-const posts = await getCollection('posts');
+const posts = await getCollection('posts', ({ data }) => import.meta.env.PROD ? data.draft !== true : true);
 const tags = buildTagCounts(posts);
 ---
 

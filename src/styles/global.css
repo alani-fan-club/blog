@@ -1960,3 +1960,9 @@ hr::before {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- KATEX FIX ---- */
+/* Hide the MathML fallback which can sometimes leak duplicate text visually */
+.katex-mathml {
+  display: none !important;
+}

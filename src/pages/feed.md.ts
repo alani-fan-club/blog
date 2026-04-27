@@ -11,7 +11,7 @@ function safeStripMdx(body: string): string {
 }
 
 export async function GET(context: APIContext) {
-  const posts = (await getCollection('posts')).sort(
+  const posts = (await getCollection('posts', ({ data }) => import.meta.env.PROD ? data.draft !== true : true)).sort(
     (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
   );
 

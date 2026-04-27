@@ -26,6 +26,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <title>{title} — ALANI FAN CLUB</title>
   <meta name="description" content={description} />
   <meta property="og:title" content={`${title} — ALANI FAN CLUB`} />
@@ -147,19 +148,21 @@ const ogImageURL = new URL(ogImage, siteBase).href;
       // Screen readers get the real text while visual output is scrambled
       el.setAttribute('aria-label', original);
       el.setAttribute('role', 'img');
+      const wasWhiteSpace = el.style.whiteSpace;
+      el.style.whiteSpace = 'pre-wrap';
 
       function tick() {
         let out = '';
         for (let i = 0; i < len; i++) {
           const charStart = i * stagger;
           if (chars[i] === ' ') {
-            out += '\u00A0';
+            out += ' ';
           } else if (frame >= charStart + RESOLVE_FRAMES) {
             out += chars[i];
           } else if (frame >= charStart) {
             out += GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
           } else {
-            out += '\u00A0';
+            out += ' ';
           }
         }
         el.textContent = out;
@@ -170,6 +173,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
           el.innerHTML = savedHTML;
           el.style.minWidth = '';
           if (wasInline) el.style.display = '';
+          el.style.whiteSpace = wasWhiteSpace;
           el.removeAttribute('aria-label');
           el.removeAttribute('role');
           el.dataset.scrambling = '0';
