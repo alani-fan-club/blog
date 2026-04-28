@@ -9,7 +9,7 @@
   --white: #e8e8e8;
   --white-bright: #fff;
   --gray: #888;
-  --gray-dim: #666;
+  --gray-dim: #7e7e7e;
   --gray-rule: #1a1a1a;
   --accent: oklch(72% 0.1 175);
   --accent-dim: oklch(55% 0.08 175);
@@ -20,11 +20,11 @@
   --font-display: 'Chakra Petch', system-ui, sans-serif;
 
   /* Type scale — 4-step small scale, ~1.2 ratio between steps */
-  --text-body: 0.875rem;        /* 14px — primary content */
+  --text-body: 0.9375rem;       /* 15px — primary content */
   --text-secondary: 0.8125rem;  /* 13px — excerpts, project descriptions */
   --text-ui: 0.75rem;           /* 12px — nav, meta, dates, code */
-  --text-chrome: 0.625rem;      /* 10px — section labels, decorative UI */
-  --text-micro: 0.5rem;         /* 8px — counters, status lines */
+  --text-chrome: 0.6875rem;     /* 11px — section labels, decorative UI */
+  --text-micro: 0.5625rem;     /* 9px — counters, status lines */
 
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
@@ -198,7 +198,7 @@ strong {
 
 em {
   color: var(--accent);
-  font-style: normal;
+  font-style: italic;
 }
 
 a {
@@ -217,47 +217,64 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+/* Shiki css-variables theme tokens */
+:root {
+  --shiki-color-text: var(--accent);
+  --shiki-color-background: transparent;
+  --shiki-token-constant: var(--white-bright);
+  --shiki-token-string: var(--accent);
+  --shiki-token-comment: var(--gray-dim);
+  --shiki-token-keyword: var(--cherry);
+  --shiki-token-parameter: var(--white);
+  --shiki-token-function: var(--white-bright);
+  --shiki-token-string-expression: var(--accent-dim);
+  --shiki-token-punctuation: var(--gray);
+  --shiki-token-link: var(--accent);
+}
+
 code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  background: var(--gray-rule);
-  padding: 0.15em 0.4em;
-  border-radius: 2px;
+  color: var(--accent);
+  padding: 0.1em 0.3em;
   font-variant-ligatures: none;
 }
 
 pre {
-  background: var(--gray-rule);
-  padding: var(--space-md);
+  background: color-mix(in srgb, var(--accent) 3%, transparent) !important;
+  padding: var(--space-md) var(--space-md) var(--space-md) var(--space-lg);
   overflow-x: auto;
   margin: var(--space-lg) 0;
   font-size: var(--text-ui);
   line-height: 1.6;
   font-variant-ligatures: none;
   position: relative;
-}
-
-/* Dithered fade on code block bottom edge */
-pre::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background:
-    repeating-conic-gradient(
-      var(--dither-accent-strong) 0% 25%,
-      transparent 0% 50%
-    ) 0 0 / 3px 3px;
-  mask-image: linear-gradient(to bottom, transparent, black);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black);
-  pointer-events: none;
+  color: var(--accent);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 pre code {
-  background: none;
+  font-size: inherit;
+  color: inherit;
   padding: 0;
+  background: transparent !important;
+}
+
+pre[data-language="plaintext"] {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-left-color: var(--gray-dim);
+  color: var(--gray);
+  font-size: var(--text-ui);
+}
+
+pre[data-language="plaintext"]::before {
+  content: '▮ stdout';
+  display: block;
+  font-size: var(--text-ui);
+  color: var(--gray-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
 }
 
 blockquote {
@@ -543,7 +560,7 @@ li::marker {
   top: var(--space-xl);
   right: 0;
   font-family: var(--font-mono);
-  font-size: var(--text-micro);
+  font-size: var(--text-chrome);
   font-weight: 300;
   color: var(--gray-dim);
   letter-spacing: 0.15em;
@@ -805,7 +822,7 @@ a.tag:focus-visible {
   gap: 0.5em;
   margin-top: var(--space-lg);
   padding: 0.6em 1.1em;
-  font-size: var(--text-meta);
+  font-size: var(--text-ui);
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -833,6 +850,78 @@ a.tag:focus-visible {
 
 .project-body strong {
   color: var(--white);
+}
+
+/* ---- TABLE WRAP — responsive scroll container ---- */
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: var(--space-lg) 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-dim) transparent;
+}
+
+.table-wrap__caption {
+  font-family: var(--font-mono);
+  font-size: var(--text-chrome);
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: var(--space-xs) var(--space-sm);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.table-wrap__caption::before {
+  content: '▮ ';
+}
+
+.table-wrap table {
+  margin: 0;
+}
+
+/* ---- TABLES — data readout style ---- */
+
+.post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-lg) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-ui);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.post-content thead th {
+  text-align: left;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-ui);
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.post-content tbody td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--gray-rule);
+  color: var(--gray);
+  vertical-align: top;
+}
+
+.post-content tbody td:first-child {
+  color: var(--white);
+  white-space: nowrap;
+}
+
+.post-content tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 3%, transparent);
+}
+
+.post-content tbody td code {
+  font-size: 0.85em;
 }
 
 /* ---- SINGLE POST ---- */
@@ -953,7 +1042,7 @@ a.tag:focus-visible {
 /* ---- ALERT — security / CVE notices ---- */
 
 .alert {
-  border: 1px solid var(--gray-rule);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   padding: var(--space-md);
   margin: var(--space-lg) 0;
   font-family: var(--font-mono);
@@ -993,10 +1082,409 @@ a.tag:focus-visible {
   color: var(--gray);
 }
 
+/* ---- DIAGRAM — ASCII art container ---- */
+
+.diagram {
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  margin: var(--space-lg) 0;
+  position: relative;
+  font-family: var(--font-mono);
+}
+
+.diagram-label {
+  font-size: var(--text-chrome);
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: var(--space-xs) var(--space-md);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.diagram-label::before {
+  content: '▮ ';
+}
+
+
+/* ---- DIAGRAM: shared node/arrow primitives ---- */
+
+.dg-box {
+  border: 1px solid var(--gray-dim);
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  background: color-mix(in srgb, var(--accent) 3%, transparent);
+}
+
+.dg-box--primary {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.dg-box--primary .dg-name {
+  color: var(--accent);
+}
+
+.dg-name {
+  display: block;
+  font-size: var(--text-ui);
+  color: var(--white);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.dg-sub {
+  display: block;
+  font-size: var(--text-chrome);
+  color: var(--gray);
+  margin-top: 2px;
+}
+
+.dg-arr-r {
+  height: 0;
+  border-top: 1px solid var(--accent);
+  position: relative;
+  min-width: 1.5rem;
+}
+.dg-arr-r::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--accent);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.dg-arr-l {
+  height: 0;
+  border-top: 1px solid var(--accent);
+  position: relative;
+  width: 100%;
+}
+.dg-arr-l::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-right: 6px solid var(--accent);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.dg-arr-u,
+.dg-arr-d {
+  width: 0;
+  border-left: 1px solid var(--accent);
+  min-height: 1.5rem;
+  justify-self: center;
+  position: relative;
+}
+.dg-arr-u::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-bottom: 6px solid var(--accent);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+.dg-arr-d::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid var(--accent);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.dg-arr-ret {
+  border-top: 1px solid var(--accent);
+  border-left: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+  min-height: 1rem;
+  margin: 0 calc(100% / 6);
+  position: relative;
+}
+.dg-arr-ret::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid var(--accent);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+/* ---- DIAGRAM: cycle (agent loop) ---- */
+
+.dg-cycle {
+  display: grid;
+  grid-template-areas:
+    ".   .   .   .   ."
+    "a   r1  b   r2  c"
+    "up  .   .   .   dn"
+    "d   lf  lf  lf  e";
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  grid-template-rows: auto auto auto auto;
+  align-items: center;
+  justify-items: stretch;
+  padding: var(--space-lg);
+  font-family: var(--font-mono);
+  gap: 0;
+}
+
+.dg-cycle .dg-arr-r { margin: 0 var(--space-xs); }
+.dg-cycle .dg-arr-u,
+.dg-cycle .dg-arr-d { justify-self: center; }
+
+/* ---- DIAGRAM: stream (timeline) ---- */
+
+.dg-stream {
+  display: grid;
+  grid-template-columns: auto repeat(5, 1fr);
+  gap: 2px;
+  align-items: center;
+  padding: var(--space-lg);
+  font-family: var(--font-mono);
+}
+
+.dg-stream-time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--text-ui);
+  color: var(--gray-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+.dg-stream-line {
+  flex: 1;
+  height: 1px;
+  background: var(--gray-dim);
+}
+
+.dg-stream-arrow {
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--gray-dim);
+}
+
+.dg-stream-lbl {
+  font-size: var(--text-ui);
+  color: var(--gray);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-right: var(--space-sm);
+  white-space: nowrap;
+}
+
+.dg-seg {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-ui);
+  text-align: center;
+  min-height: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.dg-seg--dim {
+  background: color-mix(in srgb, var(--gray) 8%, transparent);
+  color: var(--gray-dim);
+  border: 1px solid var(--gray-rule);
+}
+
+.dg-seg--tool {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  font-weight: 500;
+}
+
+
+.dg-stream-txt {
+  font-size: var(--text-ui);
+  color: var(--white);
+  padding: 1px 0;
+}
+
+.dg-stream-txt--dim {
+  color: var(--gray);
+}
+
+.dg-stream-txt--done {
+  color: var(--accent);
+}
+
+
+
+.dg-stream-conn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 2px 0;
+}
+.dg-stream-conn::before {
+  content: '';
+  width: 2px;
+  height: 0.75rem;
+  background: var(--accent);
+}
+.dg-stream-conn::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--accent);
+}
+
+.dg-stream-note {
+  font-size: var(--text-chrome);
+  color: var(--gray);
+  text-align: center;
+  padding-top: var(--space-xs);
+  letter-spacing: 0.05em;
+}
+
+/* ---- DIAGRAM: nested (sub-agent) ---- */
+
+.dg-nest {
+  padding: var(--space-lg);
+  font-family: var(--font-mono);
+}
+
+.dg-nest-outer {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  background: color-mix(in srgb, var(--accent) 2%, transparent);
+}
+
+.dg-nest-title {
+  font-size: var(--text-secondary);
+  color: var(--white);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.dg-nest-title span {
+  color: var(--gray);
+  font-weight: 400;
+}
+
+.dg-nest-flow {
+  font-size: var(--text-ui);
+  color: var(--gray);
+  letter-spacing: 0.05em;
+}
+
+.dg-nest-conn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.dg-nest-conn::before {
+  content: '';
+  width: 2px;
+  height: 0.75rem;
+  background: var(--accent);
+}
+.dg-nest-conn::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--accent);
+}
+
+.dg-nest-inner {
+  border: 1px solid var(--gray-dim);
+  background: color-mix(in srgb, var(--accent) 3%, transparent);
+  padding: var(--space-md) var(--space-lg);
+  width: 80%;
+}
+
+.dg-nest-inner .dg-nest-title {
+  font-size: var(--text-ui);
+  color: var(--accent);
+  margin-bottom: var(--space-sm);
+}
+
+.dg-nest-props {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-ui);
+  color: var(--gray);
+  padding-left: var(--space-sm);
+}
+
+.dg-nest-props span::before {
+  content: '▸ ';
+  color: var(--accent-dim);
+}
+
+.dg-nest-result {
+  font-size: var(--text-ui);
+  color: var(--white);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+/* ---- DIAGRAM: responsive ---- */
+
+@media (max-width: 640px) {
+  .dg-cycle {
+    padding: var(--space-md) var(--space-sm);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-dim) transparent;
+  }
+
+  .dg-stream {
+    padding: var(--space-md) var(--space-sm);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-dim) transparent;
+  }
+
+  .dg-nest-inner {
+    width: 95%;
+  }
+}
+
 /* ---- SECTION INDEX — TOC for long reads ---- */
 
 .section-index {
-  border: 1px solid var(--gray-rule);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
   padding: var(--space-md);
   margin: var(--space-lg) 0;
   font-family: var(--font-mono);
@@ -1052,7 +1540,7 @@ a.tag:focus-visible {
 /* ---- SCHEMATIC DIAGRAM ---- */
 
 .schematic {
-  border: 1px solid var(--gray-rule);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   margin: var(--space-lg) auto;
   padding: var(--space-lg);
   position: relative;
@@ -1363,7 +1851,7 @@ a.tag:focus-visible {
   }
 }
 
-@media (min-width: 2200px) {
+@media (min-width: 1440px) {
   :root {
     --text-body: 1rem;
   }
@@ -1815,24 +2303,28 @@ hr::before {
 
 .scroll-hud {
   position: fixed;
-  left: 12px;
+  left: calc(50% - var(--max-width) / 2 - 40px);
   top: 50%;
   transform: translateY(-50%);
   z-index: 9997;
   pointer-events: none;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   font-family: var(--font-mono);
 }
 
+body:has(.post-content) .scroll-hud {
+  display: flex;
+}
+
 .scroll-hud__track {
-  width: 1px;
-  height: 120px;
+  width: 2px;
+  height: 180px;
   background: var(--gray-rule);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .scroll-hud__fill {
@@ -1840,32 +2332,38 @@ hr::before {
   top: 0;
   left: 0;
   width: 100%;
-  height: 0%;
+  height: 100%;
   background: var(--accent);
-  transition: height 0.15s ease-out;
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.15s ease-out;
 }
 
-/* Tick marks along the HUD track — 5 evenly spaced */
-.scroll-hud__track::after {
-  content: '';
+.scroll-hud__pip {
   position: absolute;
+  left: 50%;
   top: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: transform 0.15s ease-out;
+  transform: translate(-50%, -50%);
+}
+
+.scroll-hud__tick {
+  position: absolute;
   left: -2px;
-  width: 5px;
-  height: 100%;
-  background: repeating-linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--gray-dim) 40%, transparent) 0px,
-    color-mix(in srgb, var(--gray-dim) 40%, transparent) 1px,
-    transparent 1px,
-    transparent 24px
-  );
+  width: 6px;
+  height: 1px;
+  background: color-mix(in srgb, var(--gray-dim) 60%, transparent);
   pointer-events: none;
 }
 
 .scroll-hud__depth {
-  font-size: 0.45rem;
-  color: var(--gray-dim);
+  font-size: var(--text-chrome);
+  color: var(--accent);
   letter-spacing: 0.2em;
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -1873,15 +2371,30 @@ hr::before {
   text-transform: uppercase;
 }
 
+.scroll-hud__time {
+  font-size: var(--text-chrome);
+  color: var(--gray);
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
 .scroll-hud__sector {
-  font-size: 0.4rem;
+  font-size: var(--text-chrome);
   color: var(--accent);
   letter-spacing: 0.15em;
   writing-mode: vertical-rl;
   text-orientation: mixed;
   white-space: nowrap;
   text-transform: uppercase;
-  opacity: 0.6;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.scroll-hud__sector.flash {
+  color: color-mix(in srgb, var(--accent) 80%, white);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 /* Right-edge crosshair — fixed targeting reticle */
@@ -1924,7 +2437,13 @@ hr::before {
   counter-reset: project-counter;
 }
 
-/* ---- RESPONSIVE: HIDE MICROGRAPHICS ON MOBILE ---- */
+/* ---- RESPONSIVE: MICROGRAPHICS ---- */
+
+@media (max-width: 860px) {
+  .scroll-hud {
+    left: 12px;
+  }
+}
 
 @media (max-width: 640px) {
   .site-container::before,

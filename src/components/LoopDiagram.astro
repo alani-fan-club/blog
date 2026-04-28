@@ -1,0 +1,18 @@
+---
+---
+<div class="diagram" role="img" aria-label="Diagram of the agent loop: assemble context, API call to LLM, parse response, dispatch tools via harness, inject result back into context, repeat">
+  <div class="diagram-label">Agent Loop</div>
+  <div class="dg-cycle" aria-hidden="true">
+    <div class="dg-arr-ret" style="grid-column: 1 / -1; grid-row: 1"></div>
+    <div class="dg-box" style="grid-area: a"><span class="dg-name">Assemble context</span></div>
+    <div class="dg-arr-r" style="grid-area: r1"></div>
+    <div class="dg-box dg-box--primary" style="grid-area: b"><span class="dg-name">API call</span><span class="dg-sub">LLM</span></div>
+    <div class="dg-arr-r" style="grid-area: r2"></div>
+    <div class="dg-box" style="grid-area: c"><span class="dg-name">Parse response</span></div>
+    <div class="dg-arr-u" style="grid-area: up"></div>
+    <div class="dg-arr-d" style="grid-area: dn"></div>
+    <div class="dg-box" style="grid-area: d"><span class="dg-name">Inject result</span><span class="dg-sub">into context</span></div>
+    <div class="dg-arr-l" style="grid-area: lf"></div>
+    <div class="dg-box" style="grid-area: e"><span class="dg-name">Dispatch tools</span><span class="dg-sub">harness</span></div>
+  </div>
+</div>

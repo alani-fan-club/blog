@@ -1,0 +1,23 @@
+---
+---
+<div class="diagram" role="img" aria-label="Nested diagram showing sub-agent dispatch: parent loop dispatches an agent tool, which starts a child loop with its own context window, system prompt, and scoped tools. The child runs N turns and returns one result block to the parent.">
+  <div class="diagram-label">Sub-Agent Dispatch</div>
+  <div class="dg-nest">
+    <div class="dg-nest-title">Parent loop <span>(your session)</span></div>
+    <div class="dg-nest-outer">
+      <div class="dg-nest-flow">... → dispatch agent tool → ...</div>
+      <div class="dg-nest-conn"></div>
+      <div class="dg-nest-inner">
+        <div class="dg-nest-title">Child loop <span>(sub-agent)</span></div>
+        <div class="dg-nest-props">
+          <span>own context window</span>
+          <span>own system prompt</span>
+          <span>scoped tool set</span>
+          <span>runs N turns</span>
+        </div>
+      </div>
+      <div class="dg-nest-conn"></div>
+      <div class="dg-nest-result">one result block returned</div>
+    </div>
+  </div>
+</div>

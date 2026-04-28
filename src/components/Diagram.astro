@@ -1,0 +1,14 @@
+---
+interface Props {
+  label: string;
+  ariaLabel?: string;
+}
+
+const { label, ariaLabel } = Astro.props;
+---
+<div class="diagram" role="img" aria-label={ariaLabel || label}>
+  <div class="diagram-label">{label}</div>
+  <div class="diagram-content" aria-hidden="true">
+    <slot />
+  </div>
+</div>

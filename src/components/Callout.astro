@@ -1,6 +1,10 @@
 ---
-// Callout — editorial aside with cherry accent
+interface Props {
+  ariaLabel?: string;
+}
+
+const { ariaLabel } = Astro.props;
 ---
-<div class="callout" role="note">
+<div class="callout" role="note" aria-label={ariaLabel || "Editorial aside"}>
   <slot />
 </div>

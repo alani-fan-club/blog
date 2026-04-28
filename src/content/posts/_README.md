@@ -78,7 +78,7 @@ These conventions are not enforced by the build system, but they are required fo
 
 ### Use components for editorial voice
 
-- **Callout**: Use for editorial asides — author opinions, hot takes, and commentary that breaks from the reporting tone. Content inside `<Callout>` must use HTML tags (`<p>`, `<strong>`, `<a href="...">`) — not raw markdown. This is an MDX requirement when writing inside component tags.
+- **Callout**: Use for editorial asides — author opinions, hot takes, and commentary that breaks from the reporting tone. Accepts an optional `ariaLabel` prop (defaults to "Editorial aside"). Content inside `<Callout>` must use HTML tags (`<p>`, `<strong>`, `<a href="...">`) — not raw markdown. This is an MDX requirement when writing inside component tags.
 
 ```mdx
 <Callout>
@@ -86,13 +86,45 @@ These conventions are not enforced by the build system, but they are required fo
 </Callout>
 ```
 
-- **Alert**: Use for security advisories, CVE notices, and time-sensitive warnings. `label` is a short identifier shown in the header bar. `title` is the descriptive title.
+- **Alert**: Use for security advisories, CVE notices, and time-sensitive warnings. `label` is a short identifier shown in the header bar. `title` is the descriptive title. Accepts an optional `ariaLabel` prop (defaults to `"${label}: ${title}"`).
 
 ```mdx
 <Alert label="CVE-2026-XXXX" title="Vulnerability Name">
   Description of the security issue.
 </Alert>
 ```
+
+- **TableWrap**: Responsive wrapper for tables. Provides horizontal scroll on mobile, a styled caption bar, and accessible labeling. Wrap any markdown table in this component.
+
+```mdx
+<TableWrap caption="Comparison of approaches">
+
+| Feature | Option A | Option B |
+|---------|----------|----------|
+| Speed   | Fast     | Slow     |
+
+</TableWrap>
+```
+
+- **LoopDiagram**: CSS diagram showing the agent execution loop (context assembly, API call, tool dispatch, result injection). No props, self-closing.
+
+- **StreamDiagram**: CSS timeline showing LLM generation overlapping with harness tool dispatch. No props, self-closing.
+
+- **AgentDiagram**: CSS nested-box diagram showing parent loop spawning a child sub-agent with its own context. No props, self-closing.
+
+```mdx
+import LoopDiagram from '../../components/LoopDiagram.astro';
+import StreamDiagram from '../../components/StreamDiagram.astro';
+import AgentDiagram from '../../components/AgentDiagram.astro';
+
+<LoopDiagram />
+<StreamDiagram />
+<AgentDiagram />
+```
+
+- **Schematic**: Linear node-flow diagram. Pass nodes as children. Use for simple sequential processes.
+
+- **Diagram**: Generic diagram wrapper with a label bar. Use as a container when building custom one-off diagrams.
 
 ### Filename convention
 

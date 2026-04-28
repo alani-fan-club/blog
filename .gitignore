@@ -7,16 +7,51 @@ dist/
 # Astro cache
 .astro/
 
-# Environment
+# Environment and secrets
 .env
 .env.*
+*.pem
+*.p12
+*.pfx
+*.key
+*.keystore
+*.secret
+credentials.json
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Claude Code local config
+# AI coding tools
 .claude/
+.adal/
+.augment/
+.bob/
+.codebuddy/
+.commandcode/
+.continue/
+.cortex/
+.crush/
+.factory/
+.goose/
+.iflow/
+.junie/
+.kilocode/
+.kiro/
+.kode/
+.mcpjam/
+.mux/
+.neovate/
+.openhands/
+.pi/
+.pochi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.vibe/
+.windsurf/
+.zencoder/
 
 # Editor
 *.swp

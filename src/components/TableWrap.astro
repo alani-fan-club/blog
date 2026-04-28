@@ -1,0 +1,7 @@
+---
+const { caption } = Astro.props;
+---
+<figure class="table-wrap" role="group" aria-label={caption}>
+  {caption && <figcaption class="table-wrap__caption">{caption}</figcaption>}
+  <slot />
+</figure>

@@ -47,16 +47,16 @@ const ogImageURL = new URL(ogImage, siteBase).href;
 <body>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
-  <!-- Scroll depth HUD — left edge -->
   <div class="scroll-hud" aria-hidden="true">
-    <span class="scroll-hud__sector" id="hud-sector">SEC-00</span>
-    <div class="scroll-hud__track">
+    <span class="scroll-hud__sector" id="hud-sector">// SEC-01</span>
+    <div class="scroll-hud__track" id="hud-track">
       <div class="scroll-hud__fill" id="hud-fill"></div>
+      <div class="scroll-hud__pip" id="hud-pip"></div>
     </div>
+    <span class="scroll-hud__time" id="hud-time"></span>
     <span class="scroll-hud__depth" id="hud-depth">0%</span>
   </div>
 
-  <!-- Right-edge crosshair -->
   <div class="scroll-hud-cross" aria-hidden="true">+</div>
 
   <div class="site-container">
@@ -90,7 +90,6 @@ const ogImageURL = new URL(ogImage, siteBase).href;
     </footer>
   </div>
 
-  <!-- Command Palette -->
   <div id="command-palette" class="command-palette" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Search transmissions">
     <div class="command-palette-backdrop"></div>
     <div class="command-palette-modal">
@@ -115,8 +114,6 @@ const ogImageURL = new URL(ogImage, siteBase).href;
   </div>
 
   <script>
-    // Text-scramble: cycles through random glyphs before resolving to final text.
-    // Marathon terminal aesthetic — text appears to "decode" on screen.
     // Adapted from Jeremboo's CodePen.
     const GLYPHS = '!§%&/()=?_<>^°*#-:;~▮◢◣▪░▒';
     const MAX_FRAMES = 90;  // Cap total animation length (~1.5s at 60fps)
@@ -200,8 +197,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
   </script>
 
   <script>
-    // Command palette: Ctrl+K / "/" search overlay.
-    // Fetches /posts.json lazily on first open, keyword-matches against title+excerpt+tags.
+    // Fetches /posts.json lazily on first open.
     (function () {
       const palette = document.getElementById('command-palette');
       const backdrop = palette.querySelector('.command-palette-backdrop');
@@ -414,36 +410,104 @@ const ogImageURL = new URL(ogImage, siteBase).href;
   </script>
 
   <script>
-    // Scroll-depth HUD — updates the left-edge progress bar and sector readout.
-    // Sector number increments per ~25% of page depth (4 sectors per page).
-    // Respects reduced motion by skipping the transition.
     (function () {
-      const fill = document.getElementById('hud-fill');
-      const depth = document.getElementById('hud-depth');
-      const sector = document.getElementById('hud-sector');
-      if (!fill || !depth || !sector) return;
+      var fill = document.getElementById('hud-fill');
+      var pip = document.getElementById('hud-pip');
+      var depth = document.getElementById('hud-depth');
+      var sector = document.getElementById('hud-sector');
+      var track = document.getElementById('hud-track');
+      var timeEl = document.getElementById('hud-time');
+      if (!fill || !sector || !track) return;
 
-      let ticking = false;
+      var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var headings = Array.from(document.querySelectorAll('.post-content h2'));
+      var postContent = document.querySelector('.post-content');
+      var totalWords = 0;
+      if (postContent) {
+        var clone = postContent.cloneNode(true);
+        clone.querySelectorAll('pre, code').forEach(function (el) { el.remove(); });
+        totalWords = clone.textContent.trim().split(/\s+/).length;
+      }
+      var WPM = 220;
+      var headingFracs = [];
+      var trackH = track.offsetHeight;
+      var ticking = false;
+      var lastSectorIdx = -1;
+      var flashTimer = null;
+      var resizeTimer = null;
+
+      function calcPositions() {
+        trackH = track.offsetHeight;
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        if (docH <= 0) return;
+
+        track.querySelectorAll('.scroll-hud__tick').forEach(function (t) { t.remove(); });
+        headingFracs = [];
+
+        headings.forEach(function (h) {
+          var top = h.getBoundingClientRect().top + window.scrollY;
+          var frac = Math.min(top / docH, 1);
+          headingFracs.push(frac);
+
+          var tick = document.createElement('div');
+          tick.className = 'scroll-hud__tick';
+          tick.style.top = (frac * 100) + '%';
+          track.appendChild(tick);
+        });
+      }
 
       function update() {
-        const scrollTop = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
-        const pctInt = Math.round(pct * 100);
-        const sectorNum = String(Math.min(Math.floor(pct * 4), 3) + 1).padStart(2, '0');
+        var scrollTop = window.scrollY;
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        var pct = docH > 0 ? Math.min(scrollTop / docH, 1) : 0;
+        var pctInt = Math.round(pct * 100);
 
-        fill.style.height = pctInt + '%';
-        depth.textContent = pctInt + '%';
-        sector.textContent = 'SEC-' + sectorNum;
+        fill.style.transform = 'scaleY(' + pct + ')';
+        var pipY = Math.max(0, Math.min(pct * trackH, trackH));
+        if (pip) pip.style.transform = 'translate(-50%, ' + pipY + 'px)';
+        if (depth) depth.textContent = pctInt + '%';
+
+        var sectorIdx = 0;
+        if (headings.length > 0) {
+          for (var i = headingFracs.length - 1; i >= 0; i--) {
+            if (pct >= headingFracs[i] - 0.01) { sectorIdx = i + 1; break; }
+          }
+        } else {
+          sectorIdx = Math.min(Math.floor(pct * 4), 3);
+        }
+
+        var sectorLabel = String(sectorIdx + 1).padStart(2, '0');
+        sector.textContent = '// SEC-' + sectorLabel;
+
+        if (sectorIdx !== lastSectorIdx) {
+          if (lastSectorIdx >= 0 && !reducedMotion) {
+            if (flashTimer) clearTimeout(flashTimer);
+            sector.classList.add('flash');
+            flashTimer = setTimeout(function () { sector.classList.remove('flash'); }, 400);
+          }
+          lastSectorIdx = sectorIdx;
+        }
+
+        if (timeEl && totalWords > 0) {
+          var remaining = Math.ceil((totalWords * (1 - pct)) / WPM);
+          timeEl.textContent = remaining > 0 ? '~' + remaining + 'MIN' : '<1MIN';
+        }
+
         ticking = false;
       }
 
-      window.addEventListener('scroll', () => {
-        if (!ticking) {
-          requestAnimationFrame(update);
-          ticking = true;
-        }
+      calcPositions();
+
+      window.addEventListener('scroll', function () {
+        if (!ticking) { requestAnimationFrame(update); ticking = true; }
       }, { passive: true });
+
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () { calcPositions(); update(); }, 150);
+      }, { passive: true });
+
+      window.addEventListener('load', function () { calcPositions(); update(); });
 
       update();
     })();
