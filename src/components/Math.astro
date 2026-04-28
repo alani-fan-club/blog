@@ -1,0 +1,12 @@
+---
+interface Props {
+  label?: string;
+  ariaLabel?: string;
+}
+
+const { label = "expr", ariaLabel } = Astro.props;
+---
+<div class="math-block" role="math" aria-label={ariaLabel}>
+  <span class="math-block__label">{label}</span>
+  <slot />
+</div>

@@ -941,6 +941,7 @@ a.tag:focus-visible {
 .post-header .post-title {
   font-size: clamp(1.75rem, 5vw, 2.5rem);
   margin-bottom: var(--space-md);
+  padding-right: 6rem;
   /* RGB chromatic aberration — matches homepage title */
   text-shadow:
     -1px 0 color-mix(in srgb, var(--cherry) 25%, transparent),
@@ -2451,6 +2452,7 @@ body:has(.post-content) .scroll-hud {
     display: none;
   }
 
+  body:has(.post-content) .scroll-hud,
   .scroll-hud,
   .scroll-hud-cross {
     display: none;
@@ -2462,6 +2464,18 @@ body:has(.post-content) .scroll-hud {
   }
 
   .project-card::after {
+    display: none;
+  }
+
+  .math-block {
+    margin: var(--space-md) 0;
+  }
+
+  .math-block p {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .math-block::after {
     display: none;
   }
 }
@@ -2480,8 +2494,65 @@ body:has(.post-content) .scroll-hud {
   }
 }
 
-/* ---- KATEX FIX ---- */
-/* Hide the MathML fallback which can sometimes leak duplicate text visually */
+/* ---- KATEX / MATH ---- */
+
 .katex-mathml {
-  display: none !important;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.katex {
+  font-size: 1.1em;
+  color: var(--white-bright);
+}
+
+.math-block {
+  margin: var(--space-xl) 0;
+  font-family: var(--font-mono);
+  position: relative;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 25%, transparent);
+  border-bottom: 1px dashed color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.math-block__label {
+  font-size: var(--text-micro);
+  color: var(--accent);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin: 0;
+  padding: var(--space-xs) 0;
+}
+
+.math-block__label::before {
+  content: '// ';
+  color: var(--gray-dim);
+}
+
+.math-block::after {
+  content: '◢';
+  position: absolute;
+  top: var(--space-xs);
+  right: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--gray-dim);
+  pointer-events: none;
+}
+
+.math-block .katex {
+  font-size: 1.1em;
+}
+
+.math-block p {
+  margin: 0;
+  padding: var(--space-lg) var(--space-md);
+  overflow-x: auto;
+  text-align: center;
 }

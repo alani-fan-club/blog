@@ -17,9 +17,9 @@ You type: *"Rename `processData` to `transformPayload` and run the tests."*
 
 Three files change. Tests pass. A summary appears in your terminal. It looks like the LLM did the work. It did not.
 
-When you see "Reading file..." in your terminal, no part of the language model is reading a file. When tests pass, the LLM did not run them.
+When you see "Reading file..." in your terminal, no part of the language model is reading a file.
 
-Here is what happened instead. The LLM wrote the string `npm test` inside a JSON block. A program on your laptop parsed that block and called Node. It captured stdout and pasted the result back into the LLM's input as text. The LLM read the test output the same way it read your original prompt: as characters in a window.
+Here is what happened instead. The LLM wrote the string `grep -r processData src/` inside a JSON block. A program on your laptop parsed that block and ran the search. It captured the output and pasted it back into the LLM's input as text. The LLM read the file paths the same way it read your original prompt: as characters in a window.
 
 That program is the **harness**. In Claude Code it is the CLI. In Cursor it is the editor extension. Whatever form it takes, the harness is what stands between the LLM and your machine: it builds requests, calls the API, parses responses, runs tools, and feeds results back. The LLM is one component inside it. The whole system is the **agent**; the LLM is its voice, not its hands.
 
@@ -31,7 +31,7 @@ Your rename request does not go straight to the LLM. The harness first assembles
 
 The harness sends the context window to the API. It also sends a list of **tool definitions**: names, descriptions, and argument schemas that tell the LLM what tools exist and how to call them. This is what a tool definition looks like in the [Anthropic API](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview):
 
-```
+```json
 {
   "name": "Bash",
   "description": "Run a shell command",
@@ -135,7 +135,7 @@ Raschka [puts it directly](https://magazine.sebastianraschka.com/p/components-of
 
 Three file reads finish at once, but a single shell command pauses everything. If you have ever wondered why Claude Code feels fast during investigation and slow during edits, this is why.
 
-So far, each turn in the rename requested one tool. But the LLM can emit multiple tool requests in a single response. You ask it to investigate a bug, and it requests reads on `router.ts`, `auth.ts`, and `session.ts` at the same time.
+So far, each turn in the rename requested one tool. But the LLM can emit multiple tool requests in a single response. After the search returns three file paths, the LLM requests reads on `utils.ts`, `api.ts`, and `utils.test.ts` at the same time.
 
 The harness decides what runs in parallel. Each tool has a concurrency flag. Tools that are safe to run together (reads, searches) batch and execute at the same time. Tools that mutate state (writes, shell commands) run alone, after the current batch finishes.
 
@@ -148,7 +148,7 @@ The harness decides what runs in parallel. Each tool has a concurrency flag. Too
 
 </TableWrap>
 
-The LLM has no visibility into this scheduling. It asked for four tools and got four results. Parallel or sequential, the difference is invisible. The speed difference you feel is entirely the harness.
+The LLM has no visibility into this scheduling. It asked for three reads and got three results. Parallel or sequential, the difference is invisible. The speed difference you feel is entirely the harness.
 
 ---
 
@@ -168,7 +168,7 @@ In the rename: the LLM starts generating a response containing two file reads. T
 
 Sometimes Claude Code returns a confident summary of work you never watched happen. That is a sub-agent: a child loop that ran in the background, did its own investigation, and reported back one result.
 
-You ask Claude Code to refactor a module and run tests across three packages. Instead of handling all of it in your session, the LLM emits a tool request that tells the harness to start a child loop: same function, different inputs. The child gets its own context window and system prompt, a separate message history, and a scoped set of tools.
+The rename was small enough to handle in one loop. Larger tasks are not. You ask Claude Code to refactor a module and run tests across three packages. Instead of handling all of it in your session, the LLM emits a tool request that tells the harness to start a child loop: same function, different inputs. The child gets its own context window and system prompt, a separate message history, and a scoped set of tools.
 
 From the API's perspective, a sub-agent is just another tool call. The JSON the LLM emits looks like this:
 
@@ -208,7 +208,7 @@ Every agent you use follows the same pattern: the LLM decides and describes; the
 
 </TableWrap>
 
-The LLM never touches your machine. It writes structured descriptions of what should happen next, and the harness decides whether to allow it, how to schedule it, and what to feed back. Calling the LLM smart is a category error. The LLM generates text. The loop is what makes it useful. And it's the loop that decides what to trust.
+The LLM never touches your machine. It writes structured descriptions of what should happen next, and the harness decides whether to allow it, how to schedule it, and what to feed back. Calling the LLM smart is a category error. The LLM generates text. The loop is what makes it useful.
 
 Inputs are validated. Outputs are trusted. That gap has consequences.
 
