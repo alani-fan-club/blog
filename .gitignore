@@ -23,6 +23,7 @@ credentials.json
 Thumbs.db
 
 # AI coding tools
+CLAUDE.md
 .claude/
 .adal/
 .augment/
