@@ -1018,6 +1018,35 @@ a.tag:focus-visible {
   line-height: 1.6;
 }
 
+/* ---- SERIES INDICATOR — multi-part article marker ---- */
+
+.series-indicator {
+  font-family: var(--font-mono);
+  font-size: var(--text-chrome);
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-lg) 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.series-indicator__segments {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.series-indicator__on {
+  color: var(--accent);
+}
+
+.series-indicator__off,
+.series-indicator__sep {
+  color: var(--gray-dim);
+}
+
 /* ---- CALLOUT — editorial aside ---- */
 
 .callout {
