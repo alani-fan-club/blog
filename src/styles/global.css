@@ -1050,15 +1050,26 @@ a.tag:focus-visible {
 /* ---- CALLOUT — editorial aside ---- */
 
 .callout {
-  border: 1px solid color-mix(in srgb, var(--cherry) 30%, transparent);
-  border-top: 2px solid var(--cherry);
+  border: none;
+  border-top: 1px solid var(--cherry);
+  border-image: linear-gradient(to right, var(--cherry), transparent) 1;
   padding: var(--space-sm) var(--space-md);
   margin: var(--space-lg) 0;
   font-family: var(--font-mono);
   font-size: var(--text-secondary);
   line-height: 1.5;
-  color: var(--white);
-  background: color-mix(in srgb, var(--cherry) 4%, transparent);
+  color: var(--gray);
+  background: color-mix(in srgb, var(--cherry) 3%, transparent);
+}
+
+.callout::before {
+  content: '▮ COMM';
+  display: block;
+  font-size: var(--text-chrome);
+  color: var(--cherry);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
 }
 
 .callout p {
