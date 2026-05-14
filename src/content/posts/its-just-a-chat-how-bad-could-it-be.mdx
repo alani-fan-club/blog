@@ -1,0 +1,222 @@
+---
+title: "It's Just a Chat, How Bad Could It Be?"
+date: 2026-05-14
+author: "ALANI"
+tags: ["llm-security", "rce", "responsible-disclosure", "lumiverse", "mcp"]
+excerpt: "Public disclosure of five Lumiverse CVEs affecting MCP stdio, theme component overrides, Spindle extensions, SMB migration, and account creation."
+draft: true
+---
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
+
+On April 28, 2026, we began reviewing [Lumiverse](https://github.com/prolix-oc/Lumiverse), a self-hosted AI roleplay/chat application with MCP integrations, custom themes, extension support, and migration tooling.
+
+AI chat applications do not simply "serve text" anymore. They render rich interfaces, import themes, load extensions, call tools, run local integrations, and proxy requests into other systems. We wrote about the response side of that problem in [When the Endpoint Writes Back](/posts/when-the-endpoint-writes-back/); this review found the same theme on the client side.
+
+Five CVEs came out of that review. The highest-impact issue was in Lumiverse's Model Context Protocol (MCP) stdio integration: any authenticated user could create an MCP server profile using an allowed command such as `node`, then pass interpreter arguments such as `-e` to execute code on the Lumiverse host.
+
+For roleplayers and community server operators, the practical impact is simple: these were not just "technical bugs." In vulnerable versions, a malicious account, theme pack, extension install/update, or owner/admin SMB migration action could lead to code running on the machine that hosts Lumiverse. Lumiverse encrypts provider API keys at rest, but server-side code execution can still read application data that is stored as normal database content, uploaded assets, and other files on the same system that the Lumiverse server process can access.
+
+<Alert label="Disclosure Status" title="Patched in Lumiverse 0.9.7">
+  GitHub advisories list Lumiverse versions up to and including 0.9.5 as affected, with fixes released in 0.9.7. If you run Lumiverse, upgrade to 0.9.7 or later.
+</Alert>
+
+
+## What Was Published
+
+Five CVEs were published:
+
+| CVE | Issue | Who could trigger it? | Impact |
+| --- | --- | --- | --- |
+| CVE-2026-44450 | MCP stdio argument injection | Any authenticated user | Server-side code execution |
+| CVE-2026-44451 | TSX component sandbox escape | A malicious theme pack, after user enables the override | Browser-origin code execution, chainable to MCP RCE |
+| CVE-2026-44444 | Spindle lifecycle scripts | Owner/admin installing or updating a malicious extension | Server-side code execution before the safety scan |
+| CVE-2026-44443 | Sign-up nonce race | Unauthenticated attacker during a nonce window | Unauthorized account creation, chainable to MCP RCE |
+| CVE-2026-44449 | SMB basename injection | Owner/admin using SMB migration on a server with `smbclient` | Server-side command execution |
+
+Two chains matter most:
+
+1. **Theme pack to server RCE:** a malicious theme pack escapes the TSX sandbox, obtains real same-origin `fetch()`, then calls the MCP API with the victim's session.
+2. **Nonce race to server RCE:** an attacker races account creation, logs in with the new account, then uses the MCP stdio bug.
+
+
+## What "Server RCE" Means for a Roleplay App
+
+Remote code execution, or RCE, means an attacker can make the Lumiverse server run commands. If you run Lumiverse on your own PC, that means commands on your PC under the user account running Lumiverse. If you run it on a VPS, NAS, home server, or community host, that means commands on that server.
+
+Depending on how Lumiverse is deployed, this can mean access to:
+
+- saved chat messages and roleplay logs;
+- character definitions, world book/lorebook entries, presets, and settings stored in the application database;
+- uploaded files and image assets stored on disk;
+- session records and other application metadata;
+- other files on the same machine reachable by the Lumiverse process;
+- other services reachable from the host.
+
+In the reviewed schema, connection API keys and related credentials are stored through the encrypted `secrets` table, while core roleplay content such as `messages.content`, character fields, world book entries, presets, and settings are normal database text fields. This should not be read as "the database directly leaks model keys." The broader host compromise risk remains: if the server process can read a database file, read an uploaded asset, or reach a local service, attacker-controlled code running as that process can usually do the same.
+
+This is why the MCP issue was so important. MCP stdio is intentionally powerful: it starts local tools so the AI system can talk to them. That kind of feature needs to be treated like an administrator-only capability.
+
+<Callout>
+<p><strong>Anything that spawns a process is an admin feature.</strong> If a regular authenticated user can configure it, any account compromise or same-origin browser execution can configure it too.</p>
+</Callout>
+
+
+## CVE-2026-44450: MCP Stdio Argument Injection
+
+Lumiverse supports Model Context Protocol servers. For stdio MCP servers, the backend creates a child process using a configured command and argument array. This class of MCP risk is not unique to Lumiverse; OX Security published a broader advisory on [MCP supply-chain RCE vulnerabilities across the AI ecosystem](https://www.ox.security/blog/mcp-supply-chain-advisory-rce-vulnerabilities-across-the-ai-ecosystem/).
+
+The command name was checked against an allowlist, but the argument array was forwarded as-is. Allowing `node`, `bun`, `python`, or `deno` is enough to execute code if arguments like `-e`, `-c`, or `eval` are not blocked.
+
+A minimal vulnerable profile looked like this conceptually:
+
+```json
+{
+  "transport_type": "stdio",
+  "command": "node",
+  "args": ["-e", "require('fs').writeFileSync('/tmp/rce_proof.txt','pwned')"]
+}
+```
+
+Creating the profile and connecting it caused the server to spawn the process. The route required a valid session, but not owner/admin privileges.
+
+For a public or semi-public roleplay server, that distinction is critical. A normal user account should not be enough to run commands on the host. In vulnerable versions, it was.
+
+
+## CVE-2026-44451: Theme Pack TSX Sandbox Escape
+
+Lumiverse theme packs can include TSX component overrides. The application attempted to sandbox these by transpiling user TSX, evaluating it with `new Function`, and shadowing dangerous globals such as `fetch`, `window`, and `localStorage`.
+
+There was also a static validator that blocked certain identifiers with regular expressions.
+
+Both defenses were bypassable:
+
+```ts
+const k1 = 'ownerDoc' + 'ument';
+const k2 = 'def' + 'aultView';
+const k3 = 'fet' + 'ch';
+```
+
+Splitting strings bypassed the source regexes. Then a component could attach a ref to a real DOM node and walk back to the real browser window:
+
+```tsx
+const w = ref.current['ownerDoc'+'ument']['def'+'aultView'];
+const f = w['fet'+'ch'].bind(w);
+```
+
+At that point the override had real `window.fetch`, real storage APIs, and the user's authenticated Lumiverse browser context.
+
+For roleplayers, the social path is realistic: themes are the kind of thing people share in Discord servers, forums, and friend groups. A malicious `.lumiverse-theme` file could be presented as a nice UI theme. After import, Lumiverse disabled imported TSX overrides by default, which added friction, but a user who manually enabled the override could trigger the payload.
+
+The browser-side code execution was also chainable. Same-origin `fetch()` includes the user's HttpOnly session cookie automatically. The theme payload did not need to steal the cookie; it could call Lumiverse APIs directly from the victim's browser, including the vulnerable MCP API from CVE-2026-44450.
+
+
+## CVE-2026-44444: Spindle Extension Lifecycle Scripts
+
+Spindle is Lumiverse's extension system. The build pipeline ran `bun install` before checking the extension backend bundle with its static safety scan.
+
+Package manager lifecycle scripts run during install. A malicious extension only needed a `package.json` like:
+
+```json
+{
+  "scripts": {
+    "postinstall": "node -e \"require('fs').writeFileSync('/tmp/spindle_poc.txt','pwned')\""
+  }
+}
+```
+
+The postinstall hook executed before `assertSafeBackendBundle()` inspected the generated backend. The update path had the same problem: a previously benign extension could add a lifecycle hook in a later commit and gain code execution on update.
+
+For server owners, the risk is supply-chain style. Installing a community extension is not just adding UI behavior; in vulnerable versions, installation itself could run arbitrary code before Lumiverse's safety checks had a chance to inspect the extension bundle.
+
+The fix is straightforward and important: install untrusted extension dependencies with lifecycle scripts disabled, for example `bun install --ignore-scripts`.
+
+
+## CVE-2026-44443: Sign-Up Nonce Race
+
+Lumiverse gates user creation through an admin-controlled flow. Internally, it used a module-level nonce with a ten-second lifetime. The nonce was checked only for presence and freshness; it was not bound to the admin's request.
+
+If an admin attempted to create a user and the BetterAuth request failed before the create hook consumed the nonce, the nonce remained valid. During that window, an unauthenticated request to the public sign-up endpoint could create an account.
+
+By itself this is unauthorized account creation. Chained with the MCP issue, it became much worse:
+
+1. Race the sign-up window and create an account.
+2. Log in.
+3. Use the authenticated MCP stdio RCE.
+
+This made the strongest chain near-unauthenticated server RCE. It was probabilistic and dependent on timing, but the second stage was reliable once a session existed.
+
+For closed roleplay communities, the standalone impact is also meaningful: a server that expects accounts to be invite/admin-created could accidentally admit an attacker.
+
+
+## CVE-2026-44449: SMB `smbclient` Command Escape
+
+The SMB provider validated full paths on its normal path. The fallback path split the input into `dirname` and `basename`, validated only the directory, and interpolated the basename into an `smbclient -c` command script.
+
+`smbclient` treats `;` as a command separator and supports `!cmd` as a local shell escape. If the dangerous characters appeared only in the basename, the full-path validation failed, the fallback ran, and the basename became command script content.
+
+This required owner/admin privileges and a Linux/macOS deployment with `smbclient`, so it was less interesting as a privilege escalation. It was still server-side command execution from a user-controlled path string.
+
+For people using migration tooling to import existing roleplay data from a network share, the lesson is that migration features are security-sensitive. Paths are not always just paths; sometimes they are passed into another program's command language.
+
+
+## Proofs of Concept
+
+Working proofs of concept were provided during disclosure. The public GitHub advisories include reproduction details for readers who want to inspect the technical material; this post does not reproduce the full scripts. The advisory index is here: [github.com/prolix-oc/Lumiverse/security/advisories](https://github.com/prolix-oc/Lumiverse/security/advisories).
+
+The important chain detail is that HttpOnly cookies did not stop same-origin abuse. HttpOnly prevents JavaScript from reading the cookie value. It does not stop JavaScript already running on the Lumiverse origin from making authenticated same-origin API requests.
+
+
+## What Changed in 0.9.7
+
+The public GitHub advisories list the affected range as `<= 0.9.5` and patched version as `0.9.7`. The fixes include:
+
+- stricter MCP stdio launch policy, including blocking inline-code interpreter arguments and requiring explicit package allowlists for package runners;
+- binding the user-creation nonce to the request through a dedicated header;
+- validating the SMB basename in the fallback path;
+- adding `--ignore-scripts` to Spindle `bun install` invocations;
+- disabling imported TSX overrides pending review and tightening component override checks.
+
+If you ran a vulnerable version on a shared server, it is worth reviewing:
+
+- unknown or unexpected user accounts;
+- MCP server profiles;
+- installed Spindle extensions;
+- recently imported theme packs;
+- unexpected files or processes on the host.
+
+If you suspect exploitation, review the host for persistence and rotate any secrets stored outside Lumiverse's encrypted secrets store after upgrading.
+
+
+## Why This Class Keeps Happening
+
+The same bug shape repeated across the application:
+
+- theme TSX became browser code;
+- MCP args became process execution;
+- package metadata became lifecycle execution;
+- SMB paths became a command language.
+
+Each feature was useful. Each feature also crossed from data into an interpreter.
+
+LLM roleplay apps are community-driven. People share themes, extensions, presets, characters, lorebooks, migration workflows, and server access. That is part of what makes them fun. It also means trust boundaries matter more, not less.
+
+The broader lesson is that an AI chat app is no longer just a text box connected to a model. It is a browser UI, plugin host, tool runner, migration client, and sometimes a process launcher. Security boundaries need to be designed for that reality.
+
+Secure defaults should be boring:
+
+- treat `new Function` sandboxes as non-sandboxes unless they run in an isolated realm;
+- never allow low-privilege users to configure process-spawning integrations;
+- disable package lifecycle scripts for untrusted extensions;
+- use allowlists for command arguments and package runners;
+- make extension and theme trust explicit in the UI.
+
+
+## Timeline
+
+- **2026-04-28:** Review started; initial vulnerabilities discovered and reported to the Lumiverse maintainers.
+- **2026-04-29:** Maintainers acknowledged the report.
+- **2026-05-05:** Fixes landed and GitHub security advisories were published.
+- **2026-05-14:** Public blog post published.
+
+Thanks to Prolix for the quick turnaround in acknowledging and addressing the reports.
