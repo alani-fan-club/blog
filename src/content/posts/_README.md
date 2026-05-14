@@ -122,6 +122,18 @@ import AgentDiagram from '../../components/AgentDiagram.astro';
 <AgentDiagram />
 ```
 
+- **Math**: Display math wrapper. Wraps `$$...$$` display equations in a terminal-styled container with dashed accent borders and a monospace `// LABEL` prefix. Use for any display math that should stand out from body text.
+
+```mdx
+import Math from '../../components/Math.astro';
+
+<Math label="softmax">
+$$p_i = \frac{\exp(z_i)}{\sum_{j=1}^{V} \exp(z_j)}$$
+</Math>
+```
+
+  The `label` prop defaults to `"expr"`. Use short descriptive labels like `"softmax"`, `"top-k"`, `"loss fn"`. Inline math (`$...$`) does not need this wrapper.
+
 - **Schematic**: Linear node-flow diagram. Pass nodes as children. Use for simple sequential processes.
 
 - **Diagram**: Generic diagram wrapper with a label bar. Use as a container when building custom one-off diagrams.

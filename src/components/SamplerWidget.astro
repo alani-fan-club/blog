@@ -1,5 +1,4 @@
 ---
-// SamplerWidget.astro — Interactive visualization for LLM samplers
 export interface Props {
   /** The active sampler mode to demonstrate */
   mode: 'temperature' | 'top-k' | 'top-p' | 'min-p' | 'all';
@@ -10,7 +9,7 @@ export interface Props {
 const { mode = 'all', dataset = 'uncertain' } = Astro.props;
 ---
 
-<sampler-widget data-mode={mode} data-dataset={dataset}>
+<sampler-widget data-mode={mode} data-dataset={dataset} role="region" aria-label={`Interactive demonstration: ${mode} sampler`}>
   <div class="sampler-container">
     <div class="sampler-header">
       <span class="prompt-text">
@@ -25,43 +24,43 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
         <div class="control-group" data-param="temperature">
           <label>
             <span>Temperature (T)</span>
-            <span class="val-display" id="val-t">1.00</span>
+            <span class="val-display">1.00</span>
           </label>
-          <input type="range" id="slider-t" min="0.1" max="3.0" step="0.05" value="1.0">
+          <input type="range" min="0.1" max="3.0" step="0.05" value="1.0">
         </div>
         
         <div class="control-group" data-param="top-k">
           <label>
             <span>Top-K</span>
-            <span class="val-display" id="val-k">50</span>
+            <span class="val-display">50</span>
           </label>
-          <input type="range" id="slider-k" min="1" max="50" step="1" value="50">
+          <input type="range" min="1" max="50" step="1" value="50">
         </div>
 
         <div class="control-group" data-param="top-p">
           <label>
             <span>Top-P (Nucleus)</span>
-            <span class="val-display" id="val-p">1.00</span>
+            <span class="val-display">1.00</span>
           </label>
-          <input type="range" id="slider-p" min="0.01" max="1.0" step="0.01" value="1.0">
+          <input type="range" min="0.01" max="1.0" step="0.01" value="1.0">
         </div>
 
         <div class="control-group" data-param="min-p">
           <label>
             <span>Min-P</span>
-            <span class="val-display" id="val-minp">0.00</span>
+            <span class="val-display">0.00</span>
           </label>
-          <input type="range" id="slider-minp" min="0.0" max="0.5" step="0.01" value="0.0">
+          <input type="range" min="0.0" max="0.5" step="0.01" value="0.0">
         </div>
         
         <div class="stats-panel">
           <div class="stat-row">
             <span>Tokens Kept:</span>
-            <span id="stat-kept">50/50</span>
+            <span data-stat="kept">50/50</span>
           </div>
           <div class="stat-row">
             <span>Mass Kept:</span>
-            <span id="stat-mass">100.0%</span>
+            <span data-stat="mass">100.0%</span>
           </div>
         </div>
       </div>
@@ -71,9 +70,7 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
           <div class="col-token">TOKEN</div>
           <div class="col-prob">PROBABILITY</div>
         </div>
-        <div class="chart-bars" id="chart-bars">
-          <!-- Bars injected via JS -->
-        </div>
+        <div class="chart-bars"></div>
       </div>
     </div>
   </div>
@@ -83,7 +80,7 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
   sampler-widget {
     display: block;
     margin: 2rem 0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--font-mono);
     background: #050505;
     border: 1px solid #333;
     color: #e0e0e0;
@@ -102,7 +99,7 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
   }
   
   .prompt-text {
-    color: #3bceac; /* Cyan accent for context */
+    color: #3bceac;
   }
 
   .sampler-layout {
@@ -153,7 +150,7 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
   }
   
   .val-display {
-    color: #e0303e; /* Cherry-red accent */
+    color: #e0303e;
     font-weight: bold;
   }
 
@@ -273,9 +270,10 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
 
   :global(.bar-fill) {
     height: 60%;
-    background: #3bceac; /* Cyan */
-    transition: width 0.3s ease;
-    min-width: 1px;
+    width: 100%;
+    background: #3bceac;
+    transform-origin: left;
+    transition: transform 0.3s ease;
   }
 
   :global(.prob-label) {
@@ -288,31 +286,29 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
 </style>
 
 <script>
-  // Dry and isolated logic inside a Web Component
   class SamplerWidget extends HTMLElement {
     constructor() {
       super();
       this.mode = this.dataset.mode || 'all';
       this.datasetName = this.dataset.dataset || 'uncertain';
-      
-      // Elements
+
       this.sliders = {
-        t: this.querySelector('#slider-t'),
-        k: this.querySelector('#slider-k'),
-        p: this.querySelector('#slider-p'),
-        minp: this.querySelector('#slider-minp')
+        t: this.querySelector('[data-param="temperature"] input'),
+        k: this.querySelector('[data-param="top-k"] input'),
+        p: this.querySelector('[data-param="top-p"] input'),
+        minp: this.querySelector('[data-param="min-p"] input')
       };
-      
+
       this.displays = {
-        t: this.querySelector('#val-t'),
-        k: this.querySelector('#val-k'),
-        p: this.querySelector('#val-p'),
-        minp: this.querySelector('#val-minp')
+        t: this.querySelector('[data-param="temperature"] .val-display'),
+        k: this.querySelector('[data-param="top-k"] .val-display'),
+        p: this.querySelector('[data-param="top-p"] .val-display'),
+        minp: this.querySelector('[data-param="min-p"] .val-display')
       };
-      
-      this.chartBars = this.querySelector('#chart-bars');
-      this.statKept = this.querySelector('#stat-kept');
-      this.statMass = this.querySelector('#stat-mass');
+
+      this.chartBars = this.querySelector('.chart-bars');
+      this.statKept = this.querySelector('[data-stat="kept"]');
+      this.statMass = this.querySelector('[data-stat="mass"]');
 
       this.initData();
       this.setupMode();
@@ -321,7 +317,6 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
     }
 
     initData() {
-      // Generate synthetic but realistic logits
       this.tokens = [];
       
       if (this.datasetName === 'confident') {
@@ -332,7 +327,6 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
           { t: ' Al', z: 11.5 }
         ];
         this.tokens.push(...topTokens);
-        // Generate long tail
         for (let i = 0; i < 46; i++) {
           this.tokens.push({
             t: ` token_${i}`,
@@ -340,7 +334,6 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
           });
         }
       } else {
-        // Uncertain (flatter distribution)
         const topTokens = [
           { t: ' towering', z: 12.5 },
           { t: ' smoke', z: 12.2 },
@@ -361,8 +354,7 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
           });
         }
       }
-      
-      // Sort initial logits descending
+
       this.tokens.sort((a, b) => b.z - a.z);
     }
 
@@ -372,7 +364,6 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
         if (el) el.classList.add('disabled');
       };
 
-      // Set initial values based on mode to highlight specific effects
       if (this.mode === 'temperature') {
         disable('top-k');
         disable('top-p');
@@ -391,8 +382,7 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
         disable('top-k');
         disable('top-p');
       }
-      
-      // Update displays to match initial values
+
       for (const [key, slider] of Object.entries(this.sliders)) {
         this.displays[key].textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? 2 : 0);
       }
@@ -413,7 +403,6 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
       const P = parseFloat(this.sliders.p.value);
       const MinP = parseFloat(this.sliders.minp.value);
 
-      // 1. Apply Temperature and get base probabilities
       let sumExp = 0;
       let data = this.tokens.map(tok => {
         const expZ = Math.exp(tok.z / T);
@@ -423,38 +412,33 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
       
       data.forEach(tok => {
         tok.baseProb = tok.expZ / sumExp;
-        tok.kept = true; // Assume kept initially
+        tok.kept = true;
       });
 
-      // Sort by base probability descending
       data.sort((a, b) => b.baseProb - a.baseProb);
 
-      // 2. Apply Top-K
+      // Top-K
       if (this.mode === 'top-k' || this.mode === 'all') {
         data.forEach((tok, idx) => {
           if (idx >= K) tok.kept = false;
         });
       }
 
-      // 3. Apply Top-P
+      // Top-P
       if (this.mode === 'top-p' || this.mode === 'all') {
         let cumSum = 0;
         data.forEach(tok => {
           if (!tok.kept) return;
           cumSum += tok.baseProb;
-          // Keep token if cumSum *before* adding this token was < P
-          // Wait, standard top-p keeps tokens until cumSum >= P. 
-          // So if cumSum - tok.baseProb > P, it is dropped.
-          if (cumSum - tok.baseProb > P + 1e-9) { // tiny epsilon for float math
+          if (cumSum - tok.baseProb > P + 1e-9) {
             tok.kept = false;
           }
         });
-        // Ensure at least 1 token is kept (argmax)
         let anyKept = data.some(t => t.kept);
         if (!anyKept && data.length > 0) data[0].kept = true;
       }
 
-      // 4. Apply Min-P
+      // Min-P
       if (this.mode === 'min-p' || this.mode === 'all') {
         const maxProb = data[0].baseProb;
         const threshold = MinP * maxProb;
@@ -463,7 +447,6 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
         });
       }
 
-      // 5. Renormalize kept tokens
       let keptSum = 0;
       data.forEach(tok => {
         if (tok.kept) keptSum += tok.baseProb;
@@ -479,17 +462,11 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
     render() {
       const { data, keptSum } = this.computeProbabilities();
       
-      // Calculate stats
       const keptCount = data.filter(t => t.kept).length;
       this.statKept.textContent = `${keptCount}/${data.length}`;
       this.statMass.textContent = `${(keptSum * 100).toFixed(2)}%`;
 
-      // Render bars
       this.chartBars.innerHTML = '';
-      
-      // Find max probability for scaling the bars visually (so the largest is always ~100% width of the chart)
-      const maxFinalProb = Math.max(...data.map(t => t.finalProb));
-      const visualScale = maxFinalProb > 0 ? 1 / maxFinalProb : 1;
 
       data.forEach(tok => {
         const row = document.createElement('div');
@@ -497,36 +474,27 @@ const { mode = 'all', dataset = 'uncertain' } = Astro.props;
         
         const tokenName = document.createElement('div');
         tokenName.className = 'token-name';
-        tokenName.textContent = tok.t.replace(/ /g, '·'); // Make spaces visible
+        tokenName.textContent = tok.t.replace(/ /g, '·');
         
         const track = document.createElement('div');
         track.className = 'bar-track';
         
         const fill = document.createElement('div');
         fill.className = 'bar-fill';
-        // Visually scale relative to max probability for better chart legibility, 
-        // but label with actual probability.
-        // Actually, scaling absolute is better for showing temperature flattening.
-        // Let's use absolute scale: 100% width = 100% probability
         const pct = (tok.finalProb * 100).toFixed(1);
         const basePct = (tok.baseProb * 100).toFixed(1);
-        
-        // Use base probability width if excluded, to show what was cut
         const displayWidth = tok.kept ? pct : basePct;
-        fill.style.width = `${Math.min(displayWidth, 100)}%`;
-        
+        fill.style.transform = `scaleX(${Math.min(displayWidth, 100) / 100})`;
+
         const label = document.createElement('div');
         label.className = 'prob-label';
         label.textContent = tok.kept ? `${pct}%` : `(${basePct}%)`;
         if (tok.kept && pct > 80) {
            label.style.left = 'auto';
            label.style.right = '5px';
-           label.style.color = '#000'; // contrast
-           fill.style.position = 'relative';
-           fill.appendChild(label);
-        } else {
-           track.appendChild(label);
+           label.style.color = '#000';
         }
+        track.appendChild(label);
 
         track.appendChild(fill);
         row.appendChild(tokenName);

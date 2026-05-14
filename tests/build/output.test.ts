@@ -169,7 +169,7 @@ describe('posts.json', () => {
     const raw = readDist('posts.json');
     const data = JSON.parse(raw);
     expect(Array.isArray(data)).toBe(true);
-    expect(data.length).toBe(3);
+    expect(data.length).toBeGreaterThanOrEqual(3);
     expect(data[0]).toHaveProperty('title');
     expect(data[0]).toHaveProperty('slug');
     expect(data[0]).toHaveProperty('tags');

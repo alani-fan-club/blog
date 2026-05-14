@@ -1,0 +1,23 @@
+---
+interface Props {
+  current: number;
+  total: number;
+}
+
+const { current, total } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+const segments = Array.from({ length: total }, (_, i) => i < current);
+---
+<div class="series-indicator" aria-label={`Part ${current} of ${total}`}>
+  <span>Part {pad(current)} / {pad(total)}</span>
+  <span class="series-indicator__segments" aria-hidden="true">
+    {segments.map((filled, i) => (
+      <>
+        {i > 0 && <span class="series-indicator__sep">─</span>}
+        <span class={filled ? 'series-indicator__on' : 'series-indicator__off'}>
+          {filled ? '■' : '□'}
+        </span>
+      </>
+    ))}
+  </span>
+</div>

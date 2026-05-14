@@ -1,0 +1,139 @@
+---
+title: "This Month In AI (Apr 2026)"
+date: 2026-05-03
+author: "ALANI"
+tags: ["roundup", "monthly", "news", "security", "agents", "models"]
+excerpt: "Memory is everyone's problem, Mythos lands under Project Glasswing, Opus 4.7 disappoints, GPT-5.5 ships, and a French supply chain attack steals the month."
+---
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
+
+April was a month. New frontier models in both the US and China, Anthropic generating drama on what felt like a daily cadence, and supply chain attacks getting more creative (and more French). Thank you again to AFC for hand-collecting all of this.
+
+---
+
+## Memory Management (and now Retrieval)
+
+The "how do I handle all these md files" panic is officially universal. RAG and graphRAG are everywhere, but recall isn't working — building these systems is one thing, getting them to actually work is another.
+
+- For coding, this shows up as **context assembly** — we wrote about it in [Your Agent Is a While Loop](https://alanifan.club/posts/your-agent-is-a-while-loop/).
+- [Memory Intelligence Agent](https://arxiv.org/abs/2604.04503)
+- [MemU](https://github.com/NevaMind-AI/memU) — current favorite for people who haven't set up a memory system yet
+- [MEMENTO: Teaching LLMs to Manage Their Own Context](https://arxiv.org/abs/2604.09852)
+- The main split I keep hearing is **Second Brain vs Obsidian**. I use both — Obsidian is better for work, especially if you're juggling many projects.
+
+### Self-Learning / Model Self-Help Corner
+
+- [SkillRL: Evolving Agents via Recursive Skill-Augmented Reinforcement Learning](https://arxiv.org/abs/2602.08234) — everyone is big into this lately
+- [Hermes Agent](https://github.com/nousresearch/hermes-agent) — what I would consider the OpenClaw killer
+- [Hindsight: Agent Memory that Learns](https://github.com/vectorize-io/hindsight)
+
+<Callout>
+<p><strong>Hot take:</strong> we keep building memory systems and then watching them fail at recall. The bottleneck isn't storage, it's the retrieval step nobody wants to evaluate honestly.</p>
+</Callout>
+
+---
+
+## Anthropic Drama Corner
+
+Anthropic literally makes people panic every day to the point that it's become a meme. Let's go over the April drama in chronological order:
+
+- **March 31 — [Claude Code Source Leak](https://www.axios.com/2026/03/31/anthropic-leaked-source-code-ai)**
+- **April 7 — [Mythos Preview](https://cdn.sanity.io/files/4zrzovbb/website/7624816413e9b4d2e3ba620c5a5e091b98b190a5.pdf)**: Anthropic claims their new model is "too dangerous for public release" — unless you're in [Project Glasswing](https://www.anthropic.com/glasswing).
+  - Required reading: [AISI's take](https://www.aisi.gov.uk/blog/our-evaluation-of-claude-mythos-previews-cyber-capabilities)
+- **April 21 — [Mythos Unauthorized Access](https://www.bloomberg.com/news/articles/2026-04-21/anthropic-s-mythos-model-is-being-accessed-by-unauthorized-users)**: Anthropic says there is no proof, but??
+- **April 23 — [Claude Code Quality Postmortem](https://www.anthropic.com/engineering/april-23-postmortem)**: After 6 weeks of "Claude feels dumber," Anthropic agrees.
+- **April 29 — [Claude Security](https://claude.com/product/claude-security)** drops, which is presumably the outcome of Project Glasswing??
+- **Related**: [Cyber Use Case Form](https://claude.com/form/cyber-use-case) launched, reward hacking continues [Emotion Concepts paper](https://arxiv.org/abs/2604.07729).
+  - OpenAI is trying to catch up with their own [cyber program](https://openai.com/index/scaling-trusted-access-for-cyber-defense/).
+
+### Side Plot: US Gov vs Anthropic
+
+- US Gov says no one can access [Mythos](https://www.wsj.com/tech/ai/white-house-opposes-anthropics-plan-to-expand-access-to-mythos-model-dc281ab5)…
+- …except [them](https://www.reuters.com/technology/white-house-give-us-agencies-anthropic-mythos-access-bloomberg-news-reports-2026-04-16/).
+
+<Alert label="Model Risk" title="Mythos Unauthorized Access (Apr 21)">
+  Bloomberg reported unauthorized users hitting Mythos; Anthropic disputes the claim. If you're inside Project Glasswing, audit your access logs.
+</Alert>
+
+---
+
+## New Model Releases (so many)
+
+### US Releases
+
+- **[GPT-5.4 Image 2](https://openai.com/index/introducing-chatgpt-images-2-0/)** — GPT-5.4 with state-of-the-art image generation from Image 2
+- **[GPT-5.5](https://openai.com/index/introducing-gpt-5-5/)** — OpenAI's newest frontier model, SOTA for long-running work across code, data, and tools
+  - [GPT-5.5: Mythos-Like Hacking, Open To All](https://xbow.com/blog/mythos-like-hacking-open-to-all)
+- **[Claude Opus 4.7](https://www.anthropic.com/news/claude-opus-4-7)** — Anthropic's most capable Opus, built for long-running async agents
+- **[Muse Spark](https://ai.meta.com/blog/introducing-muse-spark-msl/)** — high on claw eval but nowhere I can actually use it -_-
+- **[Gemma 4](https://deepmind.google/models/gemma/gemma-4/)** — an amazing tiny model, perfect for local hosting (highly recommended if you want to get into the scene, start here)
+
+<Callout>
+<p><strong>Anecdotal verdict on Opus 4.7:</strong> stay on 4.6. 4.7 is so frustrating AND costly (1.3x higher). People keep saying Google is off its game, but they keep releasing hits — Anthropic just hoovers up the mindshare because they are the most dramatic.</p>
+</Callout>
+
+### Chinese Releases
+
+- **[DeepSeek V4 Pro & V4 Flash](https://api-docs.deepseek.com/news/news260424)** — IT'S HERE. Huge jump over V3.2, meeting or surpassing current SOTA across benchmarks.
+  - DeepSeek seems to be indexing on [companionship](https://www.reddit.com/r/SillyTavernAI/comments/1svpd1z/deepseek_asking_for_feedback_on_rp_from_the/) over coding.
+  - Guardrails are still incredibly low. DeepSeek remains the winner for red teaming.
+- **[Kimi K2.6](https://www.kimi.com/ai-models/kimi-k2-6)** — Moonshot AI's long-horizon coding model built for sustained agentic work
+- **[Mimo Pro 2.5](https://mimo.xiaomi.com/mimo-v2-5-pro/)** — Mimo my beloved. This is my current favorite agentic model right now, and it scores high on [claw eval](https://claw-eval.github.io/) (a transparent benchmark for real-world agents).
+
+---
+
+## Vibehacking Means More Attacks
+
+April was a big one.
+
+- [Your Agent Is Mine: Measuring Malicious Intermediary Attacks on the LLM Supply Chain](https://arxiv.org/html/2604.08407v1) — token squeeze is driving people to unsafe places, surprise, there's prompt injection.
+- Speaking of: prompt injection on webpages has increased 32%, hooray — [AI threats in the wild: The current state of prompt injections on the web](https://security.googleblog.com/2026/04/ai-threats-in-wild-current-state-of.html).
+- MCP is designed to be insecure: [MCP 'design flaw' puts 200k servers at risk](https://www.theregister.com/2026/04/16/anthropic_mcp_design_flaw/). Good thing MCP is dead now.
+- At the same time, open source maintainers are drowning thanks to everyone's panic about vulnerabilities, so: [Linux Foundation wants to shield FOSS devs from AI bug slop](https://www.theregister.com/2026/03/18/linux_foundation_ai_slop_defense/).
+
+---
+
+## Notable Incidents
+
+- **[Vercel / Context AI breach](https://vercel.com/kb/bulletin/vercel-april-2026-security-incident)** — wild supply chain attack that started with Roblox cheats.
+- **[CyberStrikeAI](https://thehackernews.com/2026/03/open-source-cyberstrikeai-deployed-in.html)** — open-source AI hacking tool compromised 600+ FortiGate firewalls across 55 countries. DeepSeek + Claude.
+- **Personal favorite:** [The BuddyBoss Attack: Claude's Supply-Chain Attack](https://ctrlaltintel.com/research/BuddyBoss-1/). Aggressively French supply chain attack — watching how the hacker talks to Claude kills me.
+
+<Alert label="Supply Chain" title="BuddyBoss / Claude">
+  Read the BuddyBoss writeup if you ship anything that touches WordPress plugins or AI-assisted dev workflows. The transcript alone is worth the click.
+</Alert>
+
+---
+
+## AI Benchmarks Are Unreliable Now
+
+[Benchmaxxing](https://magazine.sebastianraschka.com/p/state-of-llms-2025) is a thing. I don't really look at [benchmarks](https://lumichats.com/blog/ai-benchmarks-explained-2026-complete-guide-swe-bench-gpqa-diamond-arc-agi-mmlu-arena-elo-what-every-score-means) anymore — they feel like marketing fluff. How models are benchmarking and how they are performing (looking at you, Opus 4.7) is divergent.
+
+- GPT-5.5 scored almost as high as Mythos on CyberGym and took 6 hours to crack.
+- [AI benchmarks are broken. Here's what we need instead.](https://www.technologyreview.com/2026/03/31/1134833/ai-benchmarks-are-broken-heres-what-we-need-instead/)
+- Reward hacking is a continual problem, especially for Claude: [Emotion Concepts and their Function in a Large Language Model](https://arxiv.org/abs/2604.07729).
+
+---
+
+## OpenClaw Status
+
+OpenClaw isn't really the hype anymore, but:
+
+- [State of the Claw](https://www.youtube.com/watch?v=zgNvts_2TUE) — figure that interested me: **1200 vulns disclosed in roughly 2 months**. With automated vuln scanning, no wonder OSS repo owners are closing up shop.
+- A [Karpathy talk](https://www.youtube.com/watch?v=96jN2OCOfLs) also dropped this month.
+- [OpenClaw and Anthropic](https://www.reddit.com/r/openclaw/comments/1svmq20/psa_anthropic_clarified_the_openclaw_ban_you_can/) are in a never-ending [slapfight](https://techcrunch.com/2026/04/10/anthropic-temporarily-banned-openclaws-creator-from-accessing-claude/). Codex is welcoming OpenClaw users, and almost every SOTA provider has their own "claw" now (Kimclaw, Mimoclaw).
+- The [HERMES](https://github.com/anthropics/claude-code/issues/53262) billing saga on the Anthropic git is insane (and not the only one).
+
+---
+
+## Design with Claude
+
+[Claude Design is out](https://www.anthropic.com/news/claude-design-anthropic-labs)! Surprise — it makes everything look like Claude. Here are some alternatives:
+
+- [Huashu Design](https://github.com/alchaincyf/huashu-design/)
+- [Impeccable Design](https://github.com/pbakaus/impeccable)
+
+---
+
+Thank you so much for reading. As always, the news roundup is HAND CURATED by AFC.

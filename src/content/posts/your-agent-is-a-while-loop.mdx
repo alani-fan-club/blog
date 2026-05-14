@@ -3,33 +3,36 @@ title: "Your Agent Is a While Loop"
 date: 2026-04-27
 author: "ALANI"
 tags: ["agents", "infrastructure", "coding-harness"]
-excerpt: "The model inside Claude Code does not run your commands, edit your files, or call your APIs. The application around it does."
+excerpt: "The model inside Claude Code does not edit your files or run your shell commands. The application around it does."
 ---
 import LoopDiagram from '../../components/LoopDiagram.astro';
 import StreamDiagram from '../../components/StreamDiagram.astro';
 import AgentDiagram from '../../components/AgentDiagram.astro';
 import Callout from '../../components/Callout.astro';
 import TableWrap from '../../components/TableWrap.astro';
+import SeriesIndicator from '../../components/SeriesIndicator.astro';
 
-The model inside Claude Code does not run your commands, edit your files, or call your APIs. The application around it does.
+<SeriesIndicator current={1} total={2} />
+
+The model inside Claude Code does not edit your files or run your shell commands. The application around it does.
 
 You type: *"Rename `processData` to `transformPayload` and run the tests."*
 
 Three files change. Tests pass. A summary appears in your terminal. It looks like the LLM did the work. It did not.
 
-When you see "Reading file..." in your terminal, no part of the language model is reading a file. When tests pass, the LLM did not run them.
+When you see "Reading file..." in your terminal, no part of the language model is reading a file. The LLM runs on Anthropic's servers. Your terminal runs on your laptop. Nothing connects them except an API call.
 
-Here is what happened instead. The LLM wrote the string `npm test` inside a JSON block. A program on your laptop parsed that block and called Node. It captured stdout and pasted the result back into the LLM's input as text. The LLM read the test output the same way it read your original prompt: as characters in a window.
+The LLM wrote the string `grep -r processData src/` inside a JSON block. A program on your laptop parsed that block and ran the search. It captured the output and pasted it back into the LLM's input as text. The LLM read the file paths the same way it read your original prompt: as characters in a window.
 
-That program is the **harness**. In Claude Code it is the CLI. In Cursor it is the editor extension. Whatever form it takes, the harness is what stands between the LLM and your machine: it builds requests, calls the API, parses responses, runs tools, and feeds results back. The LLM is one component inside it. The whole system is the **agent**; the LLM is its voice, not its hands.
+That program is the **harness**. In Claude Code, it is the CLI on your machine. In Cursor, the editor extension. The harness assembles a context window and POSTs it to the provider's API. Each call is stateless: the full conversation and tool definitions ship in one request. The provider runs inference and returns generated text. Your machine never touches the model weights. The model never touches your filesystem. The API is the only channel between them. The whole system is the **agent**. The LLM is its voice.
 
 ---
 
 ## Before the LLM sees anything
 
-Your rename request does not go straight to the LLM. The harness first assembles a **context window**: your message, the system prompt, relevant files from your repo, previous messages. This assembled block is the only input the LLM receives. Anything outside it might as well not exist.
+Your request does not go straight to the LLM. The harness first assembles a **context window**: your message, the system prompt, relevant files from your repo, previous messages. This assembled block is the only input the LLM receives. Anything outside it might as well not exist.
 
-The harness sends the context window to the API. It also sends a list of **tool definitions**: names, descriptions, and argument schemas that tell the LLM what tools exist and how to call them. This is what a tool definition looks like in the [Anthropic API](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview):
+The harness sends the context window to the API. It also sends a list of **tool definitions**: descriptions and argument schemas that tell the LLM what tools exist and how to call them. A tool definition in the [Anthropic API](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview):
 
 ```
 {
@@ -45,15 +48,19 @@ The harness sends the context window to the API. It also sends a list of **tool 
 }
 ```
 
-This is all the LLM knows about its tools. No special integration, no SDK. A JSON schema sent alongside the prompt.
+This is all the LLM knows about its tools. No special integration, no SDK. The schema ships in the same request as the prompt.
 
 The LLM reads the context and these definitions, then generates a response containing a structured block called a **tool request**:
 
 ```
-{ tool: "bash", command: "grep -r processData src/" }
+{
+  "type": "tool_use",
+  "name": "Bash",
+  "input": { "command": "grep -r processData src/" }
+}
 ```
 
-This is a description, not an execution. The harness reads the request, checks whether `bash` is allowed by the permission policy, validates the arguments, and runs the command. Then it captures the output:
+That block describes what should happen. The harness validates it against the permission policy and runs the command. Then it captures the output:
 
 ```
 src/utils.ts:14: export function processData(input: RawPayload): Result {
@@ -67,13 +74,13 @@ That output goes back into the context window as a `tool_result` block:
 {
   "type": "tool_result",
   "tool_use_id": "toolu_01A09q90qw90lq917835lq9",
-  "content": "src/utils.ts:14: export function processData(...)\nsrc/handlers/api.ts:7: import { processData } from ...\nsrc/tests/utils.test.ts:22: const result = processData(mockPayload);"
+  "content": "src/utils.ts:14: export function processData(...)\\nsrc/handlers/api.ts:7: import { processData } from ...\\nsrc/tests/utils.test.ts:22: const result = processData(mockPayload);"
 }
 ```
 
-The result block sits alongside your original message and the LLM's previous response. No runtime metadata: nothing about how long the command took, which process executed it, or what else was running. The LLM reads this result the same way it reads your original message: as text in a window.
+The result block sits alongside your original message and the LLM's previous response. No runtime metadata: nothing about how long the command took or which process ran it. The LLM reads this result the same way it reads your original message: as text in a window.
 
-One request described. One result returned as text. Then the LLM generates its next response based on the updated window, and the cycle repeats.
+One request goes out. One result comes back as text. The cycle repeats.
 
 ---
 
@@ -83,11 +90,11 @@ Your rename takes five of these cycles. Each one is a fresh API call with a new 
 
 The LLM does not "continue" from where it left off.
 
-There is no thread, no session state, no persistent memory inside the LLM between turns. Each turn, it receives the full updated window and generates from scratch. What looks like continuity is the harness rebuilding the window with enough history that the LLM can pick up where the previous response stopped. Remove that history, and the LLM has no idea what the conversation was about.
+There is no session state, no persistent memory inside the LLM between turns. Each turn, it receives the full updated window and generates from scratch. Continuity is the harness rebuilding the window with enough history that the LLM can pick up where the previous response stopped. Remove that history, and the LLM has no idea what the conversation was about.
 
 <LoopDiagram />
 
-After each response, the harness checks: did the LLM ask for any tools? If yes, run them, feed the results back into the context window, and go around again. If no, the turn is done. Your entire Claude Code session runs inside this cycle.
+After each response, the harness checks: did the LLM ask for any tools? If yes, run them and feed the results back for the next call. If no, the turn is done. Your entire Claude Code session runs inside this cycle.
 
 For the rename:
 
@@ -95,37 +102,80 @@ For the rename:
 
 | Turn | LLM generates | Harness executes | Added to context |
 |------|--------------|-----------------|-----------------|
-| 1 | Tool request: search for `processData` | Runs the search, returns file paths | Search results |
-| 2 | Tool request: read `src/utils.ts` | Reads the file, returns contents | File contents |
-| 3 | Tool request: apply edits to three files | Applies the edits to disk, returns confirmation | Edit confirmation |
+| 1 | Tool request: search for `processData` | Runs grep, returns file paths | Search results |
+| 2 | Tool requests: read `src/utils.ts`, `src/handlers/api.ts`, `src/tests/utils.test.ts` | Reads all three files, returns contents | File contents |
+| 3 | Tool requests: edit the same three files | Applies edits to disk, returns confirmation | Edit confirmation |
 | 4 | Tool request: run `npm test` | Runs the tests, returns stdout/stderr | Test output |
 | 5 | Summary of what changed. No tool request. | No tool request found. Loop ends. | Nothing |
 
 </TableWrap>
 
-Five turns. The LLM described what it wanted at each step, and the harness ran it.
+Five turns. Each time, the API returned text and the harness executed the requests.
+
+**Turn 1**: search (Bash tool)
+```
+{
+  "type": "tool_use",
+  "name": "Bash",
+  "input": { "command": "grep -r processData src/" }
+}
+```
+
+**Turn 2**: read three files (Read tool, three requests in one response)
+```
+{ "type": "tool_use", "name": "Read", "input": { "file_path": "src/utils.ts" } }
+{ "type": "tool_use", "name": "Read", "input": { "file_path": "src/handlers/api.ts" } }
+{ "type": "tool_use", "name": "Read", "input": { "file_path": "src/tests/utils.test.ts" } }
+```
+
+**Turn 3**: edit three files (Edit tool, three requests in one response)
+```
+{
+  "type": "tool_use",
+  "name": "Edit",
+  "input": {
+    "file_path": "src/utils.ts",
+    "old_string": "export function processData",
+    "new_string": "export function transformPayload"
+  }
+}
+```
+(Repeated for `api.ts` and `utils.test.ts` with their respective strings.)
+
+**Turn 4**: run tests (Bash tool)
+```
+{
+  "type": "tool_use",
+  "name": "Bash",
+  "input": { "command": "npm test" }
+}
+```
+
+**Turn 5**: plain text summary. No tool request. The harness sees no `tool_use` block and the loop exits.
+
+Every tool request has the same shape: `type`, `name`, `input`. The harness does not care whether the tool reads a file or spawns a process. It finds the tool by name, validates the input, and runs it.
 
 ---
 
 ## Context is the only memory
 
-The LLM has no copy of your repository and no memory of what it read three turns ago. Everything it knows comes from the harness placing information into the context window before each API call: file contents, search results, diffs, previous tool outputs.
+The LLM has no copy of your repository and no memory of what it read three turns ago. Everything it knows comes from the harness placing information into the context window before each API call: file contents and previous tool outputs.
 
-This is why Claude Code "forgets." You read a file at turn 2, ask about it at turn 14, and the LLM draws a blank. The file contents were in the context window at turn 2. By turn 14, the harness may have compressed or dropped that text to make room for newer results. The LLM did not forget. The information was removed from its input.
+The rename finished in five turns, short enough that every turn stayed in the window. Longer sessions run out of room. You read a file at turn 2 and ask about it at turn 14. The LLM draws a blank. The file contents were in the context window at turn 2. By turn 14, the harness may have compressed or dropped that text to make room for newer results. The LLM did not forget. The information was removed from its input.
 
-What you experience as "the LLM being smart about your codebase" is often the harness doing good context assembly. Which files get included? How aggressively are older turns compressed? That is harness logic, not model capability. Swap in a different harness with worse context assembly and the same LLM looks confused. Swap in a better one and it looks smarter. Same weights, different window, different result.
+"The LLM being smart about your codebase" is often the harness doing good context assembly: which files to include, how to compress older turns. That is harness logic. Swap in a different harness with worse context assembly and the same LLM looks confused. Swap in a better one and it looks smarter. Same weights, different window, different result.
 
 <Callout>
 
-**This is the part that bothers me.** When people compare Claude Code to Cursor to Windsurf, the conversation is almost always about which model is smarter. It is almost never about which harness is doing a better job of assembling context. Both matter. A better model generates better tool requests. A better harness puts better information in the window. But model quality is visible (release notes, benchmarks, public evals) while context assembly is invisible. You never see the code that decides which files get included, how aggressively old turns get compressed, or when to summarize versus when to drop.
+Hot take: This bothers me. When people compare Claude Code to Cursor to Codex, the conversation is almost always about which model is smarter. It is almost never about which harness is doing a better job of assembling context. Both matter. Model quality shapes the tool requests. Harness quality shapes the window. But model quality is visible (release notes and benchmarks) while context assembly is invisible. You never see the code that decides which files to include or how to compress older turns.
 
-Anthropic and Cursor and every other vendor know this. It is why their harness code is proprietary while the model cards get published for every release. The context assembly is the product. The model gets the credit.
+Anthropic and Cursor and every other vendor know this. Their harness code is proprietary while the model cards get published for every release. The context assembly is the product. The model gets the credit.
 
 </Callout>
 
 <Callout>
 
-Raschka [puts it directly](https://magazine.sebastianraschka.com/p/components-of-a-coding-agent): **"A lot of apparent 'model quality' is really context quality."**
+Raschka [writes](https://magazine.sebastianraschka.com/p/components-of-a-coding-agent): "A lot of apparent 'model quality' is really context quality."
 
 </Callout>
 
@@ -133,68 +183,82 @@ Raschka [puts it directly](https://magazine.sebastianraschka.com/p/components-of
 
 ## Parallel tool calls
 
-Three file reads finish at once, but a single shell command pauses everything. If you have ever wondered why Claude Code feels fast during investigation and slow during edits, this is why.
+Turn 2 in the rename read three files at once. Turn 3 edited three files one at a time. That gap is the harness scheduling tools by safety: reads can overlap, edits cannot.
 
-So far, each turn in the rename requested one tool. But the LLM can emit multiple tool requests in a single response. You ask it to investigate a bug, and it requests reads on `router.ts`, `auth.ts`, and `session.ts` at the same time.
+Most turns in the rename requested one tool, but the LLM can emit several in a single response. It asked for all three reads in Turn 2, and the harness ran them at the same time. It asked for three edits in Turn 3, and the harness ran them one after another. Same kind of request both times. The harness decided what could overlap.
 
-The harness decides what runs in parallel. Each tool has a concurrency flag. Tools that are safe to run together (reads, searches) batch and execute at the same time. Tools that mutate state (writes, shell commands) run alone, after the current batch finishes.
+Tools that only read state (file reads, searches) can run in parallel. Tools that change state (file edits, file writes) run alone, one at a time, after the current batch finishes.
 
 <TableWrap caption="Tool concurrency categories">
 
 | Category | Behavior | Example |
 |----------|----------|---------|
 | Safe tool | Batched, runs in parallel with siblings | File read, search, web fetch |
-| Unsafe tool | Runs alone after the current batch finishes | File edit, shell command |
+| Unsafe tool | Runs alone after the current batch finishes | File edit, file write |
 
 </TableWrap>
 
-The LLM has no visibility into this scheduling. It asked for four tools and got four results. Parallel or sequential, the difference is invisible. The speed difference you feel is entirely the harness.
+The LLM has no visibility into this scheduling. It asked for three reads and got three results. Whether they ran in parallel or one at a time, the context window looks identical.
+
+Why this matters: wall-clock time. Investigation feels fast because reads batch. Editing is where you wait: writes have to serialize. The LLM generates the same requests either way. The harness determines how long you wait.
 
 ---
 
 ## Streaming
 
-You have seen Claude Code print "Reading file..." before the assistant message is done. That is not because the LLM finished secretly. The harness started work while the LLM was still talking.
+You have seen Claude Code print "Reading file..." before the assistant message finishes. The harness started executing while the LLM was still generating.
 
-The LLM's response arrives as a stream of chunks, not as a finished message. When streaming execution is enabled (the default in Claude Code), the harness does not wait for the full response. It watches the stream, and the moment a complete tool request block forms, it queues and dispatches it while the LLM is still generating the rest.
+The LLM's response arrives as a stream of tokens, not as one finished block. The harness watches that stream. Once a complete tool request forms, the harness dispatches it. The LLM keeps generating while the first tool is already running.
 
 <StreamDiagram />
 
-In the rename: the LLM starts generating a response containing two file reads. The harness receives the first one as a complete block while the LLM is still writing the second. That file starts loading immediately. By the time the LLM finishes, some results may already be done. The LLM is not fast. The harness just doesn't wait for it.
+In the rename, Turn 2 asked for three file reads. The harness receives the first read request as a complete block while the LLM is still writing the second. That file starts loading before the response finishes. Generation and execution overlap instead of running back to back.
+
+Why this matters: latency. Streaming lets the harness start work while the LLM is still thinking. Longer responses with multiple tool calls benefit the most.
 
 ---
 
 ## Sub-agents
 
-Sometimes Claude Code returns a confident summary of work you never watched happen. That is a sub-agent: a child loop that ran in the background, did its own investigation, and reported back one result.
+Sometimes Claude Code returns a confident summary of work you never watched happen. That is a sub-agent: a child loop that ran its own investigation and reported back one result.
 
-You ask Claude Code to refactor a module and run tests across three packages. Instead of handling all of it in your session, the LLM emits a tool request that tells the harness to start a child loop: same function, different inputs. The child gets its own context window and system prompt, a separate message history, and a scoped set of tools.
+The rename was small enough to handle in one loop. Larger tasks are not. You ask Claude Code to refactor a module and run tests across three packages. Instead of handling all of it in your session, the LLM emits a tool request that tells the harness to start a child loop: same function, different inputs. The child gets its own context window and a scoped set of tools.
 
-From the API's perspective, a sub-agent is just another tool call. The JSON the LLM emits looks like this:
+From the API's perspective, a sub-agent is another tool call. The JSON the LLM emits looks like this:
 
 ```
-{ tool: "Agent", prompt: "Refactor auth module and run tests", description: "refactor auth" }
+{
+  "type": "tool_use",
+  "name": "Agent",
+  "input": { "prompt": "Refactor auth module and run tests", "description": "refactor auth" }
+}
 ```
 
 Compare that to a shell command:
 
 ```
-{ tool: "Bash", command: "npm test" }
+{
+  "type": "tool_use",
+  "name": "Bash",
+  "input": { "command": "npm test" }
+}
 ```
 
-Same structure. The harness sees a tool name and an input object. For Bash, it spawns a shell process. For Agent, it calls the same core function (think `query({ messages, systemPrompt, ... })`) that runs your top-level session. A sub-agent is not a different kind of thing. It is the same loop, started by a tool call, running inside a tool result.
+Same structure. The harness sees a tool name and an input object. For Bash, it spawns a shell process. For Agent, it calls the same core function (think `query({ messages, systemPrompt, ... })`) that runs your top-level session. The sub-agent is the same loop, started by a tool call, and its output comes back as a single tool result.
 
-In your terminal, you see Claude Code say something like "I'll handle each package separately" and a progress indicator appears. Behind that indicator, the child loop might run for a dozen turns, read twenty files, execute five shell commands. Your session does not see any of that work. One result block comes back, and the parent continues.
+In your terminal, you see Claude Code say something like "I'll handle each package separately" and a progress indicator appears. Behind that indicator, the child loop might run for a dozen turns and read twenty files. Your session does not see any of that work. One result block comes back, and the parent continues.
 
 <AgentDiagram />
 
-Same loop, one level down. The parent gets the child's conclusion, not the full transcript. That compression keeps the parent's context window from growing out of control, but it also means the parent cannot verify what the child did from the result alone.
+Same loop, one level down. The parent gets the child's conclusion. This is how the agent handles work that would overflow a single context window: split it across child loops, each with their own context budget.
+
+Why this matters: scale. A single context window has a token limit. The parent can delegate overflow work to a child that runs on its own context budget and reports back a summary. The cost is visibility. One summary block comes back. The parent has no way to verify the child's work from that alone.
 
 ---
 
 ## The division
 
-Every agent you use follows the same pattern: the LLM decides and describes; the harness checks, executes, and reports back.
+Every agent you use follows the same pattern: the LLM describes; the harness executes and reports back.
 
 <TableWrap caption="What the LLM does versus what the harness does">
 
@@ -202,15 +266,17 @@ Every agent you use follows the same pattern: the LLM decides and describes; the
 |---|---|---|
 | "Reading file..." | Wrote a tool request: read `src/utils.ts` | Parsed the request, read the file, injected contents into context |
 | Three files change at once | Emitted three edit requests in one response | Validated each edit, applied them to disk, returned confirmations |
-| Tests pass | Wrote `npm test` in a JSON block | Ran Node, captured stdout, pasted output back as text |
+| Tests pass | Wrote a tool request: run `npm test` | Ran Node, captured stdout, pasted output back as text |
 | "I'll handle each package separately" | Requested a sub-agent tool | Started a child loop with its own context, returned one summary |
 | Claude Code "forgets" a file | Generated from whatever was in the window | Compressed or dropped older context to make room |
 
 </TableWrap>
 
-The LLM never touches your machine. It writes structured descriptions of what should happen next, and the harness decides whether to allow it, how to schedule it, and what to feed back. Calling the LLM smart is a category error. The LLM generates text. The loop is what makes it useful. And it's the loop that decides what to trust.
+The LLM never touches your machine. It outputs structured text about what should happen. The harness decides what to run and what to feed back. The LLM is a text generator. The loop around it is what turns text generation into an agent.
 
-Inputs are validated. Outputs are trusted. That gap has consequences.
+The harness validates what the LLM asks for (permissions, argument schemas, tool allowlists). It does not validate what comes back. Tool results re-enter the context window as plain text. The LLM reads them the same way it reads your original message.
+
+Part 2 is about what happens when that trust breaks down. Tool results carry content the harness never checked, and the LLM acts on it anyway.
 
 ## References
 

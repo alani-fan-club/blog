@@ -1,14 +1,15 @@
 ---
 title: "Why Your Character Won't Shut Up About Her Emerald Eyes: A Sampler Post"
-date: 2026-04-27
+date: 2026-04-28
 author: "ALANI"
 tags: ["ai", "roleplay", "llm", "samplers"]
 draft: true
 excerpt: "A breakdown of truncation samplers and repetition penalties, from Top-K to Min-P, and why the roleplay community had to fix them."
 ---
 import SamplerWidget from '../../components/SamplerWidget.astro';
+import Math from '../../components/Math.astro';
 
-## 0. The problem, stated concretely
+## The problem, stated concretely
 
 You're roleplaying. Your character has emerald eyes. This is established once, in the character card, probably in the first paragraph. Three thousand tokens into the session, the model has mentioned her emerald eyes nine times. Twice in the last reply. Once as "her emerald, emerald eyes," which is not a thing humans say.
 
@@ -22,13 +23,15 @@ The structure: introduce a failure mode, show how an existing sampler tries to f
 
 ---
 
-## 1. Before sampling: what comes out of the model
+## Before sampling: what comes out of the model
 
 The transformer's last layer produces a vector of real numbers, one per token in the vocabulary. These are **logits**. Call this vector $\mathbf{z} \in \mathbb{R}^V$ where $V$ is vocab size (roughly $10^5$ for modern tokenizers).
 
 Logits are not probabilities. They are unbounded, signed, and do not sum to anything meaningful. To get a probability distribution, we apply the softmax:
 
-$$p_i = \frac{\exp(z_i)}{\sum_{j=1}^{V} \exp(z_j)}$$
+<Math label="softmax">
+$$\displaystyle p_i = \frac{\exp(z_i)}{\sum_{j=1}^{V} \exp(z_j)}$$
+</Math>
 
 This gives us $\mathbf{p} \in \mathbb{R}^V$ with $p_i > 0$ and $\sum_i p_i = 1$. Now we have a proper categorical distribution. The question is: how do we draw a sample from it?
 
@@ -38,21 +41,27 @@ The opposite extreme is **greedy decoding**: always pick $\arg\max_i p_i$. This 
 
 Every sampler we're about to discuss lives in the space between these two extremes. The question is not *whether* to prune the distribution and introduce randomness, but *how*.
 
-## 2. Temperature: reshaping the distribution
+## Temperature: reshaping the distribution
 
 The earliest and most durable knob is **temperature**. We modify the logits before softmax:
 
-$$p_i = \frac{\exp(z_i / T)}{\sum_{j} \exp(z_j / T)}$$
+<Math label="temperature">
+$$\displaystyle p_i = \frac{\exp(z_i / T)}{\sum_{j} \exp(z_j / T)}$$
+</Math>
 
 For $T = 1$ this is ordinary softmax. For $T < 1$, dividing by a small number makes logits larger in absolute value, which after softmax produces a *sharper* distribution—high-probability tokens become even higher, low ones even lower. For $T > 1$, the distribution flattens toward uniform.
 
 A more revealing way to see this: temperature is equivalent to raising each probability to the power $1/T$ and renormalizing. To see why, start from the temperature-modified softmax and factor:
 
-$$\frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)} = \frac{\exp(z_i)^{1/T}}{\sum_j \exp(z_j)^{1/T}}$$
+<Math label="factored">
+$$\displaystyle \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)} = \frac{\exp(z_i)^{1/T}}{\sum_j \exp(z_j)^{1/T}}$$
+</Math>
 
 Multiply numerator and denominator by $Z^{-1/T}$ where $Z = \sum_k \exp(z_k)$ is the original partition function:
 
-$$= \frac{(\exp(z_i)/Z)^{1/T}}{\sum_j (\exp(z_j)/Z)^{1/T}} = \frac{p_i^{1/T}}{\sum_j p_j^{1/T}}$$
+<Math label="geometric form">
+$$\displaystyle = \frac{(\exp(z_i)/Z)^{1/T}}{\sum_j (\exp(z_j)/Z)^{1/T}} = \frac{p_i^{1/T}}{\sum_j p_j^{1/T}}$$
+</Math>
 
 This is the form that makes it obvious what temperature is doing geometrically. It's reshaping the distribution by pushing mass toward or away from the mode. As $T \to 0$, the distribution collapses onto the argmax (greedy). As $T \to \infty$, it approaches uniform over all $V$ tokens.
 
@@ -64,11 +73,13 @@ Temperature alone cannot solve this. It reshapes, but it doesn't eliminate. The 
 
 <SamplerWidget mode="temperature" dataset="confident" />
 
-## 3. Top-K: the first truncation
+## Top-K: the first truncation
 
 Fan et al. (2018), working on hierarchical story generation, proposed the most intuitive fix possible: sort the logits, keep the top $K$, throw away the rest. Set their logits to $-\infty$ so softmax maps them to zero. Renormalize the survivors.
 
-$$p_i^{\text{top-}K} = \begin{cases} \frac{\exp(z_i / T)}{\sum_{j \in S_K} \exp(z_j / T)} & i \in S_K \\ 0 & \text{otherwise} \end{cases}$$
+<Math label="top-k">
+$$\displaystyle p_i^{\text{top-}K} = \begin{cases} \frac{\exp(z_i / T)}{\sum_{j \in S_K} \exp(z_j / T)} & i \in S_K \\ 0 & \text{otherwise} \end{cases}$$
+</Math>
 
 where $S_K$ is the set of indices of the top $K$ logits.
 
@@ -84,13 +95,15 @@ Top-K is context-blind. It imposes a fixed-size cutoff regardless of how much pr
 
 <SamplerWidget mode="top-k" dataset="uncertain" />
 
-## 4. Top-P (nucleus sampling): adapting to confidence
+## Top-P (nucleus sampling): adapting to confidence
 
 Holtzman et al. (2020), in "The Curious Case of Neural Text Degeneration"—one of the most cited decoding papers—made the observation that the number of tokens worth considering should scale with the model's confidence. High confidence: consider few. Low confidence: consider many.
 
 The mechanism: sort tokens by probability descending, take cumulative sum, keep tokens until the cumulative mass exceeds threshold $P$. Drop the rest.
 
-$$S_P = \{i : \sum_{j : p_j \geq p_i} p_j \leq P\} \cup \{\arg\max_i p_i\}$$
+<Math label="top-p">
+$$\displaystyle S_P = \left\{i : \sum_{j : p_j \geq p_i} p_j \leq P\right\} \cup \{\arg\max_i p_i\}$$
+</Math>
 
 (The union with the argmax ensures at least one token survives in degenerate cases.)
 
@@ -108,13 +121,15 @@ You wanted temperature to make the output *more creative among the good candidat
 
 <SamplerWidget mode="top-p" dataset="uncertain" />
 
-## 5. Min-P: scaling with the mode
+## Min-P: scaling with the mode
 
 Nguyen et al. published "Turning Up the Heat: Min-p Sampling for Creative and Coherent LLM Outputs" at ICLR 2025 as an oral. The paper is notable for two reasons: it was the first sampler paper from the roleplay-adjacent community to crack a top ML venue, and the fix is embarrassingly simple.
 
 Instead of a cumulative threshold, use a threshold *proportional to the top token's probability*:
 
-$$S_{\text{min-}P} = \{i : p_i \geq \alpha \cdot p_{\max}\}$$
+<Math label="min-p">
+$$\displaystyle S_{\text{min-}P} = \{i : p_i \geq \alpha \cdot p_{\max}\}$$
+</Math>
 
 where $p_{\max} = \max_j p_j$ and $\alpha \in (0, 1)$ is the min-p parameter (typical values 0.05 to 0.1).
 
@@ -132,7 +147,7 @@ The ICLR 2025 paper benchmarks this against Top-P across creative writing tasks 
 
 <SamplerWidget mode="min-p" dataset="uncertain" />
 
-## 6. The other axis: repetition
+## The other axis: repetition
 
 Everything above controls *which tokens are eligible to be sampled*. None of it addresses the emerald-eyes problem from the opening, which is a different failure mode entirely. The issue isn't that bad tokens are sneaking in. It's that *the model genuinely thinks "emerald" is the best continuation after "her"*, because it saw "emerald eyes" three paragraphs ago and LLM attention is drawn to patterns in context.
 
@@ -142,7 +157,9 @@ This needs a separate class of intervention: penalties based on what's already b
 
 The earliest and crudest. For every token that has appeared in the context, reduce its logit. Specifically (from the CTRL paper, Keskar et al. 2019):
 
-$$z_i \leftarrow \begin{cases} z_i / \lambda & z_i > 0 \text{ and } i \in \text{seen} \\ z_i \cdot \lambda & z_i < 0 \text{ and } i \in \text{seen} \\ z_i & \text{otherwise} \end{cases}$$
+<Math label="repetition penalty">
+$$\displaystyle z_i \leftarrow \begin{cases} z_i / \lambda & z_i > 0 \text{ and } i \in \text{seen} \\ z_i \cdot \lambda & z_i < 0 \text{ and } i \in \text{seen} \\ z_i & \text{otherwise} \end{cases}$$
+</Math>
 
 with $\lambda > 1$ (typical 1.1 to 1.3).
 
@@ -154,13 +171,15 @@ The asymmetric treatment of positive and negative logits is the only interesting
 
 OpenAI's API exposes two finer variants. **Presence penalty** subtracts a fixed amount from any seen token. **Frequency penalty** subtracts an amount proportional to the number of occurrences:
 
-$$z_i \leftarrow z_i - \alpha_f \cdot c_i - \alpha_p \cdot \mathbb{1}[c_i > 0]$$
+<Math label="freq/presence">
+$$\displaystyle z_i \leftarrow z_i - \alpha_f \cdot c_i - \alpha_p \cdot \mathbb{1}[c_i > 0]$$
+</Math>
 
 where $c_i$ is the count of token $i$ in the context. Frequency penalty escalates with repetition; presence penalty is binary.
 
 Still blunt. Neither knows about *n-gram patterns*, which is where most repetition actually lives. "Emerald eyes" is a phrasal pattern, not a token pattern—penalizing the token "emerald" alone helps, but the model will happily reach for "jade eyes" or "green, luminous eyes" next, because the attractor is the phrase shape, not the specific lexeme. More sophisticated penalties exist (the roleplay community has built several), but they're out of scope for this post.
 
-## 7. Sampler ordering
+## Sampler ordering
 
 In practice these get composed. The order matters enormously. A typical pipeline:
 
@@ -173,7 +192,7 @@ The position of temperature relative to truncation is the most important choice.
 
 Min-P partially sidesteps this because its threshold tracks the mode, but the ordering still matters for exact behavior. If you're running local models, temperature-last is almost always what you want.
 
-## 8. What this means
+## What this means
 
 The trajectory, from 2018 to 2025:
 
