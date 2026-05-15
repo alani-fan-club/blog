@@ -109,6 +109,7 @@ For roleplayers, the social path is realistic: themes are the kind of thing peop
 
 The browser-side code execution was also chainable. Same-origin `fetch()` includes the user's HttpOnly session cookie automatically. The theme payload did not need to steal the cookie; it could call Lumiverse APIs directly from the victim's browser, including the vulnerable MCP API from CVE-2026-44450.
 
+The fix implemented was a custom TSX validator that parses the code into an AST and checks for disallowed patterns, rather than relying on regexes. 
 
 ## CVE-2026-44444: Spindle Extension Lifecycle Scripts
 
