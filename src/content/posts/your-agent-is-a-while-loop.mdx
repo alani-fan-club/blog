@@ -9,6 +9,7 @@ import LoopDiagram from '../../components/LoopDiagram.astro';
 import StreamDiagram from '../../components/StreamDiagram.astro';
 import AgentDiagram from '../../components/AgentDiagram.astro';
 import Callout from '../../components/Callout.astro';
+import Stdout from '../../components/Stdout.astro';
 import TableWrap from '../../components/TableWrap.astro';
 import SeriesIndicator from '../../components/SeriesIndicator.astro';
 
@@ -62,11 +63,13 @@ The LLM reads the context and these definitions, then generates a response conta
 
 That block describes what should happen. The harness validates it against the permission policy and runs the command. Then it captures the output:
 
+<Stdout>
 ```
 src/utils.ts:14: export function processData(input: RawPayload): Result {
 src/handlers/api.ts:7: import { processData } from '../utils';
 src/tests/utils.test.ts:22: const result = processData(mockPayload);
 ```
+</Stdout>
 
 That output goes back into the context window as a `tool_result` block:
 

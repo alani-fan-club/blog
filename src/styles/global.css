@@ -267,14 +267,32 @@ pre[data-language="plaintext"] {
   font-size: var(--text-ui);
 }
 
-pre[data-language="plaintext"]::before {
-  content: '▮ stdout';
-  display: block;
+/* ---- STDOUT BLOCK — terminal output readout ---- */
+
+.stdout-block {
+  margin: var(--space-lg) 0;
+}
+
+.stdout-block__label {
+  font-family: var(--font-mono);
   font-size: var(--text-ui);
   color: var(--gray-dim);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-bottom: var(--space-sm);
+  padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-lg);
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid var(--gray-dim);
+}
+
+.stdout-block__label::before {
+  content: '▮ ';
+}
+
+.stdout-block pre {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-left-color: var(--gray-dim);
+  color: var(--gray);
+  margin: 0;
 }
 
 blockquote {
@@ -1851,6 +1869,10 @@ a.tag:focus-visible {
   }
 
   /* Post content components — tighter spacing on mobile */
+  .stdout-block {
+    margin: var(--space-md) 0;
+  }
+
   .callout {
     padding: var(--space-xs) var(--space-sm);
     margin: var(--space-md) 0;

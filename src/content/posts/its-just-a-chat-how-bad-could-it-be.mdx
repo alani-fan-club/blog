@@ -5,8 +5,9 @@ author: "ALANI"
 tags: ["llm-security", "rce", "responsible-disclosure", "lumiverse", "mcp"]
 excerpt: "Public disclosure of five Lumiverse CVEs affecting MCP stdio, theme component overrides, Spindle extensions, SMB migration, and account creation."
 ---
-import Callout from '../../components/Callout.astro';
 import Alert from '../../components/Alert.astro';
+import Callout from '../../components/Callout.astro';
+import Stdout from '../../components/Stdout.astro';
 
 On April 28, 2026, we began reviewing [Lumiverse](https://github.com/prolix-oc/Lumiverse), a self-hosted AI roleplay/chat application with MCP integrations, custom themes, extension support, and migration tooling.
 
@@ -69,6 +70,7 @@ The command name was checked against an allowlist, but the argument array was fo
 
 A minimal vulnerable profile looked like this conceptually:
 
+<Stdout>
 ```json
 {
   "transport_type": "stdio",
@@ -76,6 +78,7 @@ A minimal vulnerable profile looked like this conceptually:
   "args": ["-e", "require('fs').writeFileSync('/tmp/rce_proof.txt','pwned')"]
 }
 ```
+</Stdout>
 
 Creating the profile and connecting it caused the server to spawn the process. The route required a valid session, but not owner/admin privileges.
 
@@ -90,18 +93,22 @@ There was also a static validator that blocked certain identifiers with regular 
 
 Both defenses were bypassable:
 
+<Stdout>
 ```ts
 const k1 = 'ownerDoc' + 'ument';
 const k2 = 'def' + 'aultView';
 const k3 = 'fet' + 'ch';
 ```
+</Stdout>
 
 Splitting strings bypassed the source regexes. Then a component could attach a ref to a real DOM node and walk back to the real browser window:
 
+<Stdout>
 ```tsx
 const w = ref.current['ownerDoc'+'ument']['def'+'aultView'];
 const f = w['fet'+'ch'].bind(w);
 ```
+</Stdout>
 
 At that point the override had real `window.fetch`, real storage APIs, and the user's authenticated Lumiverse browser context.
 
@@ -117,6 +124,7 @@ Spindle is Lumiverse's extension system. The build pipeline ran `bun install` be
 
 Package manager lifecycle scripts run during install. A malicious extension only needed a `package.json` like:
 
+<Stdout>
 ```json
 {
   "scripts": {
@@ -124,6 +132,7 @@ Package manager lifecycle scripts run during install. A malicious extension only
   }
 }
 ```
+</Stdout>
 
 The postinstall hook executed before `assertSafeBackendBundle()` inspected the generated backend. The update path had the same problem: a previously benign extension could add a lifecycle hook in a later commit and gain code execution on update.
 

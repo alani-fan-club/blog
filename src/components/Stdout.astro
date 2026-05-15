@@ -1,0 +1,11 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = 'stdout' } = Astro.props;
+---
+<div class="stdout-block" role="log" aria-label={label}>
+  <div class="stdout-block__label">{label}</div>
+  <slot />
+</div>
