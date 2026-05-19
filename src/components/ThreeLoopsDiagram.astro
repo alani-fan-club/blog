@@ -1,0 +1,256 @@
+---
+---
+<div class="diagram" role="img" aria-label="Three autonomous while loops: hackerbot-claw attacks CI workflows, which trust submitted code the way an agent trusts tool output. Claude's prompt injection detection, running in its own loop, is the only defense that held without a human intervening.">
+  <div class="diagram-label">Three Autonomous Loops</div>
+  <div class="wl-arena" aria-hidden="true">
+    <div class="wl-loop wl-loop--attacker">
+      <div class="wl-loop-header">
+        <span class="wl-loop-num">LOOP 1</span>
+        <span class="wl-loop-role wl-role--attack">ATTACKER</span>
+      </div>
+      <div class="wl-loop-name">hackerbot-claw</div>
+      <div class="wl-cycle">
+        <code class="wl-while">while (true)</code>
+        <div class="wl-steps">
+          <span>scan repos</span>
+          <span class="wl-arr">→</span>
+          <span>pick exploit</span>
+          <span class="wl-arr">→</span>
+          <span>submit PR</span>
+          <span class="wl-arr">→</span>
+          <span>check CI</span>
+        </div>
+      </div>
+      <div class="wl-meta">10 days continuous · 7 repos · no human operator</div>
+    </div>
+
+    <div class="wl-rel">
+      <div class="wl-rel-line wl-rel-line--attack"></div>
+      <div class="wl-rel-tip wl-rel-tip--attack"></div>
+      <span class="wl-rel-label wl-rel-label--attack">ATTACKS</span>
+    </div>
+
+    <div class="wl-loop wl-loop--target">
+      <div class="wl-loop-header">
+        <span class="wl-loop-num">LOOP 2</span>
+        <span class="wl-loop-role wl-role--target">TARGET</span>
+      </div>
+      <div class="wl-loop-name">CI Workflows</div>
+      <div class="wl-cycle">
+        <code class="wl-while">on: pull_request_target</code>
+        <div class="wl-steps">
+          <span>checkout branch</span>
+          <span class="wl-arr">→</span>
+          <span>run workflow</span>
+          <span class="wl-arr">→</span>
+          <span>trust output</span>
+        </div>
+      </div>
+      <div class="wl-meta">executes submitted code as if it were trusted</div>
+    </div>
+
+    <div class="wl-rel">
+      <span class="wl-rel-label wl-rel-label--defend">DEFENDS</span>
+      <div class="wl-rel-tip wl-rel-tip--defend"></div>
+      <div class="wl-rel-line wl-rel-line--defend"></div>
+    </div>
+
+    <div class="wl-loop wl-loop--defender">
+      <div class="wl-loop-header">
+        <span class="wl-loop-num">LOOP 3</span>
+        <span class="wl-loop-role wl-role--defend">DEFENDER</span>
+      </div>
+      <div class="wl-loop-name">Claude Detection</div>
+      <div class="wl-cycle">
+        <code class="wl-while">while (context)</code>
+        <div class="wl-steps">
+          <span>read input</span>
+          <span class="wl-arr">→</span>
+          <span>check injection</span>
+          <span class="wl-arr">→</span>
+          <span>allow | refuse</span>
+        </div>
+      </div>
+      <div class="wl-meta">only defense that held without a human intervening</div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .wl-arena {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+    padding: var(--space-md);
+  }
+
+  /* ---- Loop boxes ---- */
+  .wl-loop {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .wl-loop--attacker {
+    border: 1px solid color-mix(in srgb, var(--cherry) 50%, transparent);
+    background: color-mix(in srgb, var(--cherry) 4%, transparent);
+  }
+
+  .wl-loop--target {
+    border: 1px dashed var(--gray-dim);
+    background: color-mix(in srgb, var(--white) 2%, transparent);
+  }
+
+  .wl-loop--defender {
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+  }
+
+  .wl-loop-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    margin-bottom: 0.35rem;
+  }
+
+  .wl-loop-num {
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .wl-loop-role {
+    font-size: var(--text-chrome);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+
+  .wl-role--attack { color: var(--cherry); }
+  .wl-role--target { color: var(--gray); }
+  .wl-role--defend { color: var(--accent); }
+
+  .wl-loop-name {
+    font-size: var(--text-body);
+    color: var(--white);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+  }
+
+  /* ---- Cycle display ---- */
+  .wl-cycle {
+    margin-bottom: var(--space-xs);
+  }
+
+  .wl-while {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    margin-bottom: 0.3rem;
+    background: none;
+    padding: 0;
+  }
+
+  .wl-loop--attacker .wl-while { color: color-mix(in srgb, var(--cherry) 60%, var(--gray)); }
+  .wl-loop--defender .wl-while { color: var(--accent-dim); }
+
+  .wl-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: var(--text-ui);
+    color: var(--gray);
+    padding-left: 0.5rem;
+  }
+
+  .wl-arr {
+    color: var(--gray-dim);
+  }
+
+  .wl-meta {
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    letter-spacing: 0.02em;
+    margin-top: 0.35rem;
+    line-height: 1.4;
+  }
+
+  /* ---- Relationship arrows ---- */
+  .wl-rel {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 0.35rem;
+  }
+
+  .wl-rel-label {
+    font-size: var(--text-chrome);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    font-weight: 600;
+    padding: 0 0.3rem;
+  }
+
+  .wl-rel-label--attack { color: var(--cherry); }
+  .wl-rel-label--defend { color: #c9a04c; }
+
+  .wl-rel-line {
+    flex: 1;
+    height: 1px;
+    min-width: 0.25rem;
+  }
+
+  .wl-rel-line--attack { background: color-mix(in srgb, var(--cherry) 50%, transparent); }
+  .wl-rel-line--defend { background: color-mix(in srgb, #c9a04c 50%, transparent); }
+
+  .wl-rel-tip {
+    width: 0;
+    height: 0;
+    flex-shrink: 0;
+  }
+
+  .wl-rel-tip--attack {
+    border-left: 5px solid color-mix(in srgb, var(--cherry) 60%, transparent);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+  }
+
+  .wl-rel-tip--defend {
+    border-right: 5px solid color-mix(in srgb, #c9a04c 60%, transparent);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+  }
+
+  @media (max-width: 900px) {
+    .wl-arena {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .wl-rel {
+      flex-direction: column;
+      padding: 0.35rem 0;
+      align-items: center;
+    }
+
+    .wl-rel-line {
+      width: 1px;
+      height: 0.5rem;
+      min-width: unset;
+    }
+
+    .wl-rel-tip--attack {
+      border-left: 3px solid transparent;
+      border-right: 3px solid transparent;
+      border-top: 5px solid color-mix(in srgb, var(--cherry) 60%, transparent);
+      border-bottom: none;
+    }
+
+    .wl-rel-tip--defend {
+      border-left: 3px solid transparent;
+      border-right: 3px solid transparent;
+      border-bottom: 5px solid color-mix(in srgb, #c9a04c 60%, transparent);
+      border-top: none;
+    }
+  }
+</style>

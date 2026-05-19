@@ -1,0 +1,240 @@
+---
+---
+<div class="diagram" role="img" aria-label="EchoLeak four-step bypass chain: a crafted email passes through four security filters, each defeated by a different technique, with data exfiltrated through Microsoft's own Teams proxy">
+  <div class="diagram-label">EchoLeak Bypass Chain</div>
+  <div class="el-flow" aria-hidden="true">
+    <div class="el-node el-node--entry">
+      <span class="el-icon">▶</span>
+      <div class="el-node-body">
+        <span class="el-text">Crafted email arrives in victim's inbox</span>
+        <span class="el-note">No click. No download. No action by the victim.</span>
+      </div>
+    </div>
+
+    <div class="el-conn"><div class="el-conn-line"></div><div class="el-conn-tip"></div></div>
+
+    <div class="el-step">
+      <div class="el-step-num">01</div>
+      <div class="el-step-body">
+        <div class="el-step-head">
+          <span class="el-step-name">AI Instruction Detector</span>
+          <span class="el-result el-pass">✓ PASS</span>
+        </div>
+        <p class="el-explain">Microsoft's XPIA classifier scans incoming content for instructions aimed at AI models — text that looks like it's trying to tell Copilot what to do. EchoLeak phrases its payload as ordinary text addressed to a human reader. The classifier finds no AI-targeted language and clears it through.</p>
+      </div>
+    </div>
+
+    <div class="el-conn"><div class="el-conn-line"></div><div class="el-conn-tip"></div></div>
+
+    <div class="el-step">
+      <div class="el-step-num">02</div>
+      <div class="el-step-body">
+        <div class="el-step-head">
+          <span class="el-step-name">Link Filter</span>
+          <span class="el-result el-pass">✓ PASS</span>
+        </div>
+        <p class="el-explain">Copilot blocks inline Markdown links — the <code>[text](url)</code> format. The payload uses reference-style links instead: <code>[text][1]</code>, with the URL defined separately at the end of the document. Same functionality, different syntax, not covered by the filter.</p>
+      </div>
+    </div>
+
+    <div class="el-conn"><div class="el-conn-line"></div><div class="el-conn-tip"></div></div>
+
+    <div class="el-step el-step--exfil">
+      <div class="el-step-num el-step-num--exfil">03</div>
+      <div class="el-step-body">
+        <div class="el-step-head">
+          <span class="el-step-name">Image Auto-Fetch</span>
+          <span class="el-result el-exfil">↗ EXFIL</span>
+        </div>
+        <p class="el-explain">Copilot automatically loads images referenced in content. The payload inserts an image tag pointing at an attacker-controlled server — stolen data is encoded as URL query parameters in the request. The fetch looks like loading a normal illustration.</p>
+      </div>
+    </div>
+
+    <div class="el-conn"><div class="el-conn-line"></div><div class="el-conn-tip"></div></div>
+
+    <div class="el-step">
+      <div class="el-step-num">04</div>
+      <div class="el-step-body">
+        <div class="el-step-head">
+          <span class="el-step-name">Content Security Policy</span>
+          <span class="el-result el-pass">✓ PASS</span>
+        </div>
+        <p class="el-explain">The CSP restricts outbound requests to approved Microsoft domains. The payload routes exfiltration through <code>asyncgw.teams.microsoft.com</code> — a Teams proxy already on the allowlist. Microsoft's own infrastructure carries the stolen data out.</p>
+      </div>
+    </div>
+
+    <div class="el-conn"><div class="el-conn-line"></div><div class="el-conn-tip"></div></div>
+
+    <div class="el-node el-node--exit">
+      <span class="el-icon">◆</span>
+      <div class="el-node-body">
+        <span class="el-text">Emails · OneDrive · SharePoint · Teams chats</span>
+        <span class="el-note el-note--exit">Exfiltrated through Microsoft's own infrastructure. User sees nothing.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .el-flow {
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* ---- Entry / exit nodes ---- */
+  .el-node {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-ui);
+  }
+
+  .el-node--entry {
+    border: 1px solid var(--gray-dim);
+    background: color-mix(in srgb, var(--accent) 3%, transparent);
+  }
+
+  .el-node--exit {
+    border: 1px solid color-mix(in srgb, var(--cherry) 60%, transparent);
+    background: color-mix(in srgb, var(--cherry) 6%, transparent);
+    padding: var(--space-md);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--cherry) 10%, transparent);
+  }
+
+  .el-icon {
+    color: var(--accent);
+    flex-shrink: 0;
+    font-size: var(--text-chrome);
+    margin-top: 0.15em;
+  }
+
+  .el-node--exit .el-icon { color: var(--cherry); }
+
+  .el-node-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .el-text {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  .el-note {
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    letter-spacing: 0.02em;
+  }
+
+  .el-note--exit {
+    color: var(--cherry);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- Connectors ---- */
+  .el-conn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.15rem 0;
+  }
+
+  .el-conn-line {
+    width: 2px;
+    height: 0.75rem;
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+
+  .el-conn-tip {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+
+  /* ---- Steps ---- */
+  .el-step {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0 var(--space-sm);
+    border: 1px solid var(--gray-rule);
+    padding: var(--space-sm) var(--space-md);
+    background: color-mix(in srgb, var(--white) 1.5%, transparent);
+  }
+
+  .el-step--exfil {
+    border-color: color-mix(in srgb, var(--cherry) 40%, transparent);
+    background: color-mix(in srgb, var(--cherry) 3%, transparent);
+  }
+
+  .el-step-num {
+    font-size: var(--text-ui);
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding-top: 0.1em;
+  }
+
+  .el-step-num--exfil { color: var(--cherry); }
+
+  .el-step-body {
+    min-width: 0;
+  }
+
+  .el-step-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+  }
+
+  .el-step-name {
+    font-size: var(--text-ui);
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .el-result {
+    font-size: var(--text-ui);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .el-pass { color: var(--accent); }
+  .el-exfil { color: var(--cherry); }
+
+  .el-explain {
+    font-family: var(--font-display);
+    font-size: var(--text-secondary);
+    color: var(--gray);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .el-explain code {
+    font-family: var(--font-mono);
+    font-size: var(--text-chrome);
+    color: var(--accent-dim);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    padding: 0.05rem 0.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .el-step {
+      grid-template-columns: 1fr;
+    }
+
+    .el-step-num {
+      margin-bottom: 0.15rem;
+    }
+  }
+</style>

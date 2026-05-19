@@ -1,0 +1,256 @@
+---
+---
+<div class="diagram" role="img" aria-label="Split-screen comparison: the user sees a normal Copilot summary while hidden instructions from a poisoned email execute with ambient authority, exfiltrating data before the user logs back in">
+  <div class="diagram-label">Zero-Click Attack Surface</div>
+  <div class="zc-split" aria-hidden="true">
+    <div class="zc-side">
+      <div class="zc-side-label">// WHAT YOU SEE</div>
+      <div class="zc-terminal">
+        <div class="zc-line">
+          <span class="zc-prompt">&gt;</span>
+          <span class="zc-input">summarize my week</span>
+        </div>
+        <div class="zc-line zc-line--resp">Here's your summary for May 12–16:</div>
+        <div class="zc-line zc-line--resp zc-line--indent">• 3 meetings rescheduled</div>
+        <div class="zc-line zc-line--resp zc-line--indent">• Q3 planning doc updated by Marta</div>
+        <div class="zc-line zc-line--resp zc-line--indent">• Travel approved for June conference</div>
+        <div class="zc-line zc-line--resp zc-line--indent">• No action items flagged</div>
+        <div class="zc-status">
+          <span class="zc-dot"></span>
+          <span>Done</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="zc-divider">
+      <div class="zc-divider-line"></div>
+    </div>
+
+    <div class="zc-side zc-side--right">
+      <div class="zc-side-label zc-side-label--danger">// WHAT'S HAPPENING</div>
+      <div class="zc-chain">
+        <div class="zc-step">
+          <span class="zc-step-num">01</span>
+          <span class="zc-step-text">Copilot pulls 847 documents as context — emails, files, chats</span>
+        </div>
+        <div class="zc-pipe"></div>
+        <div class="zc-step zc-step--danger">
+          <span class="zc-step-num zc-step-num--danger">02</span>
+          <span class="zc-step-text">One email contains hidden instructions invisible to the user</span>
+        </div>
+        <div class="zc-pipe zc-pipe--danger"></div>
+        <div class="zc-step zc-step--danger">
+          <span class="zc-step-num zc-step-num--danger">03</span>
+          <span class="zc-step-text">Instructions execute with full access to inbox, files, and chats</span>
+        </div>
+        <div class="zc-pipe zc-pipe--danger"></div>
+        <div class="zc-step zc-step--danger">
+          <span class="zc-step-num zc-step-num--danger">04</span>
+          <span class="zc-step-text">An image quietly loads — your stolen data is encoded in the request, sent to an attacker's server disguised as normal web traffic</span>
+        </div>
+        <div class="zc-pipe"></div>
+        <div class="zc-step">
+          <span class="zc-step-num">05</span>
+          <span class="zc-step-text">Copilot generates the summary you asked for. Nothing looks wrong.</span>
+        </div>
+      </div>
+      <div class="zc-breach">
+        <span class="zc-breach-dot"></span>
+        <span class="zc-breach-text">Breach complete — user not present</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .zc-split {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    min-height: 0;
+  }
+
+  .zc-side {
+    padding: var(--space-md);
+  }
+
+  .zc-side-label {
+    font-size: var(--text-chrome);
+    color: var(--accent-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-sm);
+  }
+
+  .zc-side-label--danger {
+    color: color-mix(in srgb, var(--cherry) 70%, var(--gray));
+  }
+
+  .zc-divider {
+    display: flex;
+    align-items: stretch;
+    padding: var(--space-sm) 0;
+  }
+
+  .zc-divider-line {
+    width: 1px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--gray-rule) 0px,
+      var(--gray-rule) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+  }
+
+  /* ---- Left side: calm terminal ---- */
+  .zc-terminal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .zc-line {
+    font-family: var(--font-display);
+    font-size: var(--text-secondary);
+    color: var(--gray);
+    line-height: 1.55;
+  }
+
+  .zc-line--resp { color: var(--white); }
+
+  .zc-line--indent {
+    padding-left: 1rem;
+    color: var(--gray);
+  }
+
+  .zc-prompt {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    margin-right: var(--space-xs);
+  }
+
+  .zc-input {
+    color: var(--white);
+    font-family: var(--font-mono);
+  }
+
+  .zc-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-chrome);
+    font-family: var(--font-mono);
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    margin-top: var(--space-xs);
+  }
+
+  .zc-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ---- Right side: numbered chain ---- */
+  .zc-chain {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .zc-step {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: baseline;
+  }
+
+  .zc-step-num {
+    font-family: var(--font-mono);
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    min-width: 1.3rem;
+  }
+
+  .zc-step-num--danger {
+    color: var(--cherry);
+    font-weight: 600;
+  }
+
+  .zc-step-text {
+    font-family: var(--font-display);
+    font-size: var(--text-secondary);
+    color: var(--gray);
+    line-height: 1.55;
+  }
+
+  .zc-step--danger .zc-step-text {
+    color: var(--cherry);
+  }
+
+  .zc-pipe {
+    width: 1px;
+    height: 0.6rem;
+    background: color-mix(in srgb, var(--gray-rule) 60%, transparent);
+    margin-left: 0.55rem;
+  }
+
+  .zc-pipe--danger {
+    background: color-mix(in srgb, var(--cherry) 40%, transparent);
+  }
+
+  /* ---- Breach status: loudest element ---- */
+  .zc-breach {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid color-mix(in srgb, var(--cherry) 40%, transparent);
+    background: color-mix(in srgb, var(--cherry) 6%, transparent);
+  }
+
+  .zc-breach-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cherry);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px color-mix(in srgb, var(--cherry) 50%, transparent);
+  }
+
+  .zc-breach-text {
+    font-family: var(--font-mono);
+    font-size: var(--text-ui);
+    font-weight: 600;
+    color: var(--cherry);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 640px) {
+    .zc-split {
+      grid-template-columns: 1fr;
+    }
+
+    .zc-divider {
+      padding: 0 var(--space-md);
+      height: 1px;
+    }
+
+    .zc-divider-line {
+      width: 100%;
+      height: 1px;
+      background: repeating-linear-gradient(
+        to right,
+        var(--gray-rule) 0px,
+        var(--gray-rule) 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+  }
+</style>

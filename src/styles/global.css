@@ -1028,6 +1028,56 @@ a.tag:focus-visible {
   opacity: 0.8;
 }
 
+/* Footnote references (superscript) */
+.post-content a[data-footnote-ref] {
+  font-size: var(--text-chrome);
+  font-family: var(--font-mono);
+  text-decoration: none;
+  color: var(--accent);
+  vertical-align: super;
+  line-height: 0;
+  padding: 0 0.1em;
+}
+
+.post-content a[data-footnote-ref]::before {
+  content: '[';
+}
+
+.post-content a[data-footnote-ref]::after {
+  content: ']';
+  font-size: inherit;
+  opacity: 1;
+}
+
+/* Footnotes section */
+.post-content section[data-footnotes] {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px dashed var(--gray-rule);
+  font-size: var(--text-secondary);
+  color: var(--gray);
+}
+
+.post-content section[data-footnotes] ol {
+  padding-left: 1.5em;
+}
+
+.post-content section[data-footnotes] li {
+  margin-bottom: var(--space-sm);
+  line-height: 1.6;
+}
+
+.post-content section[data-footnotes] li p {
+  margin: 0;
+}
+
+.post-content section[data-footnotes] a[data-footnote-backref] {
+  font-size: var(--text-chrome);
+  color: var(--accent-dim);
+  text-decoration: none;
+  margin-left: 0.3em;
+}
+
 .post-content h3 + p:has(> em:only-child) {
   padding: var(--space-sm) var(--space-md);
   margin-bottom: var(--space-md);

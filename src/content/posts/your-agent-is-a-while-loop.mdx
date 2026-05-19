@@ -13,7 +13,7 @@ import Stdout from '../../components/Stdout.astro';
 import TableWrap from '../../components/TableWrap.astro';
 import SeriesIndicator from '../../components/SeriesIndicator.astro';
 
-<SeriesIndicator current={1} total={2} />
+<SeriesIndicator current={1} total={3} />
 
 The model inside Claude Code does not edit your files or run your shell commands. The application around it does.
 
@@ -33,7 +33,7 @@ That program is the **harness**. In Claude Code, it is the CLI on your machine. 
 
 Your request does not go straight to the LLM. The harness first assembles a **context window**: your message, the system prompt, relevant files from your repo, previous messages. This assembled block is the only input the LLM receives. Anything outside it might as well not exist.
 
-The harness sends the context window to the API. It also sends a list of **tool definitions**: descriptions and argument schemas that tell the LLM what tools exist and how to call them. A tool definition in the [Anthropic API](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview):
+The harness sends the context window to the API. It also sends a list of **tool definitions**: descriptions and argument schemas that tell the LLM what tools exist and how to call them. A tool definition in the Anthropic API[^2]:
 
 ```
 {
@@ -178,7 +178,7 @@ Anthropic and Cursor and every other vendor know this. Their harness code is pro
 
 <Callout>
 
-Raschka [writes](https://magazine.sebastianraschka.com/p/components-of-a-coding-agent): "A lot of apparent 'model quality' is really context quality."
+Raschka writes: "A lot of apparent 'model quality' is really context quality."[^1]
 
 </Callout>
 
@@ -281,7 +281,6 @@ The harness validates what the LLM asks for (permissions, argument schemas, tool
 
 Part 2 is about what happens when that trust breaks down. Tool results carry content the harness never checked, and the LLM acts on it anyway.
 
-## References
+[^1]: Sebastian Raschka, "Components of a Coding Agent," April 4, 2026. https://magazine.sebastianraschka.com/p/components-of-a-coding-agent
 
-1. Sebastian Raschka, "Components of a Coding Agent," April 4, 2026. [magazine.sebastianraschka.com](https://magazine.sebastianraschka.com/p/components-of-a-coding-agent)
-2. Anthropic, "Tool use with Claude," API documentation. [docs.anthropic.com](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview)
+[^2]: Anthropic, "Tool use with Claude," API documentation. https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview

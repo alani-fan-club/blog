@@ -1,0 +1,380 @@
+---
+export interface TimelineEntry {
+  date: string;
+  id: string;
+  type: string;
+  typeLabel: string;
+  severity: string;
+  sevLabel: string;
+  summary: string;
+  desc: string;
+  links: { label: string; url: string }[];
+}
+
+interface Props {
+  entries: TimelineEntry[];
+  filters?: string[];
+}
+
+const { entries, filters = [] } = Astro.props;
+const uniqueTypes = filters.length > 0
+  ? filters
+  : [...new Set(entries.map(e => e.type))];
+const uniqueYears = [...new Set(entries.map(e => e.date.split(' ').pop()))].sort();
+---
+
+<security-timeline data-entries={JSON.stringify(entries)} role="region" aria-label="Security incident timeline">
+  <div class="tl-chrome">
+    <div class="tl-chrome-label">// CATEGORY</div>
+    <div class="tl-filters" data-group="type">
+      <button class="tl-filter active" data-filter="all">ALL</button>
+      {uniqueTypes.map(t => (
+        <button class="tl-filter" data-filter={t}>{t.replace(/_/g, ' ').toUpperCase()}</button>
+      ))}
+    </div>
+    <div class="tl-chrome-label tl-chrome-label-year">// YEAR</div>
+    <div class="tl-filters" data-group="year">
+      <button class="tl-filter active" data-filter="all">ALL</button>
+      {uniqueYears.map(y => (
+        <button class="tl-filter" data-filter={y}>{y}</button>
+      ))}
+    </div>
+  </div>
+
+  <div class="tl-count">
+    <span class="tl-count-visible">{entries.length}</span> / <span class="tl-count-total">{entries.length}</span> entries
+  </div>
+
+  <div class="tl-log">
+    {entries.map((entry) => (
+      <div class="tl-entry" data-type={entry.type} data-severity={entry.severity} data-year={entry.date.split(' ').pop()}>
+        <div class="tl-head" role="button" tabindex="0" aria-expanded="false">
+          <span class="tl-date">{entry.date}</span>
+          <span class="tl-id">{entry.id}</span>
+          <span class={`tl-sev severity-${entry.severity}`}>{entry.severity.toUpperCase()}</span>
+          <span class="tl-chevron" aria-hidden="true">&#9662;</span>
+        </div>
+        <div class="tl-body">
+          <div class="tl-tags">
+            <span class={`tl-tag severity-${entry.severity}`}>{entry.sevLabel}</span>
+            <span class="tl-sep" aria-hidden="true">&middot;</span>
+            <span class="tl-tag">{entry.typeLabel}</span>
+          </div>
+          <p class="tl-summary">{entry.summary}</p>
+          <p class="tl-desc">{entry.desc}</p>
+          {entry.links.length > 0 && (
+            <div class="tl-links">
+              {entry.links.map(link => (
+                <a class="tl-link" href={link.url} target="_blank" rel="noopener noreferrer">
+                  &nearr; {link.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+</security-timeline>
+
+<style>
+  security-timeline {
+    display: block;
+    margin: var(--space-lg) 0;
+    font-family: var(--font-mono);
+  }
+
+  /* ---- Filter chrome ---- */
+  .tl-chrome {
+    margin-bottom: var(--space-md);
+  }
+
+  .tl-chrome-label {
+    font-size: var(--text-chrome);
+    color: var(--accent-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-xs);
+  }
+
+  .tl-chrome-label-year {
+    margin-top: var(--space-sm);
+  }
+
+  .tl-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .tl-filter {
+    font-family: var(--font-mono);
+    font-size: var(--text-ui);
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.7rem;
+    background: transparent;
+    border: 1px solid var(--gray-rule);
+    color: var(--gray-dim);
+    cursor: pointer;
+    transition: all 150ms var(--ease-out-expo);
+  }
+
+  .tl-filter:hover {
+    color: var(--white);
+    border-color: var(--gray);
+  }
+
+  .tl-filter.active {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  /* ---- Count ---- */
+  .tl-count {
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-sm);
+    text-transform: uppercase;
+  }
+
+  .tl-count-visible {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ---- Log container ---- */
+  .tl-log {
+    position: relative;
+    max-height: 38rem;
+    overflow-y: auto;
+    border-left: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 2%, transparent);
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-rule) transparent;
+  }
+
+  .tl-log::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .tl-log::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .tl-log::-webkit-scrollbar-thumb {
+    background: var(--gray-rule);
+  }
+
+  /* ---- Entry ---- */
+  .tl-entry {
+    border-bottom: 1px solid var(--gray-rule);
+  }
+
+  .tl-entry:last-child {
+    border-bottom: none;
+  }
+
+  .tl-entry:nth-child(even) {
+    background: color-mix(in srgb, var(--white) 1.5%, transparent);
+  }
+
+  .tl-entry.hidden {
+    display: none;
+  }
+
+  /* ---- Head — single compact row ---- */
+  .tl-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    transition: background 150ms var(--ease-out-expo);
+  }
+
+  .tl-head:hover {
+    background: color-mix(in srgb, var(--white) 3%, transparent);
+  }
+
+  .tl-entry.expanded .tl-head {
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+  }
+
+  .tl-date {
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: 5.5rem;
+  }
+
+  .tl-id {
+    font-size: var(--text-ui);
+    font-weight: 600;
+    color: var(--white);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tl-sev {
+    font-size: var(--text-chrome);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .tl-sev.severity-critical { color: var(--cherry); }
+  .tl-sev.severity-high     { color: #d47a4c; }
+  .tl-sev.severity-research { color: #6b93a8; }
+
+  /* ---- Chevron ---- */
+  .tl-chevron {
+    font-size: var(--text-chrome);
+    color: var(--gray-dim);
+    flex-shrink: 0;
+    transition: transform 150ms var(--ease-out-expo);
+  }
+
+  .tl-entry.expanded .tl-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
+  /* ---- Body (expandable) ---- */
+  .tl-body {
+    display: none;
+  }
+
+  .tl-entry.expanded .tl-body {
+    display: block;
+    padding: 0 0.75rem 0.75rem;
+    border-top: 1px dashed var(--gray-rule);
+    margin: 0 0.75rem;
+  }
+
+  /* ---- Tags ---- */
+  .tl-tags {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .tl-tag {
+    font-size: var(--text-ui);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--gray);
+  }
+
+  .tl-sep {
+    color: var(--gray-rule);
+    font-size: var(--text-chrome);
+  }
+
+  .tl-tag.severity-critical { color: var(--cherry); }
+  .tl-tag.severity-high     { color: #d47a4c; }
+  .tl-tag.severity-research { color: #6b93a8; }
+
+  /* ---- Summary ---- */
+  .tl-summary {
+    font-size: var(--text-secondary);
+    font-family: var(--font-display);
+    color: var(--white);
+    line-height: 1.55;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ---- Description ---- */
+  .tl-desc {
+    font-size: var(--text-secondary);
+    font-family: var(--font-display);
+    color: var(--gray);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ---- Links ---- */
+  .tl-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .tl-link {
+    font-size: var(--text-ui);
+    font-family: var(--font-mono);
+    padding: 0.15rem 0.4rem;
+    border: 1px solid var(--gray-rule);
+    color: var(--accent);
+    text-decoration: none;
+    transition: all 150ms var(--ease-out-expo);
+  }
+
+  .tl-link:hover {
+    border-color: var(--accent-dim);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+</style>
+
+<script>
+  class SecurityTimeline extends HTMLElement {
+    connectedCallback() {
+      this.querySelectorAll('.tl-head').forEach(head => {
+        const toggle = () => {
+          const entry = head.closest('.tl-entry')!;
+          const expanded = entry.classList.toggle('expanded');
+          head.setAttribute('aria-expanded', String(expanded));
+        };
+        head.addEventListener('click', toggle);
+        head.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+      });
+
+      const entries = this.querySelectorAll('.tl-entry');
+      const countVisible = this.querySelector('.tl-count-visible');
+      let activeType = 'all';
+      let activeYear = 'all';
+
+      const applyFilters = () => {
+        let visible = 0;
+        entries.forEach(entry => {
+          const el = entry as HTMLElement;
+          const matchType = activeType === 'all' || el.dataset.type === activeType;
+          const matchYear = activeYear === 'all' || el.dataset.year === activeYear;
+          const show = matchType && matchYear;
+          el.classList.toggle('hidden', !show);
+          if (show) visible++;
+        });
+        if (countVisible) countVisible.textContent = String(visible);
+      };
+
+      this.querySelectorAll('.tl-filters[data-group="type"] .tl-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.querySelectorAll('.tl-filters[data-group="type"] .tl-filter').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeType = (btn as HTMLElement).dataset.filter!;
+          applyFilters();
+        });
+      });
+
+      this.querySelectorAll('.tl-filters[data-group="year"] .tl-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.querySelectorAll('.tl-filters[data-group="year"] .tl-filter').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeYear = (btn as HTMLElement).dataset.filter!;
+          applyFilters();
+        });
+      });
+    }
+  }
+  customElements.define('security-timeline', SecurityTimeline);
+</script>
