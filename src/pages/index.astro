@@ -37,7 +37,7 @@ const posts = (await getCollection('posts', ({ data }) => import.meta.env.PROD ?
           <span class="post-index" aria-hidden="true">TX-{issueNumber}</span>
           <time class="post-date" datetime={isoDate}>{formattedDate}</time>
           <h3 class="post-title">
-            <a href={`/posts/${post.slug}/`} data-scramble="hover">{post.data.title}</a>
+            <a href={`/posts/${post.slug}/`} data-scramble="load">{post.data.title}</a>
           </h3>
           <p class="post-excerpt">{post.data.excerpt}</p>
           <div class="post-tags">

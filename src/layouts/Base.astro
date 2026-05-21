@@ -179,7 +179,7 @@ const ogImageURL = new URL(ogImage, siteBase).href;
       requestAnimationFrame(tick);
     }
 
-    document.querySelectorAll('[data-scramble="hover"]').forEach(el => {
+    document.querySelectorAll('[data-scramble]').forEach(el => {
       el.addEventListener('mouseenter', () => scramble(el));
     });
 
