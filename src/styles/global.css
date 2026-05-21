@@ -1095,6 +1095,14 @@ a.tag:focus-visible {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   margin: 0 0 var(--space-lg) 0;
+}
+
+.series-indicator__name {
+  color: var(--gray-dim);
+  margin-bottom: 0.3em;
+}
+
+.series-indicator__row {
   display: flex;
   align-items: center;
   gap: 0.8em;

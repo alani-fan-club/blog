@@ -1,10 +1,9 @@
 ---
-title: "Your Agent Is a While Loop — TBD"
+title: "Your Agent Got Played"
 date: 2026-05-18
 author: "ALANI"
 tags: ["agents", "security", "infrastructure", "LLM-Security"]
-draft: true
-excerpt: "The reason agents are vulnerable is that the loop architecture trusts whatever its tools return, unconditionally, every iteration."
+excerpt: "The harness never checks what comes back from a tool call. Neither does the model. That's the whole problem."
 ---
 import SeriesIndicator from '../../components/SeriesIndicator.astro';
 import Callout from '../../components/Callout.astro';
@@ -14,7 +13,7 @@ import EchoLeakDiagram from '../../components/EchoLeakDiagram.astro';
 import ZeroClickDiagram from '../../components/ZeroClickDiagram.astro';
 import ThreeLoopsDiagram from '../../components/ThreeLoopsDiagram.astro';
 
-<SeriesIndicator current={2} total={3} />
+<SeriesIndicator series="Your Agent Is a While Loop" current={2} total={3} />
 
 The agent security conversation has hardened around the wrong threat for about a year now. Read any vendor security writeup, sit through any conference talk, scroll any practitioner thread, and the central concern is always the same: prompt injection, the cleverly-worded webpage that gets an LLM to do something it shouldn't. Prompt injection is real, and EchoLeak proved it can hit production. The discourse isn't wrong about it. It's twelve months out of date, and the actual threat landscape has moved.
 
