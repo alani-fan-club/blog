@@ -761,11 +761,11 @@
         </div>
 
         <p>
-          Grab <code>chronicledb-v0.3.0.zip</code> from the v0.3.0 release. The zip is self-contained &mdash; no git, no Node toolchain, no shell scripts. <code>node_modules</code> is bundled; the internal folder layout mirrors SillyTavern's so files land where ST expects them when you extract in Step 02.
+          Grab <code>chronicledb-v0.3.1.zip</code> from the v0.3.1 release. The zip is self-contained &mdash; no git, no Node toolchain, no shell scripts. <code>node_modules</code> is bundled; the internal folder layout mirrors SillyTavern's so files land where ST expects them when you extract in Step 02.
         </p>
 
         <div style="margin:1.5rem 0;">
-          <a href="https://github.com/alani-fan-club/chronicledb/releases/download/v0.3.0/chronicledb-v0.3.0.zip" class="mock-btn" style="text-decoration:none;font-size:.75rem;padding:.6rem 1.2rem;">Download chronicledb-v0.3.0.zip</a>
+          <a href="https://github.com/alani-fan-club/chronicledb/releases/download/v0.3.1/chronicledb-v0.3.1.zip" class="mock-btn" style="text-decoration:none;font-size:.75rem;padding:.6rem 1.2rem;">Download chronicledb-v0.3.1.zip</a>
           <p class="muted" style="margin-top:.6rem;font-size:.7rem;">
             Or browse all assets on the <a href="https://github.com/alani-fan-club/chronicledb/releases/latest" style="color:var(--accent)">latest release page</a>. The asset name follows the pattern <code>chronicledb-vX.Y.Z.zip</code> &mdash; the download button above is hardcoded to the current release and gets bumped each tag.
           </p>
@@ -803,10 +803,10 @@
         <!-- macOS: Finder GUI or unzip in Terminal -->
         <div data-os-only="mac">
           <p>Two options &mdash; pick whichever you're comfortable with.</p>
-          <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;"><strong>Finder:</strong> double-click <code>chronicledb-v0.3.0.zip</code> in <code>Downloads</code>. That creates a <code>chronicledb-v0.3.0/</code> folder alongside it. Open that folder; you'll see <code>plugins/</code> and <code>public/</code> inside. Drag both into your SillyTavern folder &mdash; macOS will ask to merge; choose <strong>Merge</strong>.</p>
+          <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;"><strong>Finder:</strong> double-click <code>chronicledb-v0.3.1.zip</code> in <code>Downloads</code>. That creates a <code>chronicledb-v0.3.1/</code> folder alongside it. Open that folder; you'll see <code>plugins/</code> and <code>public/</code> inside. Drag both into your SillyTavern folder &mdash; macOS will ask to merge; choose <strong>Merge</strong>.</p>
           <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;"><strong>Terminal:</strong></p>
           <pre data-lang="bash"><code><span class="cmd">cd</span> ~/SillyTavern
-<span class="cmd">unzip</span> -o ~/Downloads/chronicledb-v0.3.0.zip</code></pre>
+<span class="cmd">unzip</span> -o ~/Downloads/chronicledb-v0.3.1.zip</code></pre>
           <p class="muted"><code>-o</code> overwrites any existing files without prompting, which is what you want when you're upgrading a previous install.</p>
         </div>
 
@@ -814,7 +814,7 @@
         <div data-os-only="linux">
           <p>From a terminal inside your SillyTavern folder:</p>
           <pre data-lang="bash"><code><span class="cmd">cd</span> ~/SillyTavern
-<span class="cmd">unzip</span> -o ~/Downloads/chronicledb-v0.3.0.zip</code></pre>
+<span class="cmd">unzip</span> -o ~/Downloads/chronicledb-v0.3.1.zip</code></pre>
           <p class="muted"><code>-o</code> overwrites in place so upgrades from a previous ChronicleDB install don't need to be uninstalled first.</p>
           <div class="callout">
             <strong>No <code>unzip</code>?</strong> <code>sudo apt install unzip</code> on Debian/Ubuntu, or <code>sudo dnf install unzip</code> on Fedora.
@@ -825,12 +825,12 @@
         <div data-os-only="windows">
           <ol style="font-size:.75rem;color:var(--gray);line-height:1.8;padding-left:1.5rem;">
             <li>In File Explorer, open the folder where you saved the zip (e.g. <code>Downloads</code>).</li>
-            <li>Right-click <code>chronicledb-v0.3.0.zip</code> &rarr; <strong>Extract All...</strong></li>
+            <li>Right-click <code>chronicledb-v0.3.1.zip</code> &rarr; <strong>Extract All...</strong></li>
             <li>In the Extract dialog, change the destination to the root of your SillyTavern install &mdash; e.g. <code>C:\Users\YOU\SillyTavern</code> or wherever you run <code>Start.bat</code> from. Click <strong>Extract</strong>.</li>
             <li>Windows will prompt to merge the <code>plugins</code> and <code>public</code> folders with the existing ones &mdash; choose <strong>Replace the files in the destination</strong>.</li>
           </ol>
           <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem;">PowerShell equivalent if you prefer a one-liner:</p>
-          <pre data-lang="powershell"><code><span class="cmd">Expand-Archive</span> -Path $HOME\Downloads\chronicledb-v0.3.0.zip -DestinationPath $HOME\SillyTavern -Force</code></pre>
+          <pre data-lang="powershell"><code><span class="cmd">Expand-Archive</span> -Path $HOME\Downloads\chronicledb-v0.3.1.zip -DestinationPath $HOME\SillyTavern -Force</code></pre>
           <div class="callout">
             <strong>No admin, no Developer Mode, no WSL.</strong> The zip install is plain file copy &mdash; it doesn't create symlinks, junctions, or any elevated filesystem object, so the previous PowerShell 5.1 / BOM / privilege grief is gone.
           </div>

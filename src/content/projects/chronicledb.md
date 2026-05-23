@@ -1,6 +1,6 @@
 ---
 title: "ChronicleDB"
-status: "Open beta — v0.3.0"
+status: "Open beta — v0.3.1"
 order: 0
 targets: "SillyTavern memory, graph+vector hybrid retrieval, trait canonicalization, Louvain-derived story arcs"
 url: "/projects/chronicledb/"
