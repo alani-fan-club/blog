@@ -1,0 +1,192 @@
+---
+import Diagram from './Diagram.astro';
+---
+<Diagram
+  label="GAN: The Adversarial Game (2014)"
+  ariaLabel="Diagram showing the GAN training loop: random noise enters the generator, which produces a fake image. The discriminator compares that fake image with real training images, outputs a real-or-fake judgment, and sends feedback to improve the generator."
+>
+  <div class="gan">
+    <div class="gan-spine">
+      <div class="gan-node gan-source">
+        <span class="gan-name">Random Noise</span>
+      </div>
+
+      <div class="gan-vline" aria-hidden="true"></div>
+
+      <div class="gan-node gan-gen">
+        <span class="gan-name">Generator</span>
+        <span class="gan-meta">learns to fool</span>
+      </div>
+
+      <div class="gan-vline" aria-hidden="true"></div>
+
+      <div class="gan-node gan-fake">
+        <span class="gan-name">Fake Image</span>
+      </div>
+    </div>
+
+    <div class="gan-vline gan-vline-long" aria-hidden="true"></div>
+
+    <div class="gan-compare">
+      <div class="gan-node gan-real">
+        <span class="gan-name">Real Training Images</span>
+        <span class="gan-meta">target distribution</span>
+      </div>
+
+      <div class="gan-side-arrow" aria-hidden="true">→</div>
+
+      <div class="gan-node gan-disc">
+        <span class="gan-name">Discriminator</span>
+        <span class="gan-meta">compares fake against real</span>
+      </div>
+    </div>
+
+    <div class="gan-vline" aria-hidden="true"></div>
+
+    <div class="gan-node gan-verdict">
+      <span class="gan-name">Real or Fake?</span>
+    </div>
+
+    <div class="gan-feedback">
+      <span class="gan-feedback-label">feedback updates the generator</span>
+    </div>
+  </div>
+</Diagram>
+
+<style>
+  .gan {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: clamp(0.9rem, 3vw, 1.4rem);
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: clamp(0.72rem, 1.8vw, 0.8rem);
+  }
+
+  .gan-spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(100%, 15rem);
+  }
+
+  .gan-node {
+    width: 100%;
+    border: 1px solid #2a2a2a;
+    padding: 0.72rem 0.8rem;
+    min-height: 3.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    background: #0d0d0d;
+    text-align: center;
+  }
+
+  .gan-source { border-color: #3a3a3a; }
+  .gan-gen    { border-color: #3bceac99; background: #0a1a17; }
+  .gan-fake   { border-color: #3a3a3a; }
+  .gan-real   { border-color: #555; }
+  .gan-disc   { border-color: #3bceac; background: #0a1a17; }
+  .gan-verdict { width: min(100%, 15rem); border-color: #e0303e99; background: #1a0a0a; }
+
+  .gan-name {
+    color: #d4d4d4;
+    font-weight: 600;
+    letter-spacing: 0.035em;
+    line-height: 1.2;
+  }
+
+  .gan-gen .gan-name,
+  .gan-disc .gan-name { color: #3bceac; }
+
+  .gan-meta {
+    font-size: 0.72em;
+    color: #8a8a8a;
+    line-height: 1.3;
+  }
+
+  .gan-vline {
+    width: 1px;
+    height: 1.2rem;
+    background: #555;
+  }
+
+  .gan-vline-long {
+    height: 1.5rem;
+  }
+
+  .gan-compare {
+    display: grid;
+    grid-template-columns: minmax(9rem, 1fr) auto minmax(10rem, 1fr);
+    align-items: stretch;
+    gap: 0.45rem;
+    width: min(100%, 34rem);
+  }
+
+  .gan-side-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 1rem;
+    padding: 0 0.1rem;
+  }
+
+  .gan-feedback {
+    width: min(100%, 15rem);
+    margin-top: 0.45rem;
+    padding: 0.4rem 0.5rem;
+    border-top: 1px dashed #e0303e99;
+    text-align: center;
+  }
+
+  .gan-feedback-label {
+    font-size: 0.72em;
+    color: #e0303ed0;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 640px) {
+    .gan {
+      align-items: stretch;
+      padding: 0.9rem;
+      font-size: 0.8rem;
+    }
+
+    .gan-spine,
+    .gan-verdict,
+    .gan-feedback {
+      width: 100%;
+    }
+
+    .gan-node {
+      min-height: auto;
+      padding: 0.85rem 0.8rem;
+    }
+
+    .gan-compare {
+      grid-template-columns: 1fr;
+      width: 100%;
+      gap: 0.3rem;
+    }
+
+    .gan-side-arrow {
+      min-height: 1.25rem;
+      padding: 0;
+      color: transparent;
+      font-size: 0;
+    }
+
+    .gan-side-arrow::before {
+      content: '↓ compared with ↓';
+      color: #777;
+      font-size: 0.68rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+  }
+</style>

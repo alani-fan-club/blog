@@ -1206,6 +1206,11 @@ a.tag:focus-visible {
   margin: var(--space-lg) 0;
   position: relative;
   font-family: var(--font-mono);
+  overflow: hidden;
+}
+
+.diagram-content {
+  min-width: 0;
 }
 
 .diagram-label {
@@ -1220,6 +1225,19 @@ a.tag:focus-visible {
 
 .diagram-label::before {
   content: '▮ ';
+}
+
+@media (max-width: 640px) {
+  .diagram {
+    margin: var(--space-md) calc(var(--space-sm) * -1);
+  }
+
+  .diagram-label {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    line-height: 1.35;
+  }
 }
 
 

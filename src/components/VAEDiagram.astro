@@ -1,0 +1,163 @@
+---
+import Diagram from './Diagram.astro';
+---
+<Diagram
+  label="VAE"
+  ariaLabel="Diagram showing a Variational Autoencoder: a training image is compressed by an encoder into a probability distribution in latent space (defined by mean μ and variance σ), a point is sampled from that distribution, and a decoder reconstructs a generated image from the sample"
+>
+  <div class="vae">
+    <div class="vae-col">
+      <div class="vae-node vae-source">
+        <span class="vae-name">Training Image</span>
+      </div>
+    </div>
+
+    <div class="vae-arrow">→</div>
+
+    <div class="vae-col">
+      <div class="vae-node">
+        <span class="vae-name">Encoder</span>
+        <span class="vae-meta">compress to essentials</span>
+      </div>
+    </div>
+
+    <div class="vae-arrow">→</div>
+
+    <div class="vae-col">
+      <div class="vae-node vae-latent">
+        <span class="vae-name">Latent Space</span>
+        <span class="vae-meta">μ, σ — a probability distribution<br/>not a point, a cloud</span>
+      </div>
+    </div>
+
+    <div class="vae-arrow">→<span class="vae-sample-label">sample()</span></div>
+
+    <div class="vae-col">
+      <div class="vae-node">
+        <span class="vae-name">Decoder</span>
+        <span class="vae-meta">reconstruct from sample</span>
+      </div>
+    </div>
+
+    <div class="vae-arrow">→</div>
+
+    <div class="vae-col">
+      <div class="vae-node vae-end">
+        <span class="vae-name">Generated Image</span>
+      </div>
+    </div>
+  </div>
+</Diagram>
+
+<style>
+  .vae {
+    display: grid;
+    grid-template-columns: minmax(5.75rem, 1fr) auto minmax(5.75rem, 1fr) auto minmax(8rem, 1.35fr) auto minmax(5.75rem, 1fr) auto minmax(6.25rem, 1fr);
+    align-items: stretch;
+    gap: 0.35rem;
+    padding: clamp(0.85rem, 3vw, 1.35rem);
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: clamp(0.68rem, 1.8vw, 0.76rem);
+  }
+
+  .vae-col {
+    display: flex;
+    min-width: 0;
+  }
+
+  .vae-node {
+    width: 100%;
+    min-height: 4.2rem;
+    border: 1px solid #2a2a2a;
+    padding: 0.65rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    background: #0d0d0d;
+    text-align: center;
+  }
+
+  .vae-source {
+    border-color: #333;
+  }
+
+  .vae-latent {
+    border-color: #3bceac;
+    background: #0a1a17;
+  }
+
+  .vae-latent .vae-name {
+    color: #3bceac;
+  }
+
+  .vae-end {
+    border-color: #3bceac66;
+  }
+
+  .vae-name {
+    color: #d4d4d4;
+    font-weight: 600;
+    letter-spacing: 0.035em;
+    line-height: 1.2;
+  }
+
+  .vae-meta {
+    font-size: 0.68em;
+    color: #8a8a8a;
+    line-height: 1.35;
+  }
+
+  .vae-arrow {
+    color: #666;
+    padding: 0 0.15rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    font-size: 1rem;
+    align-self: center;
+  }
+
+  .vae-sample-label {
+    font-size: 0.58rem;
+    color: #3bceacc0;
+    letter-spacing: 0.03em;
+  }
+
+  @media (max-width: 720px) {
+    .vae {
+      grid-template-columns: 1fr;
+      gap: 0.3rem;
+      padding: 0.9rem;
+      font-size: 0.78rem;
+    }
+
+    .vae-node {
+      min-height: auto;
+      padding: 0.85rem 0.8rem;
+    }
+
+    .vae-arrow {
+      min-height: 1.45rem;
+      padding: 0;
+      color: transparent;
+      font-size: 0;
+    }
+
+    .vae-arrow::before {
+      content: '↓';
+      color: #666;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .vae-sample-label {
+      color: #3bceacc0;
+      font-size: 0.65rem;
+      line-height: 1;
+    }
+  }
+</style>

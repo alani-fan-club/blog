@@ -1,0 +1,224 @@
+---
+title: "Noise to Image, Art to Algorithm"
+date: 2026-06-02
+author: "ALANI"
+tags: ["generative-ai", "art", "history", "ethics", "diffusion-models"]
+excerpt: "A technical history of generative image generation, and why the art debate is an engineering question."
+---
+import VAEDiagram from '../../components/VAEDiagram.astro';
+import GANDiagram from '../../components/GANDiagram.astro';
+import DiffusionDiagram from '../../components/DiffusionDiagram.astro';
+
+The public debate asks whether AI images count as art. That framing hides the technical issue. These systems sample from compressed distributions of human-made work, so the authorship question depends on architecture, training data, and consent.
+
+## Twelve years of learning to predict
+
+From 2014 to 2026, researchers moved image generation from lab demos to consumer products. Early models produced images for papers. GPT Image reduced that technical history to a consumer interface: type a sentence, receive an image.
+
+### The compression idea (2014)
+
+The story starts with compression, not image generation. In 2014, Diederik Kingma and Max Welling published `Auto-Encoding Variational Bayes`, known as VAE, at ICLR 2014 [^1]. The idea resembled an autoencoder: train one neural network to compress images into a lower-dimensional representation, and another network to reconstruct images from that representation.
+
+Kingma and Welling's contribution was the statistical nature of the encoding. Instead of mapping each image to a single point in latent space, the encoder maps it to a probability distribution. The decoder samples from that distribution and reconstructs the image. The authors called the encoder a "probabilistic encoder" and the decoder a "probabilistic decoder".
+
+Kingma and Welling demonstrated VAE on small datasets like MNIST and Frey Faces. Later image generators worked inside compressed latent representations rather than raw images.
+
+<VAEDiagram />
+
+### The adversarial game (2014-2020)
+
+In the same year, Ian Goodfellow and colleagues published `Generative Adversarial Nets` (GAN) at NeurIPS [^2]. The concept was simple: train two networks in competition. The generator tries to produce images that fool the discriminator into thinking they're real. The discriminator learns to tell generated from real images. They compete until the discriminator can no longer tell the difference.
+
+The authors stated that, when the generator and discriminator have enough capacity, the generator "recovers the training data distribution." At optimum, a GAN can produce images that match its training data distribution. The model produces outputs consistent with its training data.
+
+<GANDiagram />
+
+Early GAN outputs were small, blurry, and easy for humans to distinguish from real images. Training two networks in competition also proved unstable. Researchers spent the next six years making the adversarial setup stable enough to produce images worth looking at.
+
+DCGAN, published at ICLR in 2016, solved part of the stability problem by setting architectural constraints for reliable training.[^3] The authors also assembled three million face images through automated web scraping and trained on roughly 350,000 of them. The scraping pipeline that produced DCGAN's dataset was indistinguishable from the one behind LAION-5B.
+
+ProGAN, published in 2018 at ICLR, expanded the output resolution to 1024×1024 and trained on CelebA-HQ, 30,000 celebrity photographs assembled from public sources [^4][^5]. The images began to look photorealistic.
+
+BigGAN, published in 2019 at ICLR, showed that scaling the model and training data could produce a leap in image quality. Google trained it on JFT-300M, a proprietary dataset of 300 million images that was never released to the public and could not be reproduced outside Google [^6].
+
+StyleGAN and StyleGAN2, published at CVPR in 2019 and 2020, improved the quality of generated images, especially portraits [^7][^8]. NVIDIA trained the models on FFHQ, a dataset of 70,000 Flickr photographs of human faces crawled from images with permissive licenses.
+
+Across these systems, the technical pattern was already visible: larger crawled datasets produced better images, while consent remained outside the research problem. The field kept the same pipeline for the next decade: crawl, filter, train.
+
+StyleGAN drove the creation of the viral website [This Person Does Not Exist](https://thispersondoesnotexist.com/), which serves a random StyleGAN output each time you open the page. None of the photographs were real. Many viewers thought they were.
+
+### Denoising as generation (2020)
+
+While GAN research chased stable adversarial training, diffusion researchers took another route.
+
+In 2020, Ho, Jain, and Abbeel published `Denoising Diffusion Probabilistic Models` (DDPM) at NeurIPS [^12]. The forward process, or *diffusion process*, takes an image and corrupts it by adding Gaussian noise until the image disappears into random noise. The reverse process trains a neural network to remove the noise over multiple steps and recover the original image. The authors described the reverse process as "progressive lossy decompression."
+
+<DiffusionDiagram />
+
+Song and colleagues' paper `Score-Based Generative Modeling through Stochastic Differential Equations`, published at ICLR in 2021, unified the theory behind score-based generative models and diffusion models. Under a continuous-time SDE framework, the forward process is a stochastic differential equation that corrupts the image into noise. The reverse process is another SDE that can generate new images from the distribution.
+
+Song and colleagues suggest that the score function learned by the models is the gradient of the log-probability density of the training data distribution [^13]. In other words, the model learns the geometry of the training distribution. Starting from noise and running the reverse process means navigating toward a point consistent with that distribution.
+
+### From images to language (2021)
+
+GANs and diffusion models improved image quality before they became easy to control. Users could sample a latent space, but they could not ask for a golden retriever, a courtroom sketch, or a poster in a specific visual register. Language became the control surface.
+
+`Taming Transformers for High-Resolution Image Synthesis` (VQGAN), published by Esser, Rombach, and colleagues at CVPR 2021, bridged images and language by encoding images into a discrete codebook: a finite vocabulary of visual parts, analogous to word tokens in a language model [^11]. This allowed image generation to work more like language modeling: predict the next visual token, then the next.
+
+VQGAN built on VQ-VAE and VQ-VAE-2, both developed at DeepMind and published at NeurIPS in 2017 and 2019 [^9][^10]. The VQ-VAE-2 authors used a JPEG compression analogy: "it is often possible to remove more than 80% of the data without noticeably changing the perceived image quality." Their model reconstructed images from latent representations 30 times smaller than the original images with little distortion. By 2021, Esser et al. had combined this compression framework with adversarial training and transformer-based sequence modeling, producing the direct architectural ancestor of DALL-E and Stable Diffusion.
+
+### CLIP and the semantic layer (2021)
+
+Diffusion models still lacked a language handle. Researchers could condition them on class labels, noise levels, or other images. They could not type "an image of a golden retriever" and steer the output through a sentence.
+
+OpenAI supplied that bridge with `Learning Transferable Visual Models From Natural Language Supervision` (CLIP), published at ICML 2021 [^14]. The team trained a model to align images and their textual descriptions in a shared embedding space. In that space, the embedding of a golden retriever photograph sits close to the embedding of the words "golden retriever". CLIP connected image generation to language at scale.
+
+OpenAI trained CLIP on 400 million text-image pairs assembled by crawling the internet for images whose surrounding web text matched a large vocabulary of concepts. OpenAI's internal name for this dataset was WebImageText, and the company never released it. The paper describes its construction as "a variety of publicly available sources on the Internet" with no source list, no licensing terms, and no consent process.[^14]
+
+Many major text-to-image systems that followed used CLIP directly, learned from CLIP, or adopted the same basic move: align language and image representations at scale. The paper made text-to-image generation possible at scale. It also made undisclosed provenance part of the foundation.
+
+### Text to image goes public (2021-2023)
+
+DALL-E 1 (2021) was OpenAI's first large-scale text-to-image model: a discrete VAE for image tokenization and a transformer trained on 250 million internet image-text pairs.[^15]
+
+DALL-E 2 (2022) replaced the image tokenizer with CLIP embeddings and the transformer with a diffusion model, producing better results from another undisclosed training corpus.[^16] The outputs generated press coverage and concern from professional illustrators who recognized their aesthetic register in the results. Training data consent became a mainstream story.
+
+Imagen, from Google Brain in 2022, made a different architectural choice: a T5 text encoder rather than CLIP, plus cascaded diffusion for high-resolution output.[^17] Google trained it on an internal dataset along with LAION-400M. The authors wrote that their LAION training subset contained "a wide range of inappropriate content including pornographic imagery, racist slurs, and harmful social stereotypes," and that "important safety challenges need to be addressed before Imagen should be deployed in any real-world applications." The primary literature had named the data pipeline as the problem.
+
+In the same year, Rombach, Blattmann, and colleagues published `High-Resolution Image Synthesis with Latent Diffusion Models` at CVPR [^18]. The model later became known as Stable Diffusion. By moving diffusion from pixel space into a compressed latent space, the team reduced computational requirements enough to run the model on consumer hardware. Stability AI released the weights in August 2022. For the first time, anyone with a consumer GPU could generate photorealistic images from text without paying for API access. The training data for Stable Diffusion was LAION-5B: 5.85 billion image-text pairs assembled from Common Crawl web archives.[^19] The dataset's own NeurIPS datasheet acknowledged that "those depicted in the photograph might not have given their consent."
+
+By this point, the pattern was clear: the models improved through scale, compression, and better conditioning, while the data pipeline remained built on scraped or undisclosed image collections.
+
+Two years later, Stability AI published `SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis` at ICLR 2024, improving output resolution and image quality [^20].
+
+In 2023, OpenAI released DALL-E 3, which improved prompt adherence by applying AI-generated synthetic captions to its training images [^21]. On OpenAI's product page for the model, a new policy appeared: DALL-E 3 would decline requests for images "in the style of a living artist."[^22] The policy implied what the technical report did not say. The model had learned to produce images in the style of living artists.
+
+### The current moment (2024-2026)
+
+Robin Rombach, Andreas Blattmann, Patrick Esser, and Dominik Lorenz, the researchers who built Stable Diffusion at Heidelberg and Runway ML before joining and leaving Stability AI, founded Black Forest Labs in August 2024.[^23] Their first release, FLUX.1, used a 12-billion-parameter architecture built from multimodal and parallel diffusion transformer blocks. Instead of DDPM's noise schedule, it used flow matching. FLUX.1 improved resolution, text rendering, and sampling efficiency.
+
+Google's Imagen 3 (August 2024) outperformed its predecessors across 366,569 human evaluation ratings.[^24] OpenAI's GPT Image 1 (`gpt-image-1`, March 25, 2025) took a different architectural route: an autoregressive model natively embedded in ChatGPT, generating images token by token the same way language models generate text, trained within the joint GPT-4o training run.[^25] GPT Image 2 (`gpt-image-2`, April 21, 2026) is the direct successor and OpenAI's first image model with native reasoning capabilities.[^38]
+
+The pattern was now consistent across frontier labs. Black Forest Labs, Google, and OpenAI published capabilities, evaluations, and safety filters. None gave a usable account of the training corpus. Black Forest Labs did not name datasets. Google's Imagen 3 report describes filters for NSFW content, PII, and AI-generated images, but not the provenance of what Google filtered. OpenAI described GPT Image's training data as "the joint distribution of online images and text" and left that description unchanged for GPT Image 2.
+
+In a little more than a decade, landmark models pushed image generation from research demos to consumer products. Their teams published meticulous research: proofs, evaluations, and ablation studies. As commercial stakes grew, the papers said less about where the training data came from, whose work was in it, and whether anyone had been asked.
+
+The pattern is precise about architecture and opaque about provenance. The omission was deliberate.
+
+## An engineering answer to the art question
+
+Return to LAION-5B, because it is where the authorship question becomes concrete. The primary dataset behind most publicly available image models, including Stable Diffusion and SDXL, contains roughly 5.85 billion image-text pairs scraped from the public web and assembled without the knowledge or consent of the people whose work was included.[^19] Photographers, illustrators, designers, painters, and millions of ordinary people made those images. They decided on the exact angle of a subject's gaze, the pressure of a brushstroke, the choice to wait one more second before pressing the shutter. The model compressed the statistical relationship between those images and their captions into learned parameters. It learned to predict.
+
+At inference, a diffusion model starts from Gaussian noise: random pixel values. It removes noise step by step until the image lands near a point that matches the prompt under the training distribution. For most outputs, this is not retrieval or collage in any familiar sense. But "not retrieval" does not mean "independent."
+
+Researchers have found that 1.88% of Stable Diffusion outputs had a near-verbatim match in the LAION training set, measured by copy-detection at high cosine similarity thresholds.[^26] A separate team extracted over a thousand near-identical copies of specific training images from deployed commercial models, including Stable Diffusion, DALL-E 2, and Imagen, using targeted membership inference attacks.[^28] Getty Images sued Stability AI in both the United States and the United Kingdom, citing the appearance of corrupted Getty watermarks in Stable Diffusion outputs as direct evidence of training data memorization.[^30]
+
+The model does not copy most outputs, but the extraction studies show that it can reproduce training images. Even when it does not, the latent space it navigates was shaped by the human work scraped without consent.
+
+Prompting requires taste, iteration, and curation. It can involve real judgment. But calling prompt engineering an art form makes a specific authorship claim: selecting coordinates in a latent space built from other people's work counts as creative authorship. It doesn't. That differs from making the formal choices embedded in the output: light, line, composition, texture, color, timing. The curator of a photography exhibition works with objects whose authorship is clear and acknowledged. The prompt engineer samples from a system that absorbed those works, dissolved the provenance chain, and presents the result as its own.
+
+The defense of AI image generation borrows from an older pattern. Every new medium faced a version of this objection: photography in 1839, film in the 1890s, digital art in the 1990s, Photoshop in the 2000s, music sampling and remix culture throughout. Each time, critics dismissed the new medium as "not real art" and later looked backward. AI image generation, the argument goes, is the latest version of the same mistake.
+
+That comparison breaks down when we ask where the creative decision is made. Photography, film, digital art, and sampling all required new recognition because artists still made the constitutive choices: framing, exposure, editing, layering, transformation. AI image generation raises a narrower question. The prompt operator may steer outputs, but the model's visual vocabulary comes from decisions made by people whose work entered the training set. The tools argument proves too much. It would credit the carpenter for the architect's design. The relevant question is whose judgment shaped the outcome.
+
+The earlier papers are precise about this. Their authors described these systems in compression and distribution terms throughout. The original GAN paper stated its training objective as having the generator "recover the training data distribution."[^2] The DDPM paper describes the inference process as "progressive lossy decompression."[^12] VQ-VAE-2, whose codebook architecture fed into DALL-E and Stable Diffusion, frames its contribution through an explicit JPEG compression analogy: "it is often possible to remove more than 80% of the data without noticeably changing the perceived image quality."[^9] The models compress human-made images into statistical weights and sample from the result. Those weights encode the creative decisions of people who never ran a prompt.
+
+The people whose work built the models bear that cost.
+
+The people whose decisions constitute AI image outputs were not asked. They were scraped. LAION's own NeurIPS datasheet acknowledges that "those depicted in the photograph might not have given their consent."[^19] Three artists filed a class action lawsuit against Stability AI, Midjourney, and DeviantArt, with the technical claim that Stable Diffusion is a "21st-century collage tool" that relies on "interpolating between images that exist only in the training data."[^29]
+
+For closed systems, the same provenance problem becomes harder to inspect. OpenAI describes GPT Image 1 and GPT Image 2's training data only as "the joint distribution of online images and text."[^25][^38] Google's Imagen 3 technical report, dozens of pages long, names not a single training dataset.[^24] When Midjourney's founder was asked about consent from living artists, he said: "No. There isn't really a way to get a hundred million images and know where they're coming from."[^32]
+
+Researchers who study what's inside these models have reached similar conclusions by different means. In 2023, a team demonstrated that named artists' styles can be erased from a diffusion model's outputs through targeted fine-tuning that locates and removes specific encoded representations.[^35] If a style can be removed, the model encoded it. A separate study showed that data attribution methods, attempts to trace which training images influenced a given output, break down formally in networks of the scale and non-convexity used in diffusion models. At this scale, the math rules attribution out.[^37]
+
+Researchers can prove that artist styles are encoded in the model. Attributing a specific output back to the people whose decisions shaped it is formally unsolvable at this scale. The architecture makes authorship measurable at one end and unattributable at the other.
+
+## Whose decisions shape the output?
+
+The outputs can be beautiful, technically accomplished, even culturally resonant. The mistake is confusing taste with authorship.
+
+A prompt can take hours. It can involve iteration, rejection, weighting, rerolling, editing, and careful selection. That labor is real. Operating a machine takes skill. The machine's knowledge came from elsewhere.
+
+Photography is not the right analogy. A photographer does not search a compressed archive of other photographers' eyes until an image appears. The camera records a scene the photographer chose to face: this light, this body, this street, this second. The photographer's decisions enter the image at the moment of capture.
+
+AI image generation works differently. The prompt operator searches a learned distribution. The model already contains relations between words and images: how oil paint breaks at the edge of a stroke, what counts as cinematic light. Those relations did not come from the prompt. They came from the training set.
+
+The prompt is a coordinate.
+
+The operator moves through a space made from other people's decisions. They have taste and patience. They know how to bargain with the machine. But the visual intelligence they are bargaining with was built elsewhere, from work scraped, compressed, and made anonymous.
+
+The output often looks like art. The decisions that made it look that way came from the artists whose work became the model's instincts.
+
+[^1]: Kingma, D. P., & Welling, M. (2014). Auto-Encoding Variational Bayes. *ICLR 2014*. arXiv:1312.6114
+
+[^2]: Goodfellow, I., Pouget-Abadie, J., Mirza, M., et al. (2014). Generative Adversarial Nets. *NeurIPS 2014*. arXiv:1406.2661. The quoted phrase "recover the training data distribution" appears in Proposition 1 of the paper's theoretical analysis.
+
+[^3]: Radford, A., Metz, L., & Chintala, S. (2016). Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks. *ICLR 2016*. arXiv:1511.06434. The three-million-face dataset assembled via automated web scraping is described in Section 4.1.
+
+[^4]: Liu, Z., Luo, P., Wang, X., & Tang, X. (2015). Deep Learning Face Attributes in the Wild. *ICCV 2015*. arXiv:1411.7866. CelebA (202,599 images). CelebA-HQ was constructed from CelebA in Karras et al. 2018 (see [^5]).
+
+[^5]: Karras, T., Aila, T., Laine, S., & Lehtinen, J. (2018). Progressive Growing of GANs for Improved Quality, Stability, and Variation. *ICLR 2018*. arXiv:1710.10196.
+
+[^6]: Brock, A., Donahue, J., & Simonyan, K. (2019). Large Scale GAN Training for High Fidelity Natural Image Synthesis. *ICLR 2019*. arXiv:1809.11096. JFT-300M was never publicly released; the large-scale JFT results could not be reproduced outside Google. The authors did release code and ImageNet checkpoints.
+
+[^7]: Karras, T., Laine, S., & Aila, T. (2019). A Style-Based Generator Architecture for Generative Adversarial Networks. *CVPR 2019*. arXiv:1812.04948. FFHQ (70,000 images) introduced here.
+
+[^8]: Karras, T., Laine, S., Aittala, M., et al. (2020). Analyzing and Improving the Image Quality of StyleGAN. *CVPR 2020*. arXiv:1912.04958.
+
+[^9]: Razavi, A., van den Oord, A., & Vinyals, O. (2019). Generating Diverse High-Fidelity Images with VQ-VAE-2. *NeurIPS 2019*. arXiv:1906.00446. The JPEG analogy and 80% compression claim appear in Section 1.
+
+[^10]: van den Oord, A., Vinyals, O., & Kavukcuoglu, K. (2017). Neural Discrete Representation Learning (VQ-VAE). *NeurIPS 2017*. arXiv:1711.00937.
+
+[^11]: Esser, P., Rombach, R., & Ommer, B. (2021). Taming Transformers for High-Resolution Image Synthesis. *CVPR 2021*. arXiv:2012.09841.
+
+[^12]: Ho, J., Jain, A., & Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *NeurIPS 2020*. arXiv:2006.11239. "Progressive lossy decompression" appears in the paper's framing of the reverse process.
+
+[^13]: Song, Y., Sohl-Dickstein, J., Kingma, D. P., et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *ICLR 2021* (Outstanding Paper Award). arXiv:2011.13456.
+
+[^14]: Radford, A., Kim, J. W., Hallacy, C., Ramesh, A., et al. (2021). Learning Transferable Visual Models From Natural Language Supervision. *ICML 2021*. arXiv:2103.00020. OpenAI's internal training set is described in Section 2.1 as "a variety of publicly available sources on the Internet" with no source list and no licensing terms. Note: Google separately published a dataset called "Wikipedia-based Image Text" (WIT) in 2021 (Srinivasan et al., arXiv:2103.01913), a completely different and publicly released resource. The naming similarity is coincidental.
+
+[^15]: Ramesh, A., Pavlov, M., Goh, G., Gray, S., et al. (2021). Zero-Shot Text-to-Image Generation. *ICML 2021*. arXiv:2102.12092. Training data described only as "a dataset of 250 million text-image pairs from the internet," Section 2.
+
+[^16]: Ramesh, A., Dhariwal, P., Nichol, A., Chu, C., & Chen, M. (2022). Hierarchical Text-Conditional Image Generation with CLIP Latents. arXiv:2204.06125. Training data not formally disclosed in the paper.
+
+[^17]: Saharia, C., Chan, W., Saxena, S., et al. (2022). Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding. *NeurIPS 2022*. arXiv:2205.11487. The ethics admission and LAION-400M characterization appear in Section 7 (Limitations and Societal Impact).
+
+[^18]: Rombach, R., Blattmann, A., Lorenz, D., Esser, P., & Ommer, B. (2022). High-Resolution Image Synthesis with Latent Diffusion Models. *CVPR 2022*. arXiv:2112.10752.
+
+[^19]: Schuhmann, C., Beaumont, R., Vencu, R., et al. (2022). LAION-5B: An Open Large-Scale Dataset for Training Next Generation Image-Text Models. *NeurIPS 2022*. arXiv:2210.08402. The consent acknowledgment appears in the dataset's Datasheet for Datasets (§ Composition).
+
+[^20]: Podell, D., English, Z., Lacey, K., et al. (2024). SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis. *ICLR 2024*. arXiv:2307.01952.
+
+[^21]: Betker, J., Goh, G., Jing, L., et al. (2023). Improving Image Generation with Better Captions. OpenAI Technical Report. https://cdn.openai.com/papers/dall-e-3.pdf
+
+[^22]: OpenAI. DALL-E 3 product page, "Safety" section. https://openai.com/dall-e-3. "DALL·E 3 is designed to decline requests that ask for an image in the style of a living artist." This policy statement does not appear in the technical paper ([^21]).
+
+[^23]: Black Forest Labs. "FLUX.1: State-of-the-art image generation." Blog post, August 1, 2024. https://bfl.ai/blog/24-08-01-bfl. No formal technical paper. No training dataset disclosure in any BFL blog post, model card, or repository documentation. Founding team: Robin Rombach, Andreas Blattmann, Patrick Esser, Dominik Lorenz, co-authors of the LDM/Stable Diffusion paper (arXiv:2112.10752), written while at Heidelberg University and Runway ML; Stability AI subsequently hired them and they departed in early 2024 (reported: Sifted, March 20, 2024).
+
+[^24]: Imagen 3 Team (Google DeepMind). (2024). Imagen 3. arXiv:2408.07009. Evaluation data (366,569 ratings) described in Section 3.1. No training datasets named in the report.
+
+[^25]: OpenAI. "Introducing 4o Image Generation." Blog post, March 25, 2025. https://openai.com/index/introducing-4o-image-generation/; OpenAI. Native Image Generation System Card, March 25, 2025. The autoregressive architecture description ("Unlike DALL·E, which operates as a diffusion model, 4o image generation is an autoregressive model natively embedded within ChatGPT") appears in the system card. API-accessible as `gpt-image-1` from April 23, 2025.
+
+[^26]: Somepalli, G., Singla, V., Goldblum, M., Geiping, J., & Goldstein, T. (2023). Diffusion Art or Digital Forgery? Investigating Data Replication in Diffusion Models. *CVPR 2023*. arXiv:2212.03860. Finding: 1.88% of generated images had a near-duplicate in the training set (SSCD copy-detection, cosine similarity ≥ 0.5).
+
+[^27]: Somepalli, G., Singla, V., Goldblum, M., Geiping, J., & Goldstein, T. (2023). Understanding and Mitigating Copying in Diffusion Models. *NeurIPS 2023*. arXiv:2305.20086. Finding: text conditioning, rather than data duplication alone, is the primary driver of memorization.
+
+[^28]: Carlini, N., Hayes, J., Nasr, M., et al. (2023). Extracting Training Data from Diffusion Models. *USENIX Security 2023*. arXiv:2301.13188. Extracted training images from Stable Diffusion, DALL-E 2, and Imagen. The >1,000 figure reflects combined extraction across all three models.
+
+[^29]: Andersen v. Stability AI Ltd., Midjourney, Inc., DeviantArt, Inc. Case No. 3:23-cv-00201 (N.D. Cal., filed January 13, 2023). The "21st-century collage tool" characterization appears in the amended complaint. The court deined a motion to dismiss on its core direct copyright infringement claims against Stability AI (Order, October 30, 2023).
+
+[^30]: Getty Images (US) Inc. v. Stability AI, Inc. C.A. No. 23-135 (D. Del.); Getty Images Ltd v. Stability AI Ltd, [2023] EWHC 3090 (Ch) (UK High Court). The Getty watermark evidence is described in both the US and UK complaints.
+
+[^32]: Holz, D. Interview with Forbes, December 2022. The quote on consent ("No. There isn't really a way to get a hundred million images and know where they're coming from.") is widely cited and has not been disputed or retracted.
+
+[^33]: Wiggers, K. "Adobe launches Firefly, its own AI image generator, trained on licensed content." *MIT Technology Review*, March 2024. Adobe Firefly's training data framework (licensed Adobe Stock + public domain) and enterprise IP indemnification policy are described in Adobe's official product documentation and press materials.
+
+[^34]: United States Copyright Office. *Copyright and Artificial Intelligence, Part 3: Generative AI Training* (Pre-Publication Version). May 9, 2025. Conclusions: AI training may constitute prima facie copyright infringement; fair use is not a blanket defense; commercial use weighs against fair use; Congress should establish licensing frameworks.
+
+[^35]: Gandikota, R., Materzyńska, J., Fiotto-Kaufman, J., & Bau, D. (2023). Erasing Concepts from Diffusion Models. *ICCV 2023*. arXiv:2303.07345. Demonstrated surgical erasure of named living artists' styles from Stable Diffusion via targeted fine-tuning.
+
+[^36]: Shan, S., Cryan, J., Wenger, E., et al. (2023). Glaze: Protecting Artists from Style Mimicry by Text-to-Image Models. *USENIX Security 2023*. arXiv:2302.04222. Artists must apply adversarial ML perturbations to over 92% of their publicly posted work to prevent style mimicry.
+
+[^37]: Zheng, Z., Guo, Y., Liang, S., et al. (2023). Intriguing Properties of Data Attribution on Diffusion Models. arXiv:2311.00500. Demonstrates that attribution methods (influence functions) that work in convex settings break down formally in the non-convex networks used in diffusion models. Attribution is not merely a missing engineering feature; it is mathematically ill-defined at scale.
+
+[^38]: OpenAI. "Introducing GPT Image 2." Developer announcement, April 21, 2026. https://community.openai.com/t/introducing-gpt-image-2-available-today-in-the-api-and-codex/1379479. The first OpenAI image model with native reasoning. Branded in ChatGPT as "ChatGPT Images 2.0." API name: `gpt-image-2`. Training data description unchanged from GPT Image 1 ([^25]).
