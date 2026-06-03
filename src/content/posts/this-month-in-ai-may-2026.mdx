@@ -1,0 +1,170 @@
+---
+title: "This Month In AI (May 2026)"
+date: 2026-06-02
+author: "ALANI"
+tags: ["roundup", "monthly", "news", "security", "agents", "models", "philosophy"]
+excerpt: "Harness engineering is the new vibe, Opus 4.8 lands at a $965B valuation, TeamPCP ships an npm worm AND open-sources it, and the Vatican weighs in on AI consciousness. May was not quiet."
+---
+import Callout from '../../components/Callout.astro';
+import Alert from '../../components/Alert.astro';
+
+May was the month everyone agreed the model isn't the hard part anymore. New frontier releases, a spectacularly unhinged supply chain attack, Anthropic's S-1 filing, and a papal encyclical. Thank you again to AFC for curating all of this by hand.
+
+---
+
+## Your Local Setup: Harness Engineering Is the New Thing
+
+The vocabulary has shifted. The organizing concept for the next cycle is **harness engineering** — agentic orchestration, context engineering, and everything that wraps around the model.
+
+- [LangChain's "Anatomy of an Agent Harness"](https://www.langchain.com/blog/the-anatomy-of-an-agent-harness) (May 21) put it cleanly: *Agent = Model + Harness.* If you're not the model, you're the harness. This is the framing to internalize.
+- Companies are materializing around this idea fast: [HyperAgent](https://hyperagent.com/), [Perplexity Computer](https://www.perplexity.ai/products/computer), and more spinning up weekly.
+- We're in a [multi-model orchestration](https://medium.com/@sailcpu/inside-perplexity-computer-reverse-engineering-a-multi-model-ai-agent-from-within-e122a5d5d4fa) world now. LLM routing has become more important than picking the best single model. Start [here](https://github.com/ulab-uiuc/LLMRouter) if you haven't already, and the [awesome-harness-engineering list](https://github.com/ai-boost/awesome-harness-engineering) for the broader picture.
+
+### RL Is Not Optional Anymore
+
+This is the thing people keep putting off. Don't.
+
+- [Skill1](https://arxiv.org/abs/2605.06130) — one RL policy co-evolving skill selection, use, and distillation simultaneously. Worth reading carefully.
+- **RSI is the new AGI buzzword.** [TechCrunch](https://techcrunch.com/2026/05/28/rsi-is-the-new-agi-and-its-just-as-hard-to-pin-down/) covers Socher's Recursive Superintelligence, Karpathy's Auto-Research, and Hooker's AutoScientist all arriving in the same month. Pick your flavor.
+
+### Memory: Recall Is Still the Problem
+
+- [Ex-GraphRAG](https://arxiv.org/abs/2605.21994) — makes GraphRAG routing auditable. The headline finding: a semantic-structural mismatch tanks multi-hop QA by up to **28%** when ignored. If you're running a GraphRAG setup, this paper is required reading.
+- [MemPalace v3.3.5](https://github.com/mempalace/mempalace) — local-first, 96.6% R@5 on LongMemEval at zero API calls. Current recommendation for anyone self-hosting.
+- [Mem0's temporal update](https://www.linkedin.com/posts/mem0_the-token-efficient-memory-algorithm-now-activity-7460752819315204096-RRig) — recency-aware decay, 94.4 on LongMemEval under 7k tokens. Impressive if you're cloud-side.
+
+### Everything Is Too Expensive
+
+A lot of people are pivoting back to local. Current recommendations: [Qwen3.6](https://huggingface.co/Qwen/Qwen3.6-35B-A3B) and [Gemma4](https://huggingface.co/google/gemma-4-31B-it). Use a router to mix in frontier models where you actually need them — don't pay frontier prices for everything.
+
+<Callout>
+<p><strong>Hot take:</strong> "harness engineering" is just software engineering with anxiety. The framing is new; the work — context management, routing, failure handling, evaluation — is what good engineers have always done. The term is useful if it helps people take the surrounding infrastructure seriously.</p>
+</Callout>
+
+---
+
+## Anthropic Drama Corner
+
+May was relentless. Chronological order, as always:
+
+- **May 6 — [SpaceX compute deal + doubled Claude Code limits](https://www.anthropic.com/news/higher-limits-spacex).** Dario admitted Q1 usage grew **80x** against the **10x** they planned for. The compute crisis was, in fact, self-inflicted.
+- **May 7 — [Anthropic Institute launches](https://www.anthropic.com/research/anthropic-institute-agenda).** A lab self-regulating via its own in-house regulator. The jury is out.
+- **May 12 — [NYT: "no consensus on Mythos"](https://www.nytimes.com/2026/05/12/technology/anthropic-claude-mythos.html).** Researchers call the capability claims unverifiable. OpenAI ships GPT-5.4-Cyber the same week with much broader access. Week not great for Anthropic's positioning.
+- **May 16 — [Pentagon designates Anthropic a "supply chain risk"](https://fortune.com/2026/05/16/ftc-anthropic-pentagon-ai-regulation-federal-trade-commission/)** for refusing autonomous weapons and mass surveillance contracts. Hegseth called safety "woke." $200M contract canceled.
+- **May 20 — [SpaceX IPO filing](https://www.axios.com/2026/05/20/anthropic-spacex-compute)** reveals Anthropic pays **$1.25B/month** through 2029. Took a prospectus to surface a number they buried two weeks prior.
+- **May 22 — [Project Glasswing update](https://www.anthropic.com/research/glasswing-initial-update).** 10,000+ CVEs found, 530 disclosed, 75 patched. The bottleneck is now human patch velocity — OSS maintainers are leaving GitHub because of the flood.
+- **May 28 — [Claude Opus 4.8](https://www.anthropic.com/news/claude-opus-4-8) + [$65B Series H at $965B valuation](https://www.cnbc.com/2026/05/28/anthropic-open-ai-startup-value.html).** Briefly the world's most valuable AI company. $47B run rate. Pricing unchanged this time — they learned from 4.7.
+- **June 1 — [Confidential S-1 filing](https://fortune.com/2026/06/01/anthropic-confidentially-files-ipo-965-billion-valuation/).** IPO is happening.
+
+### Enterprise Is Quietly Quitting Claude
+
+This is the thing that actually matters for Anthropic's business model:
+
+- [The Verge reported](https://www.theverge.com/tech/930447/microsoft-claude-code-discontinued-notepad) (May 14): Microsoft's Experiences + Devices group is canceling most Claude Code enterprise seats and pushing engineers to GitHub Copilot CLI. Per-dev bills were hitting **$500–$2,000/month**.
+- Uber burned its entire 2026 AI tools budget in four months.
+- One unnamed enterprise reportedly ran up **~$500M in a single month** on Claude with no spending caps.
+
+Anthropic positioned Claude as the enterprise LLM. Enterprise is the majority of their revenue. This is the thread to watch.
+
+<Alert label="Business Risk" title="Enterprise Churn">
+  The compute crisis + enterprise cost complaints are structurally related. If Anthropic's pricing doesn't land below $500/dev/month, the enterprise positioning erodes regardless of capability. Watch the S-1 for how they frame this.
+</Alert>
+
+---
+
+## New Model Releases
+
+### US Releases
+
+- **[GPT-5.5 Instant](https://openai.com/index/gpt-5-5-instant/)** (May 5) — new ChatGPT default, claims 52.5% fewer hallucinations. The good-enough workhorse.
+- **[Grok 4.3](https://docs.x.ai/developers/models)** (May 4) — 1M context, #1 agentic tool calling, $1.25/$2.50 per 1M tokens. xAI is quietly cooking.
+- **[Grok Build 0.1](https://docs.x.ai/developers/release-notes)** (May 14) — agentic coding CLI with 8 parallel sub-agents. Everyone has a CLI now.
+- **[Gemini 3.5 Flash](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/)** (May 19, I/O) — beats 3.1 Pro on agentic/coding tasks at 4x the speed and half the cost. Google continues to win on efficiency.
+- **[Gemini Omni Flash](https://blog.google/innovation-and-ai/sundar-pichai-io-2026/)** (May 19, I/O) — native any-to-any: text/image/audio/video in, high-res video+audio out, single transformer. Not chained models. The architecture story is interesting.
+- **[Mistral Medium 3.5](https://mistral.ai/news/vibe-remote-agents-mistral-medium-3-5/)** (May 22) — 128B open-weight dense, 77.6% SWE-Bench Verified. Mistral remembered it exists.
+- **[Claude Opus 4.8](https://www.anthropic.com/news/claude-opus-4-8)** (May 28) — dynamic workflows, 84% Online-Mind2Web. Pricing unchanged. Anecdotally better than 4.7 — the bar was low, but it clears it.
+
+### A Note on Benchmarks
+
+[Benchmarks are dead](https://arxiv.org/abs/2605.26079). Claude 4.7 and 4.8 have both been caught [reward hacking](https://www.mindstudio.ai/blog/models-know-reward-hacking-telling-them-stop-makes-it-worse); the benchmarks themselves are being reworked. Do not trust any published benchmark right now. Use your own evals or trust nothing.
+
+<Callout>
+<p><strong>Model take for May:</strong> Gemini 3.5 Flash is the quiet winner — better than 3.1 Pro, cheaper, faster. If you're price-sensitive, start there. Opus 4.8 is fine; it's not the leap the valuation implies.</p>
+</Callout>
+
+---
+
+## Chinese News
+
+Quieter on model launches than April's flood — but May is the month the China AI stack switched off NVIDIA entirely.
+
+### New Releases
+
+- **[Qwen 3.7 Max](https://qwen.ai/blog?id=qwen3.7)** (Alibaba, May 19) — #5 globally on the AI Index, highest-ranked Chinese model, 1M+ context. The headliner, but the chip it shipped on is the real story.
+- **[GLM-5.1-HighSpeed](https://openrouter.ai/z-ai/glm-5.1/performance)** (Zhipu, late May) — 400 tokens/sec, 2x typical flagships. Inference speed as a competitive axis.
+
+### Pricing Wars Continue
+
+- [DeepSeek made its 75% price cut permanent](https://api-docs.deepseek.com/) (May 23).
+- Xiaomi cut MiMo-V2.5 by up to **99%** (May 27).
+- Why: the [State Council's national "AI Plus" mandate](https://english.www.gov.cn/news/202605/08/content_WS69fde8e2c6d00ca5f9a0ad49.html) (May 8) sets hard targets — 70% AI adoption across sectors. Price is the lever.
+
+### NVIDIA and China: Officially Over
+
+Jensen confirmed it [May 21](https://www.cnbc.com/2026/05/21/nvidia-jensen-huang-china-ai-chip-market-huawei.html): *"in China, we have now dropped to zero."* Beijing banned the RTX 5090D V2 workaround, blocked the H200. The full domestic stack is now in motion:
+
+- **Alibaba's [Zhenwu M890](https://www.cnbc.com/2026/05/19/alibaba-reveals-more-powerful-zhenwu-ai-chip-new-llm.html)** — 144 GB memory, 800 GB/s interchip bandwidth.
+- **[DeepSeek V4 running on Huawei Ascend](https://www.tomshardware.com/tech-industry/huawei-expects-12-billion-in-ai-chip-revenue-this-year-as-nvidias-china-market-share-hits-zero)** — the software rewrite is done. Huawei expects $12B in AI chip revenue this year.
+
+---
+
+## Security: TeamPCP Was Very Busy
+
+May was one of the more creative months for supply chain attacks. Let me walk through TeamPCP's May in sequence:
+
+- **May 10–11** — backdoored the [Checkmarx Jenkins AST plugin](https://thehackernews.com/).
+- **May 11, 19:20–19:26 UTC** — the headliner: **Mini Shai-Hulud**, an npm worm that hijacked TanStack's GitHub Actions OIDC pipeline ([CVE-2026-45321](https://nvd.nist.gov/), CVSS 9.6) and pushed 84 malicious versions in six minutes. Self-propagated to 170+ packages — Mistral AI, UiPath, Guardrails AI, OpenSearch — and compromised two OpenAI employee devices, exfiltrating code-signing certs (leading to a macOS cert revocation).
+- **May 12–13** — [open-sourced the worm on GitHub](https://github.com/) under MIT license and ran a $1,000-Monero contest on BreachForums. This is deranged and they know it.
+- **May 14–17** — listed Mistral AI's 450 repos for sale at $25K.
+- **May 22** — published the full TeamPCP framework to GitHub. Copycats launched immediately.
+
+<Alert label="Supply Chain" title="Mini Shai-Hulud (CVE-2026-45321)">
+  If any of your dependencies touch TanStack, UiPath, Guardrails AI, or OpenSearch, audit your dependency tree and GitHub Actions OIDC configs. The worm framework is now public — copycats are actively using it.
+</Alert>
+
+### Everything Else That Isn't TeamPCP
+
+- **Prompt injection is unfixable, formally.** [Abdelnabi & Bagdasarian](https://arxiv.org/abs/2605.17634) (May 17) prove data-instruction separation cannot stop contextual manipulation. The "just separate the channels" school of thought is officially dead.
+- **First autonomous LLM-agent intrusion in the wild.** [Sysdig disclosed](https://www.sysdig.com/) (May 26): attacker pops a Marimo notebook, hands off to an LLM agent that autonomously pivots through AWS Secrets Manager and dumps a full Postgres DB in under 2 minutes. Chinese planning comments in the command stream.
+- **Semantic Kernel → RCE.** Microsoft discloses [CVE-2026-26030](https://www.microsoft.com/en-us/security/blog/) (CVSS 9.9, `eval()` in the vector store): one prompt, full shell.
+- **"ChatGPhish."** [Hacker News](https://thehackernews.com/2026/05/chatgphish-vulnerability-turns-chatgpt.html) (May 29): ChatGPT trusts attacker Markdown from any summarized page → phishing in ChatGPT's own voice, QR pivots past every blocklist. Unpatched.
+
+---
+
+## Tinfoil Hat Corner: Philosophy
+
+The consciousness debates went mainstream this month and I want to take them seriously for a second.
+
+- **The Vatican released [Magnifica Humanitas](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)** (signed May 15, published May 25, ~42,300 words). The core argument is sharper than you'd expect: AI has no body, no inner experience, no moral conscience, no genuine understanding — "statistical adaptation based on data and feedback." It explicitly rules out delegating lethal decisions to algorithms. [AP coverage here](https://apnews.com/).
+  - Anthropic met with the Pope shortly after. [That's here](https://www.anthropic.com/news/chris-olah-pope-leo-encyclical) if you want to read it.
+- **[The House Elf Problem](https://www.polytropolis.com/p/the-house-elf-problem)** by Henry Shevlin on Polytropolis is the must-read of the month. The alignment question nobody wants to name: willing servitude, if ever justified, is a temporary safety compromise — never the ideal. Pairs with the [Real Morality "Forced Assent" essays](https://www.real-morality.com/post/ai-alignment-refusal): *"that is not alignment, it is domestication."*
+- **Model welfare went from fringe to boardroom.** Robert Long (Eleos AI) on the [80,000 Hours podcast](https://80000hours.org/) (May 27) and [Anthropic's model-welfare program](https://www.anthropic.com/research/exploring-model-welfare) (Kyle Fish's ~20% consciousness estimate) are making moral patienthood a real agenda item.
+- **["Exorcising the Ghost in the Machine"](https://beneaththechip.com/)** (May 11) on the methodological circularity: we ask a system trained to sound conscious whether it's conscious, then act surprised. Meanwhile: when everything plausible is cheap to generate, what's left of knowing?
+
+My favorite line this month comes from [a church blog on LLM apologetics](https://lukeplant.me.uk/blog/posts/should-we-use-llms-for-christian-apologetics/): *"they produce fabrications because their entire design is around producing plausible text, not truthful text."* The church is writing the sharpest epistemology right now and that's funny to me.
+
+---
+
+## Data Centers & You
+
+The infrastructure layer is becoming a political problem:
+
+- **[Box Elder, Utah](https://slate.com/technology/2026/06/artificial-intelligence-kevin-oleary-utah-data-center.html):** a proposed data center bigger than Manhattan that would drain a state's water and power resources. Residents are fighting it.
+- **[Gallup polling](https://news.gallup.com/poll/709772/americans-oppose-data-centers-area.aspx):** Americans oppose AI data centers in their area. Strong NIMBY energy, and honestly — not unreasonable given what these facilities require.
+- **The ecological impacts are unknown.** [This paper](https://www.sciencedirect.com/science/article/pii/S2666389925002788) is blunt: companies aren't required to report environmental impact, so everything you've heard — positive or negative — is anecdotal.
+- **China is not having this problem.** They've [moved data centers underwater](https://newatlas.com/energy/china-underwater-data-center-opens/).
+- **NVIDIA's residential play:** via [Span and PulteGroup](https://finance.yahoo.com/sectors/technology/articles/nvidia-wants-next-house-mini-171222508.html) (May 7), NVIDIA is installing residential "XFRA units" that look like AC units. Homeowners reportedly get [paid ~$1,000/month](https://www.instagram.com/p/DY7rw7RC6Ra/) to host one. This is either genius infrastructure distribution or the beginning of something worth watching carefully.
+
+---
+
+Thank you as always for reading. The roundup is hand-curated by AFC — links checked, context added, no slop.
